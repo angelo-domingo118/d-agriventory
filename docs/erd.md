@@ -1,278 +1,259 @@
+---
+config:
+  theme: redux-dark-color
+---
 erDiagram
     users {
-        bigint id PK
-        varchar name
-        varchar email UK
-        varchar password
-        varchar remember_token
-        timestamp email_verified_at
-        timestamp created_at
-        timestamp updated_at
+        bigint id PK " // mandatory"
+        varchar name " // mandatory"
+        varchar email UK " // mandatory"
+        varchar password " // mandatory"
+        varchar remember_token " // nullable"
+        timestamp email_verified_at " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
     }
-
     admin_users {
-        bigint id PK
-        bigint user_id FK
-        timestamp created_at
-        timestamp updated_at
+        bigint id PK " // mandatory"
+        bigint user_id FK " // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
     }
-
-    clerk_users {
-        bigint id PK
-        bigint user_id FK
-        bigint division_id FK
-        timestamp created_at
-        timestamp updated_at
+    division_inventory_managers {
+        bigint id PK " // mandatory"
+        bigint user_id FK " // mandatory"
+        bigint division_id FK, UK "The division this user manages. One manager per division. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
     }
-
-    divisions {
-        bigint id PK
-        varchar name
-        varchar code
-        varchar description
-        timestamp created_at
-        timestamp updated_at
-    }
-
     employees {
-        bigint id PK
-        varchar name
-        timestamp created_at
-        timestamp updated_at
+        bigint id PK " // mandatory"
+        varchar name " // mandatory"
+        varchar position "The job title or position of the employee. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
     }
-
+    division_chiefs {
+        bigint id PK " // mandatory"
+        varchar name " // mandatory"
+        bigint division_position_id FK "The position this chief holds. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    divisions {
+        bigint id PK " // mandatory"
+        varchar name UK "Name of the division or office. // mandatory"
+        varchar code UK "Unique code for the division. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
     suppliers {
-        bigint id PK
-        varchar name UK
-        varchar contact_info
-        timestamp created_at
-        timestamp updated_at
+        bigint id PK " // mandatory"
+        varchar name UK " // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    primary_categories {
+        bigint id PK " // mandatory"
+        varchar name UK " // mandatory"
+        varchar code UK " // mandatory"
+        text description " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    secondary_categories {
+        bigint id PK " // mandatory"
+        bigint primary_category_id FK " // mandatory"
+        varchar name UK " // mandatory"
+        varchar code UK " // mandatory"
+        text description " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    items_catalog {
+        bigint id PK " // mandatory"
+        varchar name UK "Generic item name. // mandatory"
+        varchar unit "unit of measure. // mandatory"
+        bigint secondary_category_id FK " // mandatory"
+        varchar code UK "Universal item code. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    division_positions {
+        bigint id PK " // mandatory"
+        varchar name UK "Division position title. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    contracts {
+        bigint id PK " // mandatory"
+        bigint supplier_id FK " // mandatory"
+        varchar contract_po_ib_number UK " // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    item_specifications {
+        bigint id PK " // mandatory"
+        bigint item_catalog_id FK " // mandatory"
+        varchar brand " // nullable"
+        varchar model " // nullable"
+        text detailed_specifications " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    contract_items {
+        bigint id PK " // mandatory"
+        bigint contract_id FK " // mandatory"
+        bigint item_specification_id FK " // mandatory"
+        decimal unit_price " // mandatory"
+        enum item_type "ICS, PAR, IDR. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    ics_number {
+        bigint id PK " // mandatory"
+        bigint assigned_employee_id FK " // mandatory"
+        bigint contract_item_id FK " // mandatory"
+        enum ics_type "SPLV, SPHV. // mandatory"
+        int estimated_useful_life "ICS specific field. // mandatory"
+        date date_accepted " // mandatory"
+        text remarks " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    ics_item_batches {
+        bigint id PK " // mandatory"
+        bigint ics_number_id FK " // mandatory"
+        int quantity "Quantity for this batch. // mandatory"
+        text identification_data "Serial numbers, asset tags. // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    ics_transfers {
+        bigint id PK " // mandatory"
+        bigint ics_number_id FK " // mandatory"
+        bigint from_employee_id FK " // mandatory"
+        bigint to_employee_id FK " // mandatory"
+        date transfer_date " // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    par_number {
+        bigint id PK " // mandatory"
+        bigint assigned_employee_id FK " // mandatory"
+        bigint contract_item_id FK " // mandatory"
+        bigint equipment_code_id FK " // mandatory"
+        varchar area_code "PAR specific field. // mandatory"
+        varchar building_code "PAR specific field. // mandatory"
+        varchar account_code "PAR specific field. // mandatory"
+        date date_accepted " // mandatory"
+        text remarks " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    par_item_batches {
+        bigint id PK " // mandatory"
+        bigint par_number_id FK " // mandatory"
+        int quantity "Quantity for this batch. // mandatory"
+        text identification_data "Serial numbers, asset tags. // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    par_transfers {
+        bigint id PK " // mandatory"
+        bigint par_number_id FK " // mandatory"
+        bigint from_employee_id FK " // mandatory"
+        bigint to_employee_id FK " // mandatory"
+        date transfer_date " // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    idr_number {
+        bigint id PK " // mandatory"
+        int number UK "Sequential IDR/RSMI number. // mandatory"
+        bigint assigned_employee_id FK "The employee responsible for the stock (e.g. Supply Officer). // mandatory"
+        bigint division_chief_id FK " // mandatory"
+        bigint contract_item_id FK " // mandatory"
+        varchar inventory_code "IDR specific field. // mandatory"
+        varchar ors "IDR specific field. // mandatory"
+        date date_accepted " // mandatory"
+        text remarks " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    idr_item_batches {
+        bigint id PK " // mandatory"
+        bigint idr_number_id FK " // mandatory"
+        int quantity "The initial total quantity for this batch/card. // mandatory"
+        text identification_data "Serial numbers, asset tags. // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    acknowledgement_receipts {
+        bigint id PK " // mandatory"
+        bigint idr_item_batch_id FK "The batch this AR draws from. // mandatory"
+        int quantity_reduced "Quantity taken/reduced in this transaction. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    consumable_records {
+        bigint id PK " // mandatory"
+        varchar record_number UK "Unique record number for this batch. // mandatory"
+        bigint division_id FK "The division that owns this stock. // mandatory"
+        date date_received " // mandatory"
+        text remarks " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    consumable_items {
+        bigint id PK " // mandatory"
+        bigint consumable_record_id FK " // mandatory"
+        bigint item_specification_id FK " // mandatory"
+        int initial_quantity " // mandatory"
+        int current_quantity "Updated by the division inventory manager. // mandatory"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
+    audit_logs {
+        bigint id PK " // mandatory"
+        bigint user_id FK "The user who performed the action. // nullable"
+        varchar table_name "The table where the action occurred (e.g., 'users', 'items_catalog'). // mandatory"
+        bigint record_id "The ID of the record in the 'table_name' that was affected. // mandatory"
+        varchar action_type "e.g., 'CREATE', 'UPDATE', 'DELETE'. // mandatory"
+        json old_values "JSON blob of the record's state before the change (for UPDATE/DELETE). // nullable"
+        json new_values "JSON blob of the record's state after the change (for CREATE/UPDATE). // nullable"
+        text description "Optional: A brief description or reason for the action. // nullable"
+        timestamp created_at "Timestamp of the log entry. // mandatory"
     }
 
-    articles {
-        bigint id PK
-        varchar name UK
-        varchar unit
-        enum category "consumable, par, ics, idr"
-        enum status "active, inactive"
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    article_descriptions {
-        bigint id PK
-        bigint article_id FK
-        varchar brand
-        varchar model
-        text description
-        decimal unit_cost
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    consumables {
-        bigint id PK
-        bigint article_description_id FK
-        bigint division_id FK
-        int quantity_on_hand
-        int reorder_level
-        int max_stock_level
-        timestamp last_updated
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    par_groups {
-        bigint id PK
-        varchar par_number UK "PAR Number"
-        bigint article_description_id FK
-        bigint assigned_employee_id FK
-        date date_prepared
-        int total_quantity
-        varchar unit_measure
-        int year_acquired
-        varchar account_code
-        varchar area_code
-        varchar building_code
-        date date_accepted
-        bigint supplier_id FK
-        varchar contract_po_ib_number
-        text remarks
-        varchar issued_to
-        varchar issued_to_position
-        varchar re_issued_to
-        varchar re_issued_to_position
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    par_items {
-        bigint id PK
-        bigint par_group_id FK
-        varchar series_number UK
-        varchar old_property_number
-        enum item_status "active, transferred, disposed"
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ics_groups {
-        bigint id PK
-        varchar ics_number UK "ICS Number"
-        bigint article_description_id FK
-        bigint assigned_employee_id FK
-        date date_prepared
-        int total_quantity
-        varchar unit_measure
-        enum ics_type "sphv, splv"
-        varchar month_acquired
-        int year
-        int estimated_useful_life
-        date date_accepted
-        bigint supplier_id FK
-        varchar contract_po_ib_number
-        text remarks
-        varchar issued_to
-        varchar issued_to_position
-        varchar re_issued_to
-        varchar re_issued_to_position
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ics_items {
-        bigint id PK
-        bigint ics_group_id FK
-        varchar series_number UK
-        varchar old_property_number
-        enum item_status "active, transferred, disposed"
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    idr_groups {
-        bigint id PK
-        varchar rsmi_number UK "RSMI Number"
-        bigint article_description_id FK
-        bigint assigned_employee_id FK
-        date date_prepared
-        int total_quantity
-        varchar unit_measure
-        varchar inventory_code
-        int year_acquired
-        varchar location_code
-        date date_accepted
-        bigint supplier_id FK
-        varchar contract_po_ib_number
-        varchar ors_number
-        varchar issued_to
-        varchar issued_to_position
-        int balance_per_card
-        varchar ar_submitted_1
-        varchar ar_submitted_2
-        varchar ar_submitted_3
-        varchar ar_submitted_4
-        varchar latest_ar
-        text remarks
-        varchar item_no
-        varchar division_chief
-        varchar division_position
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    idr_items {
-        bigint id PK
-        bigint idr_group_id FK
-        varchar series_number UK
-        enum item_status "active, transferred, disposed"
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    inventory_transactions {
-        bigint id PK
-        bigint article_description_id FK
-        bigint admin_user_id FK
-        enum transaction_type "stock_in, stock_out, adjustment, transfer"
-        int quantity
-        decimal unit_cost
-        text reference_number
-        text remarks
-        timestamp transaction_date
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    admin_sessions {
-        varchar id PK
-        bigint admin_user_id FK
-        varchar ip_address
-        text user_agent
-        longtext payload
-        int last_activity
-    }
-
-    clerk_sessions {
-        varchar id PK
-        bigint clerk_user_id FK
-        varchar ip_address
-        text user_agent
-        longtext payload
-        int last_activity
-    }
-
-    password_reset_tokens {
-        varchar email PK
-        varchar token
-        timestamp created_at
-    }
-
-    %% Base User Relationships
-    users ||--|| admin_users : "extends"
-    users ||--|| clerk_users : "extends"
-    users ||--|| password_reset_tokens : "has"
-
-    %% User Management Relationships
-    admin_users ||--o{ admin_sessions : "has"
-    clerk_users ||--o{ clerk_sessions : "has"
-
-    %% Division Relationships
-    divisions ||--|| clerk_users : "has_one_clerk"
-    divisions ||--o{ consumables : "contains"
-
-    %% Article Structure Relationships
-    articles ||--o{ article_descriptions : "has_variants"
-    suppliers ||--o{ par_groups : "supplies"
-    suppliers ||--o{ ics_groups : "supplies"
-    suppliers ||--o{ idr_groups : "supplies"
-
-    %% Article Description Relationships
-    article_descriptions ||--o{ consumables : "stocked_as"
-    article_descriptions ||--o{ par_groups : "defined_as"
-    article_descriptions ||--o{ ics_groups : "defined_as"
-    article_descriptions ||--o{ idr_groups : "defined_as"
-
-    %% Group to Individual Item Relationships
-    par_groups ||--o{ par_items : "contains"
-    ics_groups ||--o{ ics_items : "contains"
-    idr_groups ||--o{ idr_items : "contains"
-
-    %% Employee Assignment Relationships
-    employees ||--o{ par_groups : "assigned_to"
-    employees ||--o{ ics_groups : "assigned_to"
-    employees ||--o{ idr_groups : "assigned_to"
-
-    %% Admin Access to Core Tables
-    admin_users ||--o{ articles : "manages"
-    admin_users ||--o{ employees : "manages"
-    admin_users ||--o{ par_groups : "manages"
-    admin_users ||--o{ ics_groups : "manages"
-    admin_users ||--o{ idr_groups : "manages"
-
-    %% Transaction Relationships
-    article_descriptions ||--o{ inventory_transactions : "tracks"
-    admin_users ||--o{ inventory_transactions : "records"
-
-    %% Division-Consumable Relationship
-    clerk_users ||--o{ consumables : "manages"
+    users ||--|| admin_users : "is_an"
+    users ||--|| division_inventory_managers : "can_be_a"
+    divisions ||--o| division_inventory_managers : "is_managed_by"
+    primary_categories ||--o{ secondary_categories : "contains"
+    secondary_categories ||--o{ items_catalog : "categorizes"
+    items_catalog ||--o{ item_specifications : "has_variants"
+    suppliers ||--o{ contracts : "supplies"
+    contracts ||--o{ contract_items : "contains"
+    item_specifications ||--o{ contract_items : "specified_in"
+    division_positions ||--o{ division_chiefs : "defines_role_for"
+    employees ||--o{ ics_number : "assigned_ics"
+    contract_items ||--o{ ics_number : "sourced_from_ics"
+    ics_number ||--o{ ics_item_batches : "contains_ics_batches"
+    ics_number ||--o{ ics_transfers : "transferred_via_ics"
+    employees ||--o{ ics_transfers : "ics_from_employee"
+    employees ||--o{ ics_transfers : "ics_to_employee"
+    employees ||--o{ par_number : "assigned_par"
+    contract_items ||--o{ par_number : "sourced_from_par"
+    par_number ||--o{ par_item_batches : "contains_par_batches"
+    par_number ||--o{ par_transfers : "transferred_via_par"
+    employees ||--o{ par_transfers : "par_from_employee"
+    employees ||--o{ par_transfers : "par_to_employee"
+    division_chiefs ||--o{ idr_number : "approves"
+    employees ||--o{ idr_number : "is_assigned_to"
+    contract_items ||--o{ idr_number : "sourced_from_idr"
+    idr_number ||--o{ idr_item_batches : "contains_idr_batches"
+    idr_item_batches ||--o{ acknowledgement_receipts : "is_drawn_down_by"
+    divisions ||--o{ consumable_records : "owns"
+    consumable_records ||--o{ consumable_items : "details"
+    item_specifications ||--o{ consumable_items : "specifies"
+    users ||--o{ audit_logs : "performed_action"
