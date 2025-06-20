@@ -1,3 +1,5 @@
+```mermaid
+
 ---
 config:
   theme: redux-dark-color
@@ -29,14 +31,8 @@ erDiagram
     employees {
         bigint id PK " // mandatory"
         varchar name " // mandatory"
-        varchar position "The job title or position of the employee. // mandatory"
-        timestamp created_at " // mandatory"
-        timestamp updated_at " // mandatory"
-    }
-    division_chiefs {
-        bigint id PK " // mandatory"
-        varchar name " // mandatory"
-        bigint division_position_id FK "The position this chief holds. // mandatory"
+        bigint division_id FK "The division this employee belongs to. // nullable"
+        bigint position_id FK "The specific position/role. // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
     }
@@ -79,9 +75,12 @@ erDiagram
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
     }
-    division_positions {
+    positions {
         bigint id PK " // mandatory"
-        varchar name UK "Division position title. // mandatory"
+        varchar title UK "Position title: Chief Administrative Officer, HRMDS Chief, Rice Coordinator, HVCDP Coordinator, SAAD Operations Officer, etc. // mandatory"
+        varchar code UK "Position code/abbreviation. // nullable"
+        enum position_type "DIVISION_CHIEF, COORDINATOR, FOCAL_PERSON, OFFICER, SPECIALIST, OTHER. // mandatory"
+        text description "Position description and responsibilities. // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
     }
@@ -142,7 +141,6 @@ erDiagram
         bigint id PK " // mandatory"
         bigint assigned_employee_id FK " // mandatory"
         bigint contract_item_id FK " // mandatory"
-        bigint equipment_code_id FK " // mandatory"
         varchar area_code "PAR specific field. // mandatory"
         varchar building_code "PAR specific field. // mandatory"
         varchar account_code "PAR specific field. // mandatory"
@@ -172,7 +170,7 @@ erDiagram
         bigint id PK " // mandatory"
         int number UK "Sequential IDR/RSMI number. // mandatory"
         bigint assigned_employee_id FK "The employee responsible for the stock (e.g. Supply Officer). // mandatory"
-        bigint division_chief_id FK " // mandatory"
+        bigint approving_employee_id FK "The division chief who approves this IDR. // mandatory"
         bigint contract_item_id FK " // mandatory"
         varchar inventory_code "IDR specific field. // mandatory"
         varchar ors "IDR specific field. // mandatory"
@@ -229,13 +227,14 @@ erDiagram
     users ||--|| admin_users : "is_an"
     users ||--|| division_inventory_managers : "can_be_a"
     divisions ||--o| division_inventory_managers : "is_managed_by"
+    divisions ||--o{ employees : "employs"
+    positions ||--o{ employees : "defines_role_for"
     primary_categories ||--o{ secondary_categories : "contains"
     secondary_categories ||--o{ items_catalog : "categorizes"
     items_catalog ||--o{ item_specifications : "has_variants"
     suppliers ||--o{ contracts : "supplies"
     contracts ||--o{ contract_items : "contains"
     item_specifications ||--o{ contract_items : "specified_in"
-    division_positions ||--o{ division_chiefs : "defines_role_for"
     employees ||--o{ ics_number : "assigned_ics"
     contract_items ||--o{ ics_number : "sourced_from_ics"
     ics_number ||--o{ ics_item_batches : "contains_ics_batches"
@@ -248,8 +247,8 @@ erDiagram
     par_number ||--o{ par_transfers : "transferred_via_par"
     employees ||--o{ par_transfers : "par_from_employee"
     employees ||--o{ par_transfers : "par_to_employee"
-    division_chiefs ||--o{ idr_number : "approves"
     employees ||--o{ idr_number : "is_assigned_to"
+    employees ||--o{ idr_number : "approves_idr"
     contract_items ||--o{ idr_number : "sourced_from_idr"
     idr_number ||--o{ idr_item_batches : "contains_idr_batches"
     idr_item_batches ||--o{ acknowledgement_receipts : "is_drawn_down_by"
