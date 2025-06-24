@@ -19,7 +19,7 @@
         @fluxAppearance
     </head>
     <body class="bg-background dark:bg-stone-950 text-foreground flex p-6 lg:p-8 items-center flex-col min-h-screen">
-        <header class="w-full lg:max-w-4xl max-w-[335px] text-sm mb-6">
+        <header class="w-full max-w-5xl text-sm mb-6">
             <nav class="flex items-center justify-between gap-4">
                 <a href="{{ url('/') }}" class="flex items-center gap-2 text-stone-900 dark:text-white">
                     <x-app-logo-icon class="size-8" />
@@ -40,11 +40,11 @@
                                     Log in
                                 </flux:button>
 
-                                @if (Route::has('register'))
+                                {{-- @if (Route::has('register'))
                                     <flux:button :href="route('register')" variant="filled">
                                         Register
                                     </flux:button>
-                                @endif
+                                @endif --}}
                             @endauth
                         </div>
                     @endif
@@ -56,16 +56,9 @@
                 <h1 class="text-4xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-6xl">
                     Welcome to D'Agriventory
                 </h1>
-                <p class="mt-6 text-lg leading-8 text-stone-600 dark:text-stone-400">
+                <p class="mt-6 text-base leading-7 text-stone-600 dark:text-stone-400 sm:text-lg sm:leading-8">
                     The modern inventory management system for the Department of Agriculture. Streamline your procurement, tracking, and auditing processes with an intuitive and powerful interface.
                 </p>
-                <div class="mt-10 flex items-center justify-center">
-                    @guest
-                        <flux:button :href="route('register')" variant="primary">
-                            Get Started Today
-                        </flux:button>
-                    @endguest
-                </div>
             </main>
         </div>
     </body>
