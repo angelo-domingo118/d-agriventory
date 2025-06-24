@@ -6,7 +6,21 @@ state(['user' => fn () => auth()->user() ?? null]);
 
 on([
     'profile-updated' => function () {
-        $this->user = auth()->user()?->fresh() ?? abort(401);
+        // First check if the user is authenticated
+        if (!auth()->user()) {
+            abort(401);
+        }
+        
+        // Get the fresh user data
+        $freshUser = auth()->user()->fresh();
+        
+        // Ensure the fresh user data is valid
+        if (!$freshUser) {
+            abort(401);
+        }
+        
+        // Assign the fresh user data only if it's valid
+        $this->user = $freshUser;
     }
 ]);
 
@@ -16,7 +30,7 @@ on([
     <flux:profile
         :name="$user->name"
         :initials="$user->initials()"
-        icon:trailing="chevrons-up-down"
+        icon:trailing="chevrons-up-down"                            
     />
 
     <flux:menu class="w-[220px]">
