@@ -10,7 +10,7 @@ class IcsNumber extends Model
 {
     /**
      * The table associated with the model.
-     * 
+     *
      * Note: This table uses the singular naming convention 'ics_number' instead of the Laravel
      * plural convention 'ics_numbers'. This is intentional to maintain consistency with the
      * business terminology where "ICS Number" refers to a specific inventory document type.

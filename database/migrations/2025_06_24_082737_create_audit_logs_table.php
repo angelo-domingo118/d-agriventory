@@ -19,9 +19,9 @@ return new class extends Migration
             $table->string('action_type')->comment("e.g., 'CREATE', 'UPDATE', 'DELETE'.");
             $table->json('old_values')->nullable()->comment("JSON blob of the record's state before the change (for UPDATE/DELETE).");
             $table->json('new_values')->nullable()->comment("JSON blob of the record's state after the change (for CREATE/UPDATE).");
-            $table->text('description')->nullable()->comment("Optional: A brief description or reason for the action.");
+            $table->text('description')->nullable()->comment('Optional: A brief description or reason for the action.');
             $table->timestamp('created_at')->useCurrent();
-            
+
             // Add indexes for frequently queried columns
             $table->index('table_name');
             $table->index('action_type');

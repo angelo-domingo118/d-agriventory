@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class AdminUser extends Model
 {
+    use HasFactory;
+
     /**
      * The allowed permission keys.
      *
@@ -18,8 +20,9 @@ class AdminUser extends Model
         'view_users', 'create_users', 'edit_users', 'delete_users',
         'view_inventory', 'create_inventory', 'edit_inventory', 'delete_inventory',
         'view_reports', 'create_reports', 'export_reports',
-        'manage_settings'
+        'manage_settings',
     ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -46,7 +49,7 @@ class AdminUser extends Model
 
     /**
      * Validation rules for AdminUser attributes.
-     * 
+     *
      * Note: These rules are not automatically applied by Laravel.
      * Use the static rules() method to access these rules in controllers,
      * form requests, or validation logic.
@@ -82,8 +85,7 @@ class AdminUser extends Model
     /**
      * Set the role attribute.
      *
-     * @param string $value
-     * @return void
+     * @param  string  $value
      */
     public function setRoleAttribute($value): void
     {
@@ -92,9 +94,6 @@ class AdminUser extends Model
 
     /**
      * Validate if the given role is valid.
-     *
-     * @param string $role
-     * @return bool
      */
     public function validateRole(string $role): bool
     {
@@ -102,14 +101,11 @@ class AdminUser extends Model
             'role' => static::$rules['role'],
         ]);
 
-        return !$validator->fails();
+        return ! $validator->fails();
     }
 
     /**
      * Get error message for invalid role.
-     *
-     * @param string $role
-     * @return string
      */
     public function getRoleErrorMessage(string $role): string
     {
@@ -119,43 +115,47 @@ class AdminUser extends Model
     /**
      * Set the permissions attribute.
      *
-     * @param mixed $value
-     * @return void
+     * @param  mixed  $value
      */
     public function setPermissionsAttribute($value): void
     {
         // If null, set as null and return
         if ($value === null) {
             $this->attributes['permissions'] = null;
+
             return;
         }
 
         // Handle array input
         if (is_array($value)) {
-            if (!$this->validatePermissionStructure($value)) {
+            if (! $this->validatePermissionStructure($value)) {
                 // Don't throw an exception, just assign the invalid value
                 // Validation should be done outside the mutator
                 $this->attributes['permissions'] = json_encode($value);
+
                 return;
             }
-            
+
             $jsonValue = json_encode($value);
             if ($jsonValue === false) {
                 // Handle json_encode failure
                 $this->attributes['permissions'] = null;
+
                 return;
             }
-            
+
             $this->attributes['permissions'] = $jsonValue;
+
             return;
         }
 
         // Handle string input
         $decoded = json_decode($value, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded) || !$this->validatePermissionStructure($decoded)) {
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded) || ! $this->validatePermissionStructure($decoded)) {
             // Don't throw an exception, just assign the value as is
             // Validation should be handled outside the mutator
             $this->attributes['permissions'] = $value;
+
             return;
         }
 
@@ -166,7 +166,7 @@ class AdminUser extends Model
     /**
      * Validate the permissions data.
      *
-     * @param mixed $permissions
+     * @param  mixed  $permissions
      * @return array|bool Array of errors or true if valid
      */
     public function validatePermissions($permissions)
@@ -176,41 +176,48 @@ class AdminUser extends Model
         }
 
         $permissionsString = is_array($permissions) ? json_encode($permissions) : $permissions;
-        
+
         // Check if it's valid JSON
         $decoded = json_decode($permissionsString, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return ['Invalid JSON format: ' . json_last_error_msg()];
+            return ['Invalid JSON format: '.json_last_error_msg()];
         }
-        
+
         // Check if it's an array after decoding
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             return ['Permissions must be a JSON object'];
         }
-        
+
         // Check permission structure
-        if (!$this->validatePermissionStructure($decoded)) {
+        if (! $this->validatePermissionStructure($decoded)) {
             return ['The permissions structure is invalid. It must contain valid permission keys and boolean values.'];
         }
-        
+
         return true;
     }
 
     /**
      * Validate the structure of the permissions array.
-     *
-     * @param array $permissions
-     * @return bool
      */
     private function validatePermissionStructure(array $permissions): bool
     {
         // Check if all keys are valid and values are boolean
         foreach ($permissions as $key => $value) {
-            if (!in_array($key, self::ALLOWED_PERMISSIONS) || !is_bool($value)) {
+            if (! in_array($key, self::ALLOWED_PERMISSIONS) || ! is_bool($value)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\AdminUserFactory::new();
     }
 }

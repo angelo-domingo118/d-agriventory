@@ -85,4 +85,64 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class);
     }
+
+    /**
+     * Check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->adminUser !== null;
+    }
+
+    /**
+     * Check if the user is a division inventory manager.
+     */
+    public function isDivisionInventoryManager(): bool
+    {
+        if ($this->relationLoaded('divisionInventoryManager')) {
+            return $this->divisionInventoryManager !== null;
+        }
+
+        return $this->divisionInventoryManager()->exists();
+    }
+
+    /**
+     * Check if the user has a specific admin permission.
+     */
+    public function hasAdminPermission(string $permission): bool
+    {
+        if (! $this->isAdmin()) {
+            return false;
+        }
+
+        // Ensure adminUser is loaded and not null
+        if (! $this->relationLoaded('adminUser')) {
+            $this->load('adminUser');
+        }
+
+        // If adminUser is still null, return false
+        if ($this->adminUser === null) {
+            return false;
+        }
+
+        // For now, admin and super_admin have all permissions
+        if (in_array($this->adminUser->role, ['admin', 'super_admin'])) {
+            return true;
+        }
+
+        // For future use: check specific permissions
+        $permissions = $this->adminUser->permissions ?? [];
+
+        return isset($permissions[$permission]) && $permissions[$permission] === true;
+    }
+
+    /**
+     * Create a new factory instance for the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
+    }
 }

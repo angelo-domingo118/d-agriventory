@@ -1,0 +1,221 @@
+<?php
+
+use App\Models\User;
+use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    use WithPagination;
+    
+    public User $user;
+    
+    public function mount(User $user): void
+    {
+        $this->user = $user->load(['adminUser', 'divisionInventoryManager']);
+    }
+    
+    public function getAuditLogsProperty()
+    {
+        return $this->user->auditLogs()->latest()->paginate(5);
+    }
+    
+    public function getFriendlyModelName(string $modelClass): string
+    {
+        $modelMap = [
+            'App\\Models\\User' => 'User',
+            'App\\Models\\AdminUser' => 'Admin User',
+            'App\\Models\\Division' => 'Division',
+            'App\\Models\\Employee' => 'Employee',
+            'App\\Models\\DivisionInventoryManager' => 'Division Manager',
+            'App\\Models\\IcsNumber' => 'ICS Number',
+            'App\\Models\\ParNumber' => 'PAR Number',
+            'App\\Models\\IdrNumber' => 'IDR Number',
+        ];
+        
+        return $modelMap[$modelClass] ?? class_basename($modelClass);
+    }
+}; ?>
+
+<div>
+    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
+        <div class="mb-5 flex justify-between items-center">
+            <h1 class="text-2xl font-semibold text-gray-900">{{ __('User Details') }}</h1>
+            <div class="flex space-x-2">
+                <a href="{{ route('admin.users.index') }}" wire:navigate
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {{ __('Back to Users') }}
+                </a>
+                
+                @adminpermission('edit_users')
+                <a href="{{ route('admin.users.edit', $user) }}" wire:navigate
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {{ __('Edit User') }}
+                </a>
+                @endadminpermission
+            </div>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 bg-gray-50">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center bg-gray-100 rounded-full">
+                        {{ $user->initials() }}
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ $user->name }}</h3>
+                        <p class="text-sm text-gray-500">
+                            {{ $user->email }}
+                            @if ($user->email_verified_at)
+                                <span class="ml-2 text-green-600">{{ __('Verified') }}</span>
+                            @else
+                                <span class="ml-2 text-red-600">{{ __('Not Verified') }}</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('Username') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{{ $user->username }}</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('User Type') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            @if ($user->adminUser)
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    {{ __('Admin') }} - {{ ucfirst($user->adminUser->role) }}
+                                </span>
+                            @elseif ($user->divisionInventoryManager)
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ __('Division Inventory Manager') }}
+                                </span>
+                            @else
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ __('Regular User') }}
+                                </span>
+                            @endif
+                        </dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('Status') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            @if ($user->adminUser)
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->adminUser->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $user->adminUser->is_active ? __('Active') : __('Inactive') }}
+                                </span>
+                            @else
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ __('Active') }}
+                                </span>
+                            @endif
+                        </dd>
+                    </div>
+                    @if ($user->adminUser)
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('Last Login') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ $user->adminUser->last_login_at ? $user->adminUser->last_login_at->format('F j, Y g:i A') : __('Never') }}
+                        </dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('Permissions') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            @if (in_array($user->adminUser->role, ['super_admin', 'admin']))
+                                <p>{{ __('Full Access (All Permissions)') }}</p>
+                            @elseif ($user->adminUser->permissions)
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    @php
+                                        $userPermissions = [];
+                                        try {
+                                            $userPermissions = is_array($user->adminUser->permissions) 
+                                                ? $user->adminUser->permissions 
+                                                : json_decode($user->adminUser->permissions, true);
+                                            
+                                            if (!is_array($userPermissions)) {
+                                                $userPermissions = [];
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Handle JSON decode error silently
+                                            $userPermissions = [];
+                                        }
+                                    @endphp
+                                    
+                                    @if(count($userPermissions) > 0)
+                                        @foreach($userPermissions as $permission => $value)
+                                            @if($value)
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    {{ ucwords(str_replace('_', ' ', $permission)) }}
+                                                </span>
+                                            @endif
+                                        @endforeach
+                                    @else
+                                        <p>{{ __('No permissions found or invalid permissions format') }}</p>
+                                    @endif
+                                </div>
+                            @else
+                                <p>{{ __('No specific permissions assigned') }}</p>
+                            @endif
+                        </dd>
+                    </div>
+                    @endif
+
+                    <div class="{{ $user->adminUser ? 'bg-gray-50' : 'bg-white' }} px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">{{ __('Created At') }}</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ $user->created_at->format('F j, Y g:i A') }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="mt-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">{{ __('Recent Activity') }}</h2>
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                @if($this->auditLogs->count() > 0)
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {{ __('Action') }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {{ __('Model') }}
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {{ __('Date') }}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($this->auditLogs as $log)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ ucfirst($log->action) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $this->getFriendlyModelName($log->auditable_type) }} #{{ $log->auditable_id }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $log->created_at->format('M j, Y g:i A') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div class="px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                        {{ $this->auditLogs->links() }}
+                    </div>
+                @else
+                    <div class="px-6 py-4 text-sm text-gray-500">
+                        {{ __('No recent activity found.') }}
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div> 

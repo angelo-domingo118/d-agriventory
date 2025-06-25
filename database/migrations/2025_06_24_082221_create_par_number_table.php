@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('date_accepted');
             $table->text('remarks')->nullable();
             $table->timestamps();
-            
+
             // Add indexes for frequently queried fields
             $table->index('assigned_employee_id');
             $table->index('contract_item_id');
