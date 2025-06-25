@@ -17,6 +17,13 @@ class DivisionInventoryManager extends Model
     ];
 
     /**
+     * Note: 'user_id' is intentionally excluded from $fillable to prevent mass-assignment
+     * of this sensitive field. Instead, 'user_id' should be assigned explicitly in the
+     * controller or service layer from the authenticated user's ID or through validated input,
+     * avoiding direct mass assignment from request data to mitigate privilege escalation risks.
+     */
+
+    /**
      * Get the user that is an inventory manager.
      */
     public function user(): BelongsTo

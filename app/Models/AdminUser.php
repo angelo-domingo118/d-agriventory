@@ -26,6 +26,7 @@ class AdminUser extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'role',
         'permissions',
         'is_active',
