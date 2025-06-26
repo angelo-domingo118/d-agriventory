@@ -13,10 +13,6 @@
                 </a>
 
                 <flux:navlist variant="outline" class="overflow-hidden">
-                    <flux:navlist.group :heading="__('Platform')" class="grid">
-                        <flux:navlist.item icon="house" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    </flux:navlist.group>
-
                     @if (auth()->user()->adminUser)
                     <flux:navlist.group :heading="__('Admin')" class="grid">
                         <flux:navlist.item icon="layout-dashboard" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Admin Dashboard') }}</flux:navlist.item>
