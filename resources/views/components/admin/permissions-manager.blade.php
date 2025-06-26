@@ -44,13 +44,13 @@
                                 id="{{ $permission['name'] }}" 
                                 name="permissions[{{ $permission['name'] }}]" 
                                 type="checkbox" 
-                                class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600"
+                                class="h-4 w-4 rounded border-stone-300 text-green-600 focus:ring-green-500 dark:bg-stone-800 dark:border-stone-600"
                                 @if(isset($permissions[$permission['name']]) && $permissions[$permission['name']]) checked @endif
                             >
                         </div>
                         <div class="ml-3 text-sm leading-6">
-                            <label for="{{ $permission['name'] }}" class="font-medium text-gray-900">{{ $permission['label'] }}</label>
-                            <p class="text-gray-500 text-xs">{{ __("Allows $permission[action] access to {$category} resources") }}</p>
+                            <label for="{{ $permission['name'] }}" class="font-medium text-stone-900 dark:text-stone-300">{{ $permission['label'] }}</label>
+                            <p class="text-stone-500 text-xs">{{ __("Allows $permission[action] access to {$category} resources") }}</p>
                         </div>
                     </div>
                 @endforeach

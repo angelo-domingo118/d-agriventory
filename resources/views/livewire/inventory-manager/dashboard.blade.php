@@ -35,10 +35,10 @@ new #[Layout('components.layouts.app')] class extends Component
 
 <div>
     <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
-        <h1 class="text-2xl font-semibold mb-6">Inventory Manager Dashboard</h1>
+        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-6">Inventory Manager Dashboard</h1>
 
-        <div>
-            <h2 class="text-xl font-medium mb-4">Division Statistics</h2>
+        <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg p-6">
+            <h2 class="text-xl font-medium text-stone-800 dark:text-stone-200 mb-4">Division Statistics</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <x-dashboard.stat-card title="Items In Stock" :value="$this->itemsInStock">
                     <x-slot name="icon">
