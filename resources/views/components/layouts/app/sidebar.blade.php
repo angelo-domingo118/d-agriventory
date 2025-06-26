@@ -13,13 +13,17 @@
                 </a>
 
                 <flux:navlist variant="outline" class="overflow-hidden">
-                    @if (auth()->user()->adminUser)
-                    <flux:navlist.group :heading="__('Admin')" class="grid">
-                        <flux:navlist.item icon="layout-dashboard" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Admin Dashboard') }}</flux:navlist.item>
-                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                        <flux:navlist.item icon="box" :href="route('admin.inventory.index')" :current="request()->routeIs('admin.inventory.*')" wire:navigate>{{ __('Inventory') }}</flux:navlist.item>
-                        <flux:navlist.item icon="chart-bar" :href="route('admin.reports.index')" :current="request()->routeIs('admin.reports.*')" wire:navigate>{{ __('Reports') }}</flux:navlist.item>
-                    </flux:navlist.group>
+                    @if (auth()->check())
+                        @if (auth()->user()->adminUser)
+                            <x-navigation.admin-nav />
+                        @elseif (auth()->user()->divisionInventoryManager)
+                            <x-navigation.inventory-manager-nav />
+                        @else
+                            <!-- Default navigation for users without specific roles -->
+                            <flux:navlist.item icon="house" href="{{ route('dashboard') }}" wire:navigate>
+                                {{ __('Dashboard') }}
+                            </flux:navlist.item>
+                        @endif
                     @endif
                 </flux:navlist>
 

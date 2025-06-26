@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\IsInventoryManager;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -7,7 +8,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
+Route::get('dashboard', function() {
+    $user = \Illuminate\Support\Facades\Auth::user();
+    if ($user && $user->adminUser) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user && $user->divisionInventoryManager) {
+        return redirect()->route('inventory-manager.dashboard');
+    }
+    // Fallback for users without specific roles
+    return redirect()->route('home');
+})
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -26,6 +36,16 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
+
+Route::prefix('inventory-manager')
+    ->as('inventory-manager.')
+    ->middleware(['auth', IsInventoryManager::class])
+    ->group(function () {
+        Volt::route('dashboard', 'inventory-manager.dashboard')->name('dashboard');
+        Volt::route('items', 'inventory-manager.items.index')->name('items.index');
+        Volt::route('transfers', 'inventory-manager.transfers.index')->name('transfers.index');
+        Volt::route('reports', 'inventory-manager.reports.index')->name('reports.index');
+    });
 
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
