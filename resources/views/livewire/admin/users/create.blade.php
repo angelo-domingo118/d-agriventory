@@ -104,10 +104,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="mb-5 flex justify-between items-center">
             <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">{{ __('Create New User') }}</h1>
             <div>
-                <a href="{{ route('admin.users.index') }}" wire:navigate
-                   class="inline-flex items-center px-4 py-2 border border-stone-300 dark:border-stone-700 rounded-md shadow-sm text-sm font-medium text-stone-700 dark:text-stone-200 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
                     {{ __('Back to Users') }}
-                </a>
+                </flux:button>
             </div>
         </div>
 
@@ -117,95 +116,52 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                         <!-- Name -->
                         <div class="sm:col-span-3">
-                            <label for="name" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Name') }}</label>
-                            <div class="mt-1">
-                                <input type="text" wire:model="name" id="name" autocomplete="name"
-                                       class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                            </div>
+                            <flux:input wire:model="name" id="name" :label="__('Name')" autocomplete="name" />
                             @error('name') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Username -->
                         <div class="sm:col-span-3">
-                            <label for="username" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Username') }}</label>
-                            <div class="mt-1">
-                                <input type="text" wire:model="username" id="username" autocomplete="username"
-                                       class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                            </div>
+                            <flux:input wire:model="username" id="username" :label="__('Username')" autocomplete="username" />
                             @error('username') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Email -->
                         <div class="sm:col-span-4">
-                            <label for="email" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Email') }}</label>
-                            <div class="mt-1">
-                                <input type="email" wire:model="email" id="email" autocomplete="email"
-                                       class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                            </div>
+                             <flux:input wire:model="email" id="email" type="email" :label="__('Email')" autocomplete="email" />
                             @error('email') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Password -->
                         <div class="sm:col-span-3">
-                            <label for="password" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Password') }}</label>
-                            <div class="mt-1">
-                                <input type="password" wire:model="password" id="password" autocomplete="new-password"
-                                       class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                            </div>
+                            <flux:input wire:model="password" id="password" type="password" :label="__('Password')" autocomplete="new-password" />
                             @error('password') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Password Confirmation -->
                         <div class="sm:col-span-3">
-                            <label for="password_confirmation" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Confirm Password') }}</label>
-                            <div class="mt-1">
-                                <input type="password" wire:model="password_confirmation" id="password_confirmation" autocomplete="new-password"
-                                       class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                            </div>
+                            <flux:input wire:model="password_confirmation" id="password_confirmation" type="password" :label="__('Confirm Password')" autocomplete="new-password" />
                         </div>
 
                         <!-- User Type -->
                         <div class="sm:col-span-6">
-                            <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('User Type') }}</label>
-                            <div class="mt-2 space-y-4">
-                                <div class="flex items-center">
-                                    <input wire:model.live="userType" id="userType-regular" type="radio" value="regular"
-                                           class="focus:ring-green-500 h-4 w-4 text-green-600 border-stone-300">
-                                    <label for="userType-regular" class="ml-3 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                                        {{ __('Regular User') }}
-                                    </label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input wire:model.live="userType" id="userType-admin" type="radio" value="admin"
-                                           class="focus:ring-green-500 h-4 w-4 text-green-600 border-stone-300">
-                                    <label for="userType-admin" class="ml-3 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                                        {{ __('Admin User') }}
-                                    </label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input wire:model.live="userType" id="userType-inventory-manager" type="radio" value="inventory_manager"
-                                           class="focus:ring-green-500 h-4 w-4 text-green-600 border-stone-300">
-                                    <label for="userType-inventory-manager" class="ml-3 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                                        {{ __('Division Inventory Manager') }}
-                                    </label>
-                                </div>
-                            </div>
+                            <flux:radio.group wire:model.live="userType" :label="__('User Type')">
+                                <flux:radio value="regular" :label="__('Regular User')" />
+                                <flux:radio value="admin" :label="__('Admin User')" />
+                                <flux:radio value="inventory_manager" :label="__('Division Inventory Manager')" />
+                            </flux:radio.group>
                             @error('userType') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
                         @if ($userType === 'admin')
                         <!-- Admin Role -->
                         <div class="sm:col-span-4">
-                            <label for="adminRole" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Admin Role') }}</label>
-                            <div class="mt-1">
-                                <select wire:model.live="adminRole" id="adminRole"
-                                        class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                                    <option value="admin">{{ __('Admin (Full Access)') }}</option>
-                                    <option value="super_admin">{{ __('Super Admin (Full Access)') }}</option>
-                                    <option value="editor">{{ __('Editor (Custom Permissions)') }}</option>
-                                    <option value="viewer">{{ __('Viewer (Custom Permissions)') }}</option>
-                                </select>
-                            </div>
+                            <flux:select wire:model.live="adminRole" id="adminRole" :label="__('Admin Role')">
+                                <option value="admin">{{ __('Admin (Full Access)') }}</option>
+                                <option value="super_admin">{{ __('Super Admin (Full Access)') }}</option>
+                                <option value="editor">{{ __('Editor (Custom Permissions)') }}</option>
+                                <option value="viewer">{{ __('Viewer (Custom Permissions)') }}</option>
+                            </flux:select>
                             @error('adminRole') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                         </div>
 
@@ -214,12 +170,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="sm:col-span-6">
                             <div class="flex justify-between items-center">
                                 <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Permissions') }}</label>
-                                <button type="button" wire:click="toggleAllPermissions"
-                                        class="text-sm text-green-600 hover:text-green-900">
+                                <flux:button type="button" wire:click="toggleAllPermissions" variant="ghost">
                                     {{ collect($permissions)->filter()->count() === count(AdminUser::ALLOWED_PERMISSIONS) 
                                         ? __('Uncheck All') 
                                         : __('Check All') }}
-                                </button>
+                                </flux:button>
                             </div>
                             
                             <x-admin.permissions-manager :permissions="$permissions" />
@@ -230,17 +185,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                         @if ($userType === 'inventory_manager')
                         <!-- Division Selection -->
                         <div class="sm:col-span-4">
-                            <label for="division_id" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Division') }}</label>
-                            <div class="mt-1">
-                                <select wire:model="division_id" id="division_id"
-                                        class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md">
-                                    <option value="">{{ __('-- Select Division --') }}</option>
-                                    @foreach($this->availableDivisions as $division)
-                                        <option value="{{ $division->id }}">{{ $division->name }} ({{ $division->code }})</option>
-                                    @endforeach
-                                </select>
-                                @error('division_id') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
-                            </div>
+                             <flux:select wire:model="division_id" id="division_id" :label="__('Division')">
+                                <option value="">{{ __('-- Select Division --') }}</option>
+                                @foreach($this->availableDivisions as $division)
+                                    <option value="{{ $division->id }}">{{ $division->name }} ({{ $division->code }})</option>
+                                @endforeach
+                            </flux:select>
+                            @error('division_id') <div class="mt-1 text-sm text-red-600">{{ $message }}</div> @enderror
                             <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
                                 {{ __('Assign this user as the inventory manager for the selected division.') }}
                             </p>
@@ -250,10 +201,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
 
                 <div class="px-4 py-3 bg-stone-50 dark:bg-stone-800 text-right sm:px-6">
-                    <button type="submit"
-                            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <flux:button type="submit" variant="primary">
                         {{ __('Create User') }}
-                    </button>
+                    </flux:button>
                 </div>
             </form>
         </div>

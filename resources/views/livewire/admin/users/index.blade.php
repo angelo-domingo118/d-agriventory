@@ -78,10 +78,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             </h3>
             <div class="mt-3 sm:mt-0 sm:ml-4">
                 @adminpermission('create_users')
-                    <a href="{{ route('admin.users.create') }}" wire:navigate
-                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <flux:button :href="route('admin.users.create')" wire:navigate variant="primary">
                         {{ __('Add User') }}
-                    </a>
+                    </flux:button>
                 @endadminpermission
             </div>
         </div>
@@ -90,28 +89,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="p-6 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700">
                 <div class="flex flex-col md:flex-row gap-4 mb-4">
                     <div class="w-full md:w-1/2">
-                        <label for="search" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Search') }}</label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <input type="text" wire:model.live.debounce.300ms="search" id="search" 
-                                   class="block w-full pr-10 border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 rounded-md focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm" 
-                                   placeholder="{{ __('Search by name, email, or username') }}">
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-stone-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </div>
+                        <flux:input wire:model.live.debounce.300ms="search" id="search" 
+                                   :label="__('Search')"
+                                   icon="magnifying-glass"
+                                   placeholder="{{ __('Search by name, email, or username') }}" />
                         @error('search') <span class="mt-1 text-sm text-red-600">{{ $message }}</span> @enderror
                     </div>
                     <div class="w-full md:w-1/2">
-                        <label for="role" class="block text-sm font-medium text-stone-700 dark:text-stone-300">{{ __('Filter by Role') }}</label>
-                        <select wire:model.live="role" id="role"
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-stone-300 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+                        <flux:select wire:model.live="role" id="role" :label="__('Filter by Role')">
                             <option value="">{{ __('All Roles') }}</option>
                             @foreach($this->roles as $roleOption)
                                 <option value="{{ $roleOption }}">{{ ucfirst(str_replace('_', ' ', $roleOption)) }}</option>
                             @endforeach
-                        </select>
+                        </flux:select>
                     </div>
                 </div>
 
@@ -195,15 +185,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end space-x-2">
                                             @adminpermission('view_users')
-                                            <a href="{{ route('admin.users.show', $user) }}" wire:navigate class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
-                                                {{ __('View') }}
-                                            </a>
+                                                <flux:button variant="ghost" :href="route('admin.users.show', $user)" wire:navigate>
+                                                    {{ __('View') }}
+                                                </flux:button>
                                             @endadminpermission
                                             
                                             @adminpermission('edit_users')
-                                            <a href="{{ route('admin.users.edit', $user) }}" wire:navigate class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
-                                                {{ __('Edit') }}
-                                            </a>
+                                                <flux:button variant="ghost" :href="route('admin.users.edit', $user)" wire:navigate>
+                                                    {{ __('Edit') }}
+                                                </flux:button>
                                             @endadminpermission
                                         </div>
                                     </td>

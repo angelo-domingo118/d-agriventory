@@ -56,37 +56,37 @@ new #[Layout('components.layouts.app')] class extends Component {
             <h2 class="text-xl font-medium mb-4 dark:text-stone-100">Quick Actions</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 @adminpermission('view_users')
-                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Manage Users</h3>
-                        <p class="mt-2 text-stone-600 dark:text-stone-400">Add, edit, or remove user accounts</p>
-                        <div class="mt-4">
-                            <a href="{{ route('admin.users.index') }}" class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">View All Users →</a>
-                        </div>
+                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Manage Users</h3>
+                    <p class="mt-2 text-stone-600 dark:text-stone-400">Add, edit, or remove user accounts</p>
+                    <div class="mt-4">
+                        <flux:button :href="route('admin.users.index')" variant="ghost">
+                            {{ __('View All Users →') }}
+                        </flux:button>
                     </div>
                 </div>
                 @endadminpermission
 
                 @adminpermission('view_inventory')
-                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Inventory Management</h3>
-                        <p class="mt-2 text-stone-600 dark:text-stone-400">Manage inventory items and categories</p>
-                        <div class="mt-4">
-                            <a href="{{ route('admin.inventory.index') }}" class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">View Inventory →</a>
-                        </div>
+                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Inventory Management</h3>
+                    <p class="mt-2 text-stone-600 dark:text-stone-400">Manage inventory items and categories</p>
+                    <div class="mt-4">
+                        <flux:button :href="route('admin.inventory.index')" variant="ghost">
+                            {{ __('View Inventory →') }}
+                        </flux:button>
                     </div>
                 </div>
                 @endadminpermission
 
                 @adminpermission('view_reports')
-                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg">
-                    <div class="p-6">
-                        <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Reports</h3>
-                        <p class="mt-2 text-stone-600 dark:text-stone-400">View and generate system reports</p>
-                        <div class="mt-4">
-                            <a href="{{ route('admin.reports.index') }}" class="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">View Reports →</a>
-                        </div>
+                <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Reports</h3>
+                    <p class="mt-2 text-stone-600 dark:text-stone-400">View and generate system reports</p>
+                    <div class="mt-4">
+                        <flux:button :href="route('admin.reports.index')" variant="ghost">
+                            {{ __('View Reports →') }}
+                        </flux:button>
                     </div>
                 </div>
                 @endadminpermission

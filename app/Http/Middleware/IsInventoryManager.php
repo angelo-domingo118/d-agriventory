@@ -17,8 +17,18 @@ class IsInventoryManager
     {
         $user = $request->user();
 
-        if (! $user || ! $user->divisionInventoryManager) {
-            return redirect()->route('dashboard')->with('error', 'Not authorized.');
+        if (! $user) {
+            return redirect()->route('login')->with('error', 'Authentication required.');
+        }
+
+        // Eager load the divisionInventoryManager relationship
+        if (! $user->relationLoaded('divisionInventoryManager')) {
+            $user->load('divisionInventoryManager');
+        }
+
+        // Use the isDivisionInventoryManager method for consistency
+        if (! $user->isDivisionInventoryManager()) {
+            return redirect()->route('dashboard')->with('error', 'You must be an inventory manager to access this area.');
         }
 
         return $next($request);

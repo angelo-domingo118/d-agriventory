@@ -2,9 +2,11 @@
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -29,18 +31,43 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['username' => $this->username, 'password' => $this->password], $this->remember)) {
+        // Find the user by username
+        $user = User::where('username', $this->username)->first();
+        
+        if (!$user) {
             RateLimiter::hit($this->throttleKey());
-
             throw ValidationException::withMessages([
                 'username' => __('auth.failed'),
             ]);
         }
-
+        
+        // Verify the password manually
+        if (!Hash::check($this->password, $user->password)) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'username' => __('auth.failed'),
+            ]);
+        }
+        
+        // At this point, we know the user exists and the password is correct
+        // Manually log in the user to bypass any issues with Auth::attempt
+        Auth::login($user, $this->remember);
+        
         RateLimiter::clear($this->throttleKey());
+        
+        // Regenerate the session ID for security
         Session::regenerate();
-
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        
+        // Resolve the dashboard route based on the user's role
+        if ($user->isAdmin()) {
+            $redirectRoute = route('admin.dashboard', absolute: false);
+        } elseif ($user->isDivisionInventoryManager()) {
+            $redirectRoute = route('inventory-manager.dashboard', absolute: false);
+        } else {
+            $redirectRoute = route('dashboard', absolute: false);
+        }
+        
+        $this->redirectIntended(default: $redirectRoute, navigate: true);
     }
 
     /**

@@ -42,16 +42,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="mb-5 flex justify-between items-center">
             <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">{{ __('User Details') }}</h1>
             <div class="flex space-x-2">
-                <a href="{{ route('admin.users.index') }}" wire:navigate
-                   class="inline-flex items-center px-4 py-2 border border-stone-300 dark:border-stone-700 rounded-md shadow-sm text-sm font-medium text-stone-700 dark:text-stone-200 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
                     {{ __('Back to Users') }}
-                </a>
+                </flux:button>
                 
                 @adminpermission('edit_users')
-                <a href="{{ route('admin.users.edit', $user) }}" wire:navigate
-                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <flux:button :href="route('admin.users.edit', $user)" wire:navigate variant="primary">
                     {{ __('Edit User') }}
-                </a>
+                </flux:button>
                 @endadminpermission
             </div>
         </div>

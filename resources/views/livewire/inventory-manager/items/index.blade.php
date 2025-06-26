@@ -29,9 +29,9 @@ new #[Layout('components.layouts.app')] class extends Component
     </div>
     
     <div class="flex justify-end mb-6">
-        <button type="button" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-sm" aria-label="Add new inventory item">
-            Add New Item
-        </button>
+        <flux:button variant="primary" aria-label="Add new inventory item">
+            {{ __('Add New Item') }}
+        </flux:button>
     </div>
     
     <x-data-table 
@@ -55,8 +55,14 @@ new #[Layout('components.layouts.app')] class extends Component
                 @endif
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button type="button" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-200 mr-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2" aria-label="Edit {{ $item['name'] }}">Edit</button>
-                <button type="button" class="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2" aria-label="View {{ $item['name'] }} details">View</button>
+                <div class="flex space-x-2">
+                    <flux:button variant="ghost" aria-label="Edit {{ $item['name'] }}">
+                        {{ __('Edit') }}
+                    </flux:button>
+                    <flux:button variant="ghost" aria-label="View {{ $item['name'] }} details">
+                        {{ __('View') }}
+                    </flux:button>
+                </div>
             </td>
         </tr>
         @endforeach

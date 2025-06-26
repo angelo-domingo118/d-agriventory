@@ -99,11 +99,20 @@ class User extends Authenticatable
      */
     public function isDivisionInventoryManager(): bool
     {
-        if ($this->relationLoaded('divisionInventoryManager')) {
-            return $this->divisionInventoryManager !== null;
+        // Force loading the relationship if not already loaded
+        if (!$this->relationLoaded('divisionInventoryManager')) {
+            $this->load('divisionInventoryManager');
         }
-
-        return $this->divisionInventoryManager()->exists();
+        
+        return $this->divisionInventoryManager !== null;
+    }
+    
+    /**
+     * Check if the user has any role assigned (admin or inventory manager).
+     */
+    public function hasRole(): bool
+    {
+        return $this->isAdmin() || $this->isDivisionInventoryManager();
     }
 
     /**
