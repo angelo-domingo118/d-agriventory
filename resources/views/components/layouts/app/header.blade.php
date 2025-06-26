@@ -12,12 +12,8 @@
             </a>
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                </flux:navbar.item>
-                <flux:navbar.item icon="chart-pie" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
-                    {{ __('Reports') }}
-                </flux:navbar.item>
+                <flux:navbar.item icon="house" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navbar.item>
+                <flux:navbar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>{{ __('Reports') }}</flux:navbar.item>
             </flux:navbar>
 
             <flux:spacer />
@@ -74,25 +70,31 @@
         </flux:header>
 
         <!-- Mobile Menu -->
-        <flux:sidebar stashable sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
-
-            <a href="{{ route('dashboard') }}" class="ms-1 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                <x-app-logo />
-            </a>
-
+        <flux:sidebar inset="left" class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 lg:hidden">
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')">
-                    <flux:navlist.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                    {{ __('Dashboard') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="chart-pie" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
-                    {{ __('Reports') }}
+                <flux:navlist.group :heading="__('Platform')" class="grid">
+                    <flux:navlist.item icon="house" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
                     </flux:navlist.item>
                 </flux:navlist.group>
-            </flux:navlist>
 
-            <flux:spacer />
+                @if (auth()->user()->adminUser)
+                <flux:navlist.group :heading="__('Admin')" class="grid">
+                    <flux:navlist.item icon="layout-dashboard" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>
+                        {{ __('Admin Dashboard') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                        {{ __('Users') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="box" :href="route('admin.inventory.index')" :current="request()->routeIs('admin.inventory.*')" wire:navigate>
+                        {{ __('Inventory') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="chart-bar" :href="route('admin.reports.index')" :current="request()->routeIs('admin.reports.*')" wire:navigate>
+                        {{ __('Reports') }}
+                    </flux:navlist.item>
+                </flux:navlist.group>
+                @endif
+            </flux:navlist>
         </flux:sidebar>
 
         {{ $slot }}
