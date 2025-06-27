@@ -77,60 +77,67 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <x-auth-header title="Edit User" />
-    <form wire:submit="update" class="mx-auto max-w-xl">
-        {{-- Name --}}
-        <div class="mt-6">
-            <flux:input wire:model="name" id="name" label="Name" required />
-        </div>
-
-        {{-- Username --}}
-        <div class="mt-6">
-            <flux:input wire:model="username" id="username" label="Username" required />
-        </div>
-
-        {{-- Email --}}
-        <div class="mt-6">
-            <flux:input wire:model="email" id="email" type="email" label="Email" required />
-        </div>
-
-        {{-- Password --}}
-        <div class="mt-6">
-            <flux:input wire:model="password" id="password" type="password" label="New Password"
-                hint="Leave blank to keep current password" />
-        </div>
-
-        {{-- Password Confirmation --}}
-        <div class="mt-6">
-            <flux:input wire:model.blur="password_confirmation" id="password_confirmation" type="password"
-                label="Confirm New Password" />
-        </div>
-
-        {{-- User Type (Read-only) --}}
-        <div class="mt-6">
-            <flux:input id="userType" label="User Type" :value="ucfirst(str_replace('_', ' ', $userType))" disabled />
-        </div>
-
-        {{-- Division Selection --}}
-        @if ($userType === 'inventory_manager')
-            <div class="mt-6">
-                <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
-                    :required="$userType === 'inventory_manager'">
-                    <option value="">{{ __('Select a division') }}</option>
-                    @foreach ($divisions as $division)
-                        <option value="{{ $division->id }}">{{ $division->name }}</option>
-                    @endforeach
-                </flux:select>
-            </div>
-        @endif
-
-        <div class="mt-8">
-            <flux:button variant="primary" type="submit">
-                {{ __('Update User') }}
-            </flux:button>
+    <x-admin.layout heading="Edit User">
+        <x-slot name="header">
             <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
-                {{ __('Cancel') }}
+                {{ __('Back to Users') }}
             </flux:button>
-        </div>
-    </form>
+        </x-slot>
+        
+        <form wire:submit="update" class="mx-auto max-w-xl">
+            {{-- Name --}}
+            <div class="mt-6">
+                <flux:input wire:model="name" id="name" label="Name" required />
+            </div>
+
+            {{-- Username --}}
+            <div class="mt-6">
+                <flux:input wire:model="username" id="username" label="Username" required />
+            </div>
+
+            {{-- Email --}}
+            <div class="mt-6">
+                <flux:input wire:model="email" id="email" type="email" label="Email" required />
+            </div>
+
+            {{-- Password --}}
+            <div class="mt-6">
+                <flux:input wire:model="password" id="password" type="password" label="New Password"
+                    hint="Leave blank to keep current password" />
+            </div>
+
+            {{-- Password Confirmation --}}
+            <div class="mt-6">
+                <flux:input wire:model.blur="password_confirmation" id="password_confirmation" type="password"
+                    label="Confirm New Password" />
+            </div>
+
+            {{-- User Type (Read-only) --}}
+            <div class="mt-6">
+                <flux:input id="userType" label="User Type" :value="ucfirst(str_replace('_', ' ', $userType))" disabled />
+            </div>
+
+            {{-- Division Selection --}}
+            @if ($userType === 'inventory_manager')
+                <div class="mt-6">
+                    <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
+                        :required="$userType === 'inventory_manager'">
+                        <option value="">{{ __('Select a division') }}</option>
+                        @foreach ($divisions as $division)
+                            <option value="{{ $division->id }}">{{ $division->name }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+            @endif
+
+            <div class="mt-8">
+                <flux:button variant="primary" type="submit">
+                    {{ __('Update User') }}
+                </flux:button>
+                <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
+                    {{ __('Cancel') }}
+                </flux:button>
+            </div>
+        </form>
+    </x-admin.layout>
 </div> 

@@ -54,59 +54,60 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <x-auth-header title="Create New User" />
-    <form wire:submit="store" class="mx-auto max-w-xl">
-        {{-- Name --}}
-        <div class="mt-6">
-            <flux:input wire:model="name" id="name" label="Name" required />
-        </div>
+    <x-admin.layout heading="Create New User">
+        <form wire:submit="store" class="mx-auto max-w-xl">
+            {{-- Name --}}
+            <div class="mt-6">
+                <flux:input wire:model="name" id="name" label="Name" required />
+            </div>
 
-        {{-- Username --}}
-        <div class="mt-6">
-            <flux:input wire:model="username" id="username" label="Username" required />
-        </div>
+            {{-- Username --}}
+            <div class="mt-6">
+                <flux:input wire:model="username" id="username" label="Username" required />
+            </div>
 
-        {{-- Email --}}
-        <div class="mt-6">
-            <flux:input wire:model="email" id="email" type="email" label="Email" required />
-        </div>
+            {{-- Email --}}
+            <div class="mt-6">
+                <flux:input wire:model="email" id="email" type="email" label="Email" required />
+            </div>
 
-        {{-- Password --}}
-        <div class="mt-6">
-            <flux:input wire:model="password" id="password" type="password" label="Password" required />
-        </div>
+            {{-- Password --}}
+            <div class="mt-6">
+                <flux:input wire:model="password" id="password" type="password" label="Password" required />
+            </div>
 
-        {{-- Password Confirmation --}}
-        <div class="mt-6">
-            <flux:input wire:model.blur="password_confirmation" id="password_confirmation" type="password"
-                label="Confirm Password" required />
-        </div>
+            {{-- Password Confirmation --}}
+            <div class="mt-6">
+                <flux:input wire:model.blur="password_confirmation" id="password_confirmation" type="password"
+                    label="Confirm Password" required />
+            </div>
 
-        {{-- User Type Selection --}}
-        <div class="mt-6">
-            <flux:select wire:model.live="userType" id="userType" label="User Type" required>
-                <option value="admin">{{ __('Admin') }}</option>
-                <option value="inventory_manager">{{ __('Division Inventory Manager') }}</option>
-            </flux:select>
-        </div>
+            {{-- User Type Selection --}}
+            <div class="mt-6">
+                <flux:select wire:model.live="userType" id="userType" label="User Type" required>
+                    <option value="admin">{{ __('Admin') }}</option>
+                    <option value="inventory_manager">{{ __('Division Inventory Manager') }}</option>
+                </flux:select>
+            </div>
 
-        {{-- Division Selection --}}
-        @if ($userType === 'inventory_manager')
-        <div class="mt-6">
-            <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
-                :required="$userType === 'inventory_manager'">
-                <option value="">{{ __('Select a division') }}</option>
-                @foreach ($divisions as $division)
-                    <option value="{{ $division->id }}">{{ $division->name }}</option>
-                @endforeach
-            </flux:select>
-        </div>
-        @endif
+            {{-- Division Selection --}}
+            @if ($userType === 'inventory_manager')
+            <div class="mt-6">
+                <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
+                    :required="$userType === 'inventory_manager'">
+                    <option value="">{{ __('Select a division') }}</option>
+                    @foreach ($divisions as $division)
+                        <option value="{{ $division->id }}">{{ $division->name }}</option>
+                    @endforeach
+                </flux:select>
+            </div>
+            @endif
 
-        <div class="mt-8">
-            <flux:button variant="primary" type="submit">
-                {{ __('Create User') }}
-            </flux:button>
-        </div>
-    </form>
+            <div class="mt-8">
+                <flux:button variant="primary" type="submit">
+                    {{ __('Create User') }}
+                </flux:button>
+            </div>
+        </form>
+    </x-admin.layout>
 </div> 

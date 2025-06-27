@@ -71,21 +71,16 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
-        <div class="pb-5 border-b border-stone-200 dark:border-stone-700 sm:flex sm:items-center sm:justify-between">
-            <h3 class="text-2xl leading-6 font-semibold text-stone-900 dark:text-stone-100">
-                {{ __('User Management') }}
-            </h3>
-            <div class="mt-3 sm:mt-0 sm:ml-4">
-                @adminpermission('create_users')
-                    <flux:button :href="route('admin.users.create')" wire:navigate variant="primary">
-                        {{ __('Add User') }}
-                    </flux:button>
-                @endadminpermission
-            </div>
-        </div>
+    <x-admin.layout heading="User Management">
+        <x-slot name="header">
+            @adminpermission('create_users')
+                <flux:button :href="route('admin.users.create')" wire:navigate variant="primary">
+                    {{ __('Add User') }}
+                </flux:button>
+            @endadminpermission
+        </x-slot>
 
-        <div class="mt-4 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700">
                 <div class="flex flex-col md:flex-row gap-4 mb-4">
                     <div class="w-full md:w-1/2">
@@ -214,5 +209,5 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
             </div>
         </div>
-    </div>
+    </x-admin.layout>
 </div> 

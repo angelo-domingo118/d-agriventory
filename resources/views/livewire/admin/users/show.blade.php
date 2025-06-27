@@ -38,9 +38,8 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
-        <div class="mb-5 flex justify-between items-center">
-            <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">{{ __('User Details') }}</h1>
+    <x-admin.layout heading="User Details">
+        <x-slot name="header">
             <div class="flex space-x-2">
                 <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
                     {{ __('Back to Users') }}
@@ -52,7 +51,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </flux:button>
                 @endadminpermission
             </div>
-        </div>
+        </x-slot>
 
         <div class="bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 shadow overflow-hidden sm:rounded-lg">
             <div class="px-4 py-5 sm:px-6 bg-stone-50 dark:bg-stone-800/50">
@@ -181,5 +180,5 @@ new #[Layout('components.layouts.app')] class extends Component {
                 @endif
             </div>
         </div>
-    </div>
+    </x-admin.layout>
 </div> 

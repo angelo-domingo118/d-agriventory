@@ -22,51 +22,48 @@ new #[Layout('components.layouts.app')] class extends Component
 
 ?>
 
-@include('livewire.inventory-manager._layout', ['section' => $section, 'slot' => function() { ?>
-    <div class="border-b border-stone-200 dark:border-stone-700 pb-4 mb-4">
-        <h2 class="text-xl font-medium text-stone-800 dark:text-stone-200">Transfer Management</h2>
-        <p class="mt-2 text-sm text-stone-600 dark:text-stone-400">Manage item transfers between divisions and departments.</p>
-    </div>
-    
-    <div class="flex justify-end mb-6">
-        <flux:button variant="primary" aria-label="Create new transfer">
-            {{ __('Create Transfer') }}
-        </flux:button>
-    </div>
-    
-    <x-data-table 
-        :headers="$this->getTableHeaders()"
-        :data="$transfers"
-        ariaLabel="Item Transfers List"
-        caption="List of item transfers between divisions and departments"
-    >
-        @foreach($transfers as $transfer)
-        <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['id'] }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['item'] }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['source'] }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['destination'] }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                @if($transfer['status'] === 'Pending')
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-700 dark:text-amber-100">{{ $transfer['status'] }}</span>
-                @elseif($transfer['status'] === 'In Transit')
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-100">{{ $transfer['status'] }}</span>
-                @elseif($transfer['status'] === 'Completed')
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100">{{ $transfer['status'] }}</span>
-                @endif
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['date'] }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                    <flux:button variant="ghost" aria-label="Edit transfer {{ $transfer['id'] }}">
-                        {{ __('Edit') }}
-                    </flux:button>
-                    <flux:button variant="ghost" aria-label="View transfer {{ $transfer['id'] }} details">
-                        {{ __('View') }}
-                    </flux:button>
-                </div>
-            </td>
-        </tr>
-        @endforeach
-    </x-data-table>
-<?php })
+<div>
+    <x-inventory-manager.layout heading="Transfer Management" subheading="Manage item transfers between divisions and departments">
+        <x-slot name="header">
+            <flux:button :href="route('inventory-manager.transfers.create')" wire:navigate variant="primary" aria-label="Create new transfer">
+                {{ __('Create Transfer') }}
+            </flux:button>
+        </x-slot>
+        
+        <x-data-table 
+            :headers="$this->getTableHeaders()"
+            :data="$transfers"
+            ariaLabel="Item Transfers List"
+            caption="List of item transfers between divisions and departments"
+        >
+            @foreach($transfers as $transfer)
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['id'] }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['item'] }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['source'] }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['destination'] }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    @if($transfer['status'] === 'Pending')
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-700 dark:text-amber-100">{{ $transfer['status'] }}</span>
+                    @elseif($transfer['status'] === 'In Transit')
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-100">{{ $transfer['status'] }}</span>
+                    @elseif($transfer['status'] === 'Completed')
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100">{{ $transfer['status'] }}</span>
+                    @endif
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-900 dark:text-stone-200">{{ $transfer['date'] }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex space-x-2">
+                        <flux:button variant="ghost" aria-label="Edit transfer {{ $transfer['id'] }}">
+                            {{ __('Edit') }}
+                        </flux:button>
+                        <flux:button variant="ghost" aria-label="View transfer {{ $transfer['id'] }} details">
+                            {{ __('View') }}
+                        </flux:button>
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+        </x-data-table>
+    </x-inventory-manager.layout>
+</div>
