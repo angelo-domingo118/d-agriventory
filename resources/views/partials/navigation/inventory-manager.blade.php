@@ -1,0 +1,4 @@
+<flux:navlist.item icon="layout-dashboard" :href="route('inventory-manager.dashboard')" :current="request()->routeIs('inventory-manager.dashboard')" wire:navigate class="py-6 text-lg">{{ __('Dashboard') }}</flux:navlist.item>
+<flux:navlist.item icon="box" :href="route('inventory-manager.items.index')" :current="request()->routeIs('inventory-manager.items.*')" wire:navigate class="py-6 text-lg">{{ __('Items') }}</flux:navlist.item>
+<flux:navlist.item icon="folder-git-2" :href="route('inventory-manager.transfers.index')" :current="request()->routeIs('inventory-manager.transfers.*')" wire:navigate class="py-6 text-lg">{{ __('Transfers') }}</flux:navlist.item>
+<flux:navlist.item icon="chart-bar" :href="route('inventory-manager.reports.index')" :current="request()->routeIs('inventory-manager.reports.*')" wire:navigate class="py-6 text-lg">{{ __('Reports') }}</flux:navlist.item>

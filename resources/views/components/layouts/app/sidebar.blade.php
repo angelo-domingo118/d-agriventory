@@ -4,7 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-stone-800">
-        <flux:sidebar sticky stashable class="border-e border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-900 overflow-hidden">
+        <flux:sidebar sticky stashable class="w-80 border-e border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-900 overflow-hidden">
             <div class="flex flex-col h-full overflow-hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
@@ -12,12 +12,12 @@
                     <x-app-logo />
                 </a>
 
-                <flux:navlist variant="outline" class="overflow-hidden">
+                <flux:navlist class="grid gap-0.5 mt-4" variant="outline">
                     @if (auth()->check())
                         @if (auth()->user()->adminUser)
-                            <x-navigation.admin-nav />
+                            @include('partials.navigation.admin')
                         @elseif (auth()->user()->divisionInventoryManager)
-                            <x-navigation.inventory-manager-nav />
+                            @include('partials.navigation.inventory-manager')
                         @else
                             <!-- Default navigation for users without specific roles -->
                             <flux:navlist.item icon="house" href="{{ route('dashboard') }}" wire:navigate>
@@ -52,6 +52,11 @@
                                     <div class="grid flex-1 text-start text-sm leading-tight">
                                         <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                         <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                        @if(auth()->user()->adminUser)
+                                            <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Administrator') }}</span>
+                                        @elseif(auth()->user()->divisionInventoryManager)
+                                            <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Inventory Manager') }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -103,6 +108,11 @@
                                 <div class="grid flex-1 text-start text-sm leading-tight">
                                     <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
                                     <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                    @if(auth()->user()->adminUser)
+                                        <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Administrator') }}</span>
+                                    @elseif(auth()->user()->divisionInventoryManager)
+                                        <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Inventory Manager') }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

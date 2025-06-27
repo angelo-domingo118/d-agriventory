@@ -51,6 +51,7 @@ Route::prefix('inventory-manager')
         Volt::route('dashboard', 'inventory-manager.dashboard')->name('dashboard');
         Volt::route('items', 'inventory-manager.items.index')->name('items.index');
         Volt::route('transfers', 'inventory-manager.transfers.index')->name('transfers.index');
+        Volt::route('transfers/create', 'inventory-manager.transfers.create')->name('transfers.create');
         Volt::route('reports', 'inventory-manager.reports.index')->name('reports.index');
     });
 
