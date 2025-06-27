@@ -54,31 +54,31 @@ Route::prefix('admin')->middleware(['auth', IsAdmin::class])->group(function () 
         // Main inventory route
         Volt::route('inventory', 'admin.inventory.index')
             ->name('admin.inventory.index');
-            
+
         // ICS Management
         Volt::route('inventory/ics', 'admin.inventory.ics.index')
             ->name('admin.inventory.ics.index');
-            
+
         // PAR Management
         Volt::route('inventory/par', 'admin.inventory.par.index')
             ->name('admin.inventory.par.index');
-            
+
         // IDR Management
         Volt::route('inventory/idr', 'admin.inventory.idr.index')
             ->name('admin.inventory.idr.index');
-            
+
         // Transfers Management
         Volt::route('inventory/transfers', 'admin.inventory.transfers.index')
             ->name('admin.inventory.transfers.index');
-            
+
         // Consumables Management
         Volt::route('inventory/consumables', 'admin.inventory.consumables.index')
             ->name('admin.inventory.consumables.index');
-            
+
         // Items & Categories
         Volt::route('inventory/items', 'admin.inventory.items.index')
             ->name('admin.inventory.items.index');
-            
+
         // Suppliers & Contracts
         Volt::route('inventory/contracts', 'admin.inventory.contracts.index')
             ->name('admin.inventory.contracts.index');
@@ -89,13 +89,13 @@ Route::prefix('admin')->middleware(['auth', IsAdmin::class])->group(function () 
         Volt::route('reports', 'admin.reports.index')
             ->name('admin.reports.index');
     });
-    
+
     // Employees & Divisions routes
     Route::middleware([HasAdminPermission::class.':view_employees'])->group(function () {
         Volt::route('employees', 'admin.employees.index')
             ->name('admin.employees.index');
     });
-    
+
     // Audit Logs routes
     Route::middleware([HasAdminPermission::class.':view_logs'])->group(function () {
         Volt::route('logs', 'admin.logs.index')

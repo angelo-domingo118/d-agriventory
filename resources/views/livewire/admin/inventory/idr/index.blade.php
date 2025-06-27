@@ -7,8 +7,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function mount(): void
     {
         // Verify the user has permission to view IDR management
-        if (!auth()->user()->adminUser || 
-            !auth()->user()->adminUser->hasPermission('view_inventory')) {
+        if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
     }
