@@ -15,11 +15,11 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
         <!-- Styles -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/css/animated-grid.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
-    <body class="bg-background dark:bg-stone-950 text-foreground flex p-6 lg:p-8 items-center flex-col min-h-screen">
-        <header class="w-full max-w-5xl text-sm mb-6">
+    <body class="bg-background dark:bg-stone-950 text-foreground flex p-6 lg:p-8 items-center flex-col min-h-screen animated-grid-background">
+        <header class="w-full max-w-5xl text-sm mb-6 relative z-10">
             <nav class="flex items-center justify-between gap-4">
                 <a href="{{ url('/') }}" class="flex items-center gap-2 text-stone-900 dark:text-white">
                     <x-app-logo-icon class="size-8" />
@@ -51,7 +51,7 @@
                 </div>
             </nav>
         </header>
-        <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
+        <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 grow starting:opacity-0 relative z-10">
             <main class="w-full max-w-2xl mx-auto text-center">
                 <h1 class="text-4xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-6xl">
                     Welcome to D'Agriventory
