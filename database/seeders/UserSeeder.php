@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
                 "manager{$userNumber}@example.com",
                 $division->id
             );
-             $this->command->info("  Created manager{$userNumber} for division: {$division->name}");
+            $this->command->info("  Created manager{$userNumber} for division: {$division->name}");
         }
     }
 
@@ -62,4 +62,4 @@ class UserSeeder extends Seeder
             'division_id' => $divisionId,
         ]);
     }
-} 
+}

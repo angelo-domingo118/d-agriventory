@@ -58,7 +58,7 @@ class AdminUser extends Model
      */
     protected static $rules = [
         'user_id' => 'required|integer',
-        'role' => 'required|string|in:admin,super_admin,editor,viewer',
+        'role' => 'required|string|in:admin',
         'permissions' => 'nullable|json',
         'is_active' => 'boolean',
         'last_login_at' => 'nullable|date',
@@ -109,7 +109,7 @@ class AdminUser extends Model
      */
     public function getRoleErrorMessage(string $role): string
     {
-        return "Invalid role: {$role}. Allowed roles are: admin, super_admin, editor, viewer";
+        return "Invalid role: {$role}. Allowed roles are: admin";
     }
 
     /**

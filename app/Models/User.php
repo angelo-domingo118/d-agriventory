@@ -100,13 +100,13 @@ class User extends Authenticatable
     public function isDivisionInventoryManager(): bool
     {
         // Force loading the relationship if not already loaded
-        if (!$this->relationLoaded('divisionInventoryManager')) {
+        if (! $this->relationLoaded('divisionInventoryManager')) {
             $this->load('divisionInventoryManager');
         }
-        
+
         return $this->divisionInventoryManager !== null;
     }
-    
+
     /**
      * Check if the user has any role assigned (admin or inventory manager).
      */
@@ -134,8 +134,8 @@ class User extends Authenticatable
             return false;
         }
 
-        // For now, admin and super_admin have all permissions
-        if (in_array($this->adminUser->role, ['admin', 'super_admin'])) {
+        // For now, only the 'admin' role has all permissions.
+        if ($this->adminUser->role === 'admin') {
             return true;
         }
 

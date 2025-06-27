@@ -17,8 +17,8 @@ class DivisionFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->company() . ' Division',
+            'name' => $this->faker->unique()->company().' Division',
             'code' => $this->faker->unique()->word(),
         ];
     }
-} 
+}

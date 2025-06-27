@@ -5,9 +5,9 @@ namespace Tests\Feature\Auth;
 use App\Models\Division;
 use App\Models\DivisionInventoryManager;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class InventoryManagerAuthTest extends TestCase
@@ -34,16 +34,16 @@ class InventoryManagerAuthTest extends TestCase
             'user_id' => $user->id,
             'division_id' => $manager->division_id,
         ]);
-        
+
         // For Volt routes, we need to manually login the user for testing
         $this->assertFalse(Auth::check(), 'User should not be authenticated before login');
-        
+
         // Manually authenticate the user for testing
         $this->actingAs($user);
-        
+
         // Assert user is authenticated
         $this->assertAuthenticated();
-        
+
         // Test dashboard redirection for inventory managers
         $response = $this->get('/dashboard');
         $response->assertRedirect(route('inventory-manager.dashboard'));
@@ -62,10 +62,10 @@ class InventoryManagerAuthTest extends TestCase
 
         // Authenticate the user
         $this->actingAs($user);
-        
+
         // Attempt to access admin area
         $response = $this->get('/admin/dashboard');
-        
+
         // Should be redirected away from admin area
         $response->assertRedirect(route('dashboard'));
     }
@@ -79,14 +79,14 @@ class InventoryManagerAuthTest extends TestCase
             'email' => 'regular@example.com',
             'password' => Hash::make('password'),
         ]);
-        
+
         // Authenticate the user
         $this->actingAs($user);
-        
+
         // Attempt to access inventory manager area
         $response = $this->get('/inventory-manager/dashboard');
-        
+
         // Should be redirected away from inventory manager area
         $response->assertRedirect(route('dashboard'));
     }
-} 
+}

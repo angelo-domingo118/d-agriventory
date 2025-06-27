@@ -23,4 +23,4 @@ class DivisionSeeder extends Seeder
             Division::factory()->count(5)->create();
         }
     }
-} 
+}

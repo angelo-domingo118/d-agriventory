@@ -57,18 +57,10 @@ class AdminPolicy
     }
 
     /**
-     * Determine whether the user has super admin privileges.
-     */
-    public function superAdmin(User $user): bool
-    {
-        return $this->permissionService->userHasRole($user, 'super_admin');
-    }
-
-    /**
      * Determine whether the user has regular admin privileges.
      */
     public function admin(User $user): bool
     {
-        return $this->permissionService->userHasRole($user, ['admin', 'super_admin']);
+        return $this->permissionService->userHasRole($user, 'admin');
     }
 }

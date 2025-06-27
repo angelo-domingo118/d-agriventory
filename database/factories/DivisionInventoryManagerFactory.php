@@ -31,4 +31,4 @@ class DivisionInventoryManagerFactory extends Factory
             'division_id' => Division::factory(),
         ];
     }
-} 
+}

@@ -8,20 +8,20 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('dashboard', function() {
+Route::get('dashboard', function () {
     $user = \Illuminate\Support\Facades\Auth::user();
-    
+
     // Eager load relationships to avoid N+1 queries
     if ($user) {
         $user->load(['adminUser', 'divisionInventoryManager']);
     }
-    
+
     if ($user && $user->adminUser) {
         return redirect()->route('admin.dashboard');
     } elseif ($user && $user->divisionInventoryManager) {
         return redirect()->route('inventory-manager.dashboard');
     }
-    
+
     // Fallback for users without specific roles
     return redirect()->route('home')->with('error', 'Your account does not have any assigned roles.');
 })

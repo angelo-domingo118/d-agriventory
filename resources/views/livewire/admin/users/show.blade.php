@@ -84,7 +84,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <dd class="mt-1 text-sm text-stone-900 dark:text-stone-100 sm:mt-0 sm:col-span-2">
                             @if ($user->adminUser)
                                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
-                                    {{ __('Admin') }} - {{ ucfirst($user->adminUser->role) }}
+                                    {{ __('Admin') }}
                                 </span>
                             @elseif ($user->divisionInventoryManager)
                                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
@@ -121,41 +121,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="bg-white dark:bg-stone-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">{{ __('Permissions') }}</dt>
                         <dd class="mt-1 text-sm text-stone-900 dark:text-stone-100 sm:mt-0 sm:col-span-2">
-                            @if (in_array($user->adminUser->role, ['super_admin', 'admin']))
-                                <p>{{ __('Full Access (All Permissions)') }}</p>
-                            @elseif ($user->adminUser->permissions)
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                    @php
-                                        $userPermissions = [];
-                                        try {
-                                            $userPermissions = is_array($user->adminUser->permissions) 
-                                                ? $user->adminUser->permissions 
-                                                : json_decode($user->adminUser->permissions, true);
-                                            
-                                            if (!is_array($userPermissions)) {
-                                                $userPermissions = [];
-                                            }
-                                        } catch (\Exception $e) {
-                                            // Handle JSON decode error silently
-                                            $userPermissions = [];
-                                        }
-                                    @endphp
-                                    
-                                    @if(count($userPermissions) > 0)
-                                        @foreach($userPermissions as $permission => $value)
-                                            @if($value)
-                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
-                                                    {{ ucwords(str_replace('_', ' ', $permission)) }}
-                                                </span>
-                                            @endif
-                                        @endforeach
-                                    @else
-                                        <p>{{ __('No permissions found or invalid permissions format') }}</p>
-                                    @endif
-                                </div>
-                            @else
-                                <p>{{ __('No specific permissions assigned') }}</p>
-                            @endif
+                            <p>{{ __('Full Access (All Permissions)') }}</p>
                         </dd>
                     </div>
                     @endif
