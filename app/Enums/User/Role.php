@@ -20,9 +20,6 @@ enum Role: string
 
     /**
      * Check if a given string is a valid role.
-     *
-     * @param string $value
-     * @return bool
      */
     public static function isValid(string $value): bool
     {
@@ -31,9 +28,6 @@ enum Role: string
 
     /**
      * Get enum instance from a string value.
-     *
-     * @param string $value
-     * @return self|null
      */
     public static function fromValue(string $value): ?self
     {
@@ -42,8 +36,6 @@ enum Role: string
 
     /**
      * Get the user-friendly display name for the role.
-     *
-     * @return string
      */
     public function getDisplayName(): string
     {
@@ -53,4 +45,4 @@ enum Role: string
             self::REGULAR => 'Regular',
         };
     }
-} 
+}

@@ -15,34 +15,23 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the test division created in DivisionSeeder
-        $testDivision = Division::where('code', 'TEST-DIV')->first();
+        $this->command->info('Creating inventory managers for all divisions:');
 
-        // Create a test inventory manager with known credentials if the test division exists
-        if ($testDivision) {
-            $this->createInventoryManager(
-                'Test Inventory Manager',
-                'inventory',
-                'inventory@example.com',
-                $testDivision->id
-            );
-            $this->command->info('Test inventory manager created:');
-            $this->command->info('  Username: inventory');
-            $this->command->info('  Password: password');
-        }
+        // Process divisions in chunks to avoid memory issues with large datasets.
+        Division::chunk(100, function ($divisions) {
+            foreach ($divisions as $division) {
+                $username = strtolower(str_replace('-', '', $division->code)).'_manager';
+                $this->createInventoryManager(
+                    "{$division->code} Inventory Manager",
+                    $username,
+                    "{$username}@example.com",
+                    $division->id
+                );
+                $this->command->info("  Created manager '{$username}' for division: {$division->name}");
+            }
+        });
 
-        // Create some other inventory managers with predictable credentials for testing
-        $divisions = Division::where('code', '!=', 'TEST-DIV')->inRandomOrder()->take(3)->get();
-        foreach ($divisions as $index => $division) {
-            $userNumber = $index + 1;
-            $this->createInventoryManager(
-                "Inv Manager {$userNumber}",
-                "manager{$userNumber}",
-                "manager{$userNumber}@example.com",
-                $division->id
-            );
-            $this->command->info("  Created manager{$userNumber} for division: {$division->name}");
-        }
+        $this->command->info('All users have password: "password"');
     }
 
     /**
@@ -50,16 +39,20 @@ class UserSeeder extends Seeder
      */
     private function createInventoryManager(string $name, string $username, string $email, int $divisionId): void
     {
-        $user = User::factory()->create([
-            'name' => $name,
-            'username' => $username,
-            'email' => $email,
-            'password' => Hash::make('password'),
-        ]);
+        $user = User::firstOrCreate(
+            ['username' => $username],
+            [
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        DivisionInventoryManager::create([
-            'user_id' => $user->id,
-            'division_id' => $divisionId,
-        ]);
+        // Use updateOrCreate to ensure a single, consistent manager for each division.
+        DivisionInventoryManager::updateOrCreate(
+            ['division_id' => $divisionId],
+            ['user_id' => $user->id]
+        );
     }
 }

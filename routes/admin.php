@@ -23,7 +23,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
         ->name('dashboard');
 
     // API routes
-    Route::prefix('api')->name('api.')->group(function() {
+    Route::prefix('api')->name('api.')->group(function () {
         Route::get('permissions/defaults/{role}', [PermissionsController::class, 'getDefaultsByRole'])
             ->name('permissions.defaults');
     });

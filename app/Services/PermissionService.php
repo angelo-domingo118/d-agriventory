@@ -55,13 +55,11 @@ class PermissionService
     /**
      * Get default permissions for a given role.
      *
-     * @param string $role
-     * @return array
      * @throws InvalidRoleException
      */
     public function getDefaultsByRole(string $role): array
     {
-        if (!in_array($role, Role::values())) {
+        if (! in_array($role, Role::values())) {
             throw new InvalidRoleException("Invalid role specified: {$role}");
         }
 
@@ -79,6 +77,7 @@ class PermissionService
                 'delete_inventory' => true,
                 'view_reports' => true,
             ];
+
             return array_merge($allPermissions, $inventoryPermissions);
         }
 

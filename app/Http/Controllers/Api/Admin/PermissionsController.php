@@ -6,7 +6,6 @@ use App\Exceptions\InvalidRoleException;
 use App\Http\Controllers\Controller;
 use App\Services\PermissionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 
@@ -25,6 +24,7 @@ class PermissionsController extends Controller
 
         try {
             $permissions = $this->permissionService->getDefaultsByRole($role);
+
             return response()->json([
                 'role' => $role,
                 'permissions' => $permissions,
@@ -34,9 +34,10 @@ class PermissionsController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to retrieve default permissions.', [
                 'role' => $role,
-                'exception' => $e
+                'exception' => $e,
             ]);
+
             return response()->json(['error' => 'Could not retrieve permissions.'], 500);
         }
     }
-} 
+}
