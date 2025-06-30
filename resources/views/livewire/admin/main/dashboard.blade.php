@@ -63,15 +63,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </x-dashboard.action-card>
                     @endadminpermission
 
-                    @adminpermission('view_inventory')
-                        <x-dashboard.action-card 
-                            :title="__('Inventory Management')" 
-                            :description="__('Manage inventory items and categories')" 
-                            :href="route('admin.inventory.index')">
-                            {{ __('View Inventory →') }}
-                        </x-dashboard.action-card>
-                    @endadminpermission
-
                     @adminpermission('view_reports')
                         <x-dashboard.action-card 
                             :title="__('Reports')" 
