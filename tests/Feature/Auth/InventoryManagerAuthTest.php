@@ -64,7 +64,7 @@ class InventoryManagerAuthTest extends TestCase
         $this->actingAs($user);
 
         // Attempt to access admin area
-        $response = $this->get('/admin/dashboard');
+        $response = $this->get(route('admin.dashboard'));
 
         // Should be redirected away from admin area
         $response->assertRedirect(route('dashboard'));

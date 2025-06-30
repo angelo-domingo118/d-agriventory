@@ -37,9 +37,7 @@ class AuthServiceProvider extends ServiceProvider
 
         // Define gates for each permission
         foreach (AdminUser::ALLOWED_PERMISSIONS as $permission) {
-            $gateName = str_replace('_', '.', $permission);
-
-            Gate::define($gateName, function (User $user) use ($permission) {
+            Gate::define($permission, function (User $user) use ($permission) {
                 return $user->hasAdminPermission($permission);
             });
         }

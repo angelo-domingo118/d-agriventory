@@ -1,8 +1,9 @@
 <?php
 
+use App\Enums\User\Role;
 use App\Models\Division;
 use App\Models\User;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $username = '';
     public string $password = '';
     public string $password_confirmation = '';
-    public string $userType = 'admin';
+    public string $userType = Role::ADMIN->value;
     public ?int $divisionId = null;
 
     public $divisions = [];
@@ -30,26 +31,26 @@ new #[Layout('components.layouts.app')] class extends Component {
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'username' => ['required', 'string', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'userType' => ['required', 'in:admin,inventory_manager'],
-            'divisionId' => ['required_if:userType,inventory_manager', 'nullable', 'exists:divisions,id'],
+            'userType' => ['required', Rule::in(Role::values())],
+            'divisionId' => ['required_if:userType,' . Role::INVENTORY_MANAGER->value, 'nullable', 'exists:divisions,id'],
         ]);
 
         $user = User::create($validated);
 
-        if ($this->userType === 'admin') {
+        if ($this->userType === Role::ADMIN->value) {
             $user->adminUser()->create([
                 'role' => 'admin',
                 'permissions' => null, // Admins have all permissions by default
             ]);
         }
         
-        if ($this->userType === 'inventory_manager' && $this->divisionId) {
+        if ($this->userType === Role::INVENTORY_MANAGER->value && $this->divisionId) {
             $user->divisionInventoryManager()->create([
                 'division_id' => $this->divisionId,
             ]);
         }
 
-        $this->redirectRoute('admin.users.index', navigate: true);
+        $this->redirectRoute('admin.system.users.index', navigate: true);
     }
 }; ?>
 
@@ -85,16 +86,16 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{-- User Type Selection --}}
             <div class="mt-6">
                 <flux:select wire:model.live="userType" id="userType" label="User Type" required>
-                    <option value="admin">{{ __('Admin') }}</option>
-                    <option value="inventory_manager">{{ __('Division Inventory Manager') }}</option>
+                    <option value="{{ Role::ADMIN->value }}">{{ __('Admin') }}</option>
+                    <option value="{{ Role::INVENTORY_MANAGER->value }}">{{ __('Division Inventory Manager') }}</option>
                 </flux:select>
             </div>
 
             {{-- Division Selection --}}
-            @if ($userType === 'inventory_manager')
+            @if ($userType === Role::INVENTORY_MANAGER->value)
             <div class="mt-6">
                 <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
-                    :required="$userType === 'inventory_manager'">
+                    :required="$userType === '{{ Role::INVENTORY_MANAGER->value }}'">
                     <option value="">{{ __('Select a division') }}</option>
                     @foreach ($divisions as $division)
                         <option value="{{ $division->id }}">{{ $division->name }}</option>

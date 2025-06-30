@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\User\Role;
+use App\Exceptions\InvalidRoleException;
 use App\Models\AdminUser;
 use App\Models\User;
 
@@ -48,5 +50,38 @@ class PermissionService
     public function getAllPermissions(): array
     {
         return AdminUser::ALLOWED_PERMISSIONS;
+    }
+
+    /**
+     * Get default permissions for a given role.
+     *
+     * @param string $role
+     * @return array
+     * @throws InvalidRoleException
+     */
+    public function getDefaultsByRole(string $role): array
+    {
+        if (!in_array($role, Role::values())) {
+            throw new InvalidRoleException("Invalid role specified: {$role}");
+        }
+
+        $allPermissions = array_fill_keys($this->getAllPermissions(), false);
+
+        if ($role === Role::ADMIN->value) {
+            return array_fill_keys($this->getAllPermissions(), true);
+        }
+
+        if ($role === Role::INVENTORY_MANAGER->value) {
+            $inventoryPermissions = [
+                'view_inventory' => true,
+                'create_inventory' => true,
+                'edit_inventory' => true,
+                'delete_inventory' => true,
+                'view_reports' => true,
+            ];
+            return array_merge($allPermissions, $inventoryPermissions);
+        }
+
+        return $allPermissions;
     }
 }

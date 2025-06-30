@@ -31,7 +31,7 @@ test('admin dashboard is not accessible by regular users', function () {
 
 test('admin users index page is accessible by admin users', function () {
     $this->actingAs($this->admin)
-        ->get(route('admin.users.index'))
+        ->get(route('admin.system.users.index'))
         ->assertStatus(200);
 });
 
@@ -39,7 +39,7 @@ test('admin users can view user details', function () {
     $user = User::factory()->create();
 
     $this->actingAs($this->admin)
-        ->get(route('admin.users.show', $user))
+        ->get(route('admin.system.users.show', $user))
         ->assertStatus(200)
         ->assertSee($user->name)
         ->assertSee($user->email);
@@ -47,7 +47,7 @@ test('admin users can view user details', function () {
 
 test('admin users can access the create new user page', function () {
     $this->actingAs($this->admin)
-        ->get(route('admin.users.create'))
+        ->get(route('admin.system.users.create'))
         ->assertStatus(200);
 });
 
@@ -55,7 +55,7 @@ test('admin users can edit users', function () {
     $user = User::factory()->create();
 
     $this->actingAs($this->admin)
-        ->get(route('admin.users.edit', $user))
+        ->get(route('admin.system.users.edit', $user))
         ->assertStatus(200)
         ->assertSee($user->name)
         ->assertSee($user->email);
@@ -63,15 +63,15 @@ test('admin users can edit users', function () {
 
 test('regular users cannot access admin user management', function () {
     $this->actingAs($this->regularUser)
-        ->get(route('admin.users.index'))
+        ->get(route('admin.system.users.index'))
         ->assertRedirect(route('dashboard'));
 
     $this->actingAs($this->regularUser)
-        ->get(route('admin.users.create'))
+        ->get(route('admin.system.users.create'))
         ->assertRedirect(route('dashboard'));
 
     $user = User::factory()->create();
     $this->actingAs($this->regularUser)
-        ->get(route('admin.users.edit', $user))
+        ->get(route('admin.system.users.edit', $user))
         ->assertRedirect(route('dashboard'));
 });

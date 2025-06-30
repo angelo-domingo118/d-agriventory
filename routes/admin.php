@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\PermissionsController;
 use App\Http\Middleware\HasAdminPermission;
 use App\Http\Middleware\IsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -16,89 +17,72 @@ use Livewire\Volt\Volt;
 |
 */
 
-Route::prefix('admin')->middleware(['auth', IsAdmin::class])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->group(function () {
     // Admin dashboard
-    Volt::route('dashboard', 'admin.dashboard')
-        ->name('admin.dashboard');
+    Volt::route('main/dashboard', 'admin.main.dashboard')
+        ->name('dashboard');
 
-    // Permission management
-    Volt::route('permissions/defaults/{role}', 'admin.permissions.defaults')
-        ->name('admin.permissions.defaults');
-
-    // User management routes with permission middleware
-    Route::middleware([HasAdminPermission::class.':create_users'])->group(function () {
-        Volt::route('users/create', 'admin.users.create')
-            ->name('admin.users.create');
-
-        // Add the store route
-        Route::post('users', function () {
-            return Volt::render('admin.users.create');
-        })->name('admin.users.store');
+    // API routes
+    Route::prefix('api')->name('api.')->group(function() {
+        Route::get('permissions/defaults/{role}', [PermissionsController::class, 'getDefaultsByRole'])
+            ->name('permissions.defaults');
     });
 
-    Route::middleware([HasAdminPermission::class.':view_users'])->group(function () {
-        Volt::route('users', 'admin.users.index')
-            ->name('admin.users.index');
+    // System Routes
+    Route::prefix('system')->name('system.')->group(function () {
+        // Permission management
+        Volt::route('permissions/defaults/{role}', 'admin.system.permissions.defaults')
+            ->name('permissions.defaults');
 
-        Volt::route('users/{user}', 'admin.users.show')
-            ->name('admin.users.show');
-    });
+        // User management routes
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::middleware([HasAdminPermission::class.':create_users'])->group(function () {
+                Volt::route('create', 'admin.system.users.create')->name('create');
+                Route::post('/', fn () => Volt::render('admin.system.users.create'))->name('store');
+            });
 
-    Route::middleware([HasAdminPermission::class.':edit_users'])->group(function () {
-        Volt::route('users/{user}/edit', 'admin.users.edit')
-            ->name('admin.users.edit');
+            Route::middleware([HasAdminPermission::class.':view_users'])->group(function () {
+                Volt::route('/', 'admin.system.users.index')->name('index');
+                Volt::route('{user}', 'admin.system.users.show')->name('show');
+            });
+
+            Route::middleware([HasAdminPermission::class.':edit_users'])->group(function () {
+                Volt::route('{user}/edit', 'admin.system.users.edit')->name('edit');
+            });
+        });
+
+        // Audit Logs routes
+        Route::middleware([HasAdminPermission::class.':view_logs'])->group(function () {
+            Volt::route('audit-logs', 'admin.system.audit-logs.index')
+                ->name('audit-logs.index');
+        });
     });
 
     // Inventory management routes
-    Route::middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
-        // Main inventory route
-        Volt::route('inventory', 'admin.inventory.index')
-            ->name('admin.inventory.index');
-
-        // ICS Management
-        Volt::route('inventory/ics', 'admin.inventory.ics.index')
-            ->name('admin.inventory.ics.index');
-
-        // PAR Management
-        Volt::route('inventory/par', 'admin.inventory.par.index')
-            ->name('admin.inventory.par.index');
-
-        // IDR Management
-        Volt::route('inventory/idr', 'admin.inventory.idr.index')
-            ->name('admin.inventory.idr.index');
-
-        // Transfers Management
-        Volt::route('inventory/transfers', 'admin.inventory.transfers.index')
-            ->name('admin.inventory.transfers.index');
-
-        // Consumables Management
-        Volt::route('inventory/consumables', 'admin.inventory.consumables.index')
-            ->name('admin.inventory.consumables.index');
-
-        // Items & Categories
-        Volt::route('inventory/items', 'admin.inventory.items.index')
-            ->name('admin.inventory.items.index');
-
-        // Suppliers & Contracts
-        Volt::route('inventory/contracts', 'admin.inventory.contracts.index')
-            ->name('admin.inventory.contracts.index');
+    Route::prefix('inventory')->name('inventory.')->middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
+        Volt::route('/', 'admin.inventory.index')->name('index');
+        Volt::route('ics', 'admin.inventory.ics.index')->name('ics.index');
+        Volt::route('par', 'admin.inventory.par.index')->name('par.index');
+        Volt::route('idr', 'admin.inventory.idr.index')->name('idr.index');
+        Volt::route('transfers', 'admin.inventory.transfers.index')->name('transfers.index');
+        Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
     });
 
-    // Reports management routes
-    Route::middleware([HasAdminPermission::class.':view_reports'])->group(function () {
-        Volt::route('reports', 'admin.reports.index')
-            ->name('admin.reports.index');
+    // Data management routes
+    Route::prefix('data')->name('data.')->group(function () {
+        Route::middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
+            Volt::route('items-and-categories', 'admin.data.items-and-categories.index')->name('items.index');
+            Volt::route('suppliers-and-contracts', 'admin.data.suppliers-and-contracts.index')->name('contracts.index');
+        });
+        Route::middleware([HasAdminPermission::class.':view_employees'])->group(function () {
+            Volt::route('employees-and-divisions', 'admin.data.employees-and-divisions.index')->name('employees.index');
+        });
     });
 
-    // Employees & Divisions routes
-    Route::middleware([HasAdminPermission::class.':view_employees'])->group(function () {
-        Volt::route('employees', 'admin.employees.index')
-            ->name('admin.employees.index');
-    });
-
-    // Audit Logs routes
-    Route::middleware([HasAdminPermission::class.':view_logs'])->group(function () {
-        Volt::route('logs', 'admin.logs.index')
-            ->name('admin.logs.index');
+    // Main routes (reports)
+    Route::prefix('main')->name('main.')->group(function () {
+        Route::middleware([HasAdminPermission::class.':view_reports'])->group(function () {
+            Volt::route('reports', 'admin.main.reports.index')->name('reports.index');
+        });
     });
 });

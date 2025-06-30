@@ -21,6 +21,9 @@ class AdminUser extends Model
         'view_inventory', 'create_inventory', 'edit_inventory', 'delete_inventory',
         'view_reports', 'create_reports', 'export_reports',
         'manage_settings',
+        'view_employees_and_divisions',
+        'view_suppliers_and_contracts',
+        'view_permissions',
     ];
 
     /**

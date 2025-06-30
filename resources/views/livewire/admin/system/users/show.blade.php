@@ -41,12 +41,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.layout heading="User Details">
         <x-slot name="header">
             <div class="flex space-x-2">
-                <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
+                <flux:button :href="route('admin.system.users.index')" wire:navigate variant="ghost">
                     {{ __('Back to Users') }}
                 </flux:button>
                 
                 @adminpermission('edit_users')
-                <flux:button :href="route('admin.users.edit', $user)" wire:navigate variant="primary">
+                <flux:button :href="route('admin.system.users.edit', $user)" wire:navigate variant="primary">
                     {{ __('Edit User') }}
                 </flux:button>
                 @endadminpermission

@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\User\Role;
 use App\Models\User;
 use App\Models\AdminUser;
 use App\Models\Division;
+use App\Models\DivisionInventoryManager;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -16,7 +18,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $username = '';
     public ?string $password = null;
     public ?string $password_confirmation = null;
-    public string $userType = 'regular';
+    public string $userType = Role::REGULAR->value;
     public ?int $divisionId = null;
     public $divisions = [];
 
@@ -29,12 +31,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->divisions = Division::all(['id', 'name']);
 
         if ($user->adminUser) {
-            $this->userType = 'admin';
+            $this->userType = Role::ADMIN->value;
         } elseif ($user->divisionInventoryManager) {
-            $this->userType = 'inventory_manager';
+            $this->userType = Role::INVENTORY_MANAGER->value;
             $this->divisionId = $user->divisionInventoryManager->division_id;
         } else {
-            $this->userType = 'regular';
+            $this->userType = Role::REGULAR->value;
         }
     }
 
@@ -44,7 +46,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user->id)],
             'username' => ['required', 'string', 'max:255', Rule::unique(User::class)->ignore($this->user->id)],
-            'divisionId' => ['required_if:userType,inventory_manager', 'nullable', 'exists:divisions,id'],
+            'userType' => ['required', 'string', Rule::in(Role::values())],
+            'divisionId' => ['required_if:userType,' . Role::INVENTORY_MANAGER->value, 'nullable', 'exists:divisions,id'],
         ];
 
         if ($this->password) {
@@ -65,21 +68,30 @@ new #[Layout('components.layouts.app')] class extends Component {
             ]);
         }
 
-        if ($this->userType === 'inventory_manager') {
-            $this->user->divisionInventoryManager()->update([
-                'division_id' => $this->divisionId,
-            ]);
+        // Handle user type change
+        if ($this->userType !== Role::ADMIN->value && $this->user->adminUser) {
+            $this->user->adminUser->delete();
+        }
+
+        if ($this->userType !== Role::INVENTORY_MANAGER->value && $this->user->divisionInventoryManager) {
+            $this->user->divisionInventoryManager->delete();
+        }
+
+        if ($this->userType === Role::ADMIN->value) {
+            AdminUser::updateOrCreate(['user_id' => $this->user->id]);
+        } elseif ($this->userType === Role::INVENTORY_MANAGER->value) {
+            DivisionInventoryManager::updateOrCreate(['user_id' => $this->user->id], ['division_id' => $validated['divisionId']]);
         }
 
         session()->flash('message', __('User updated successfully.'));
-        $this->redirectRoute('admin.users.show', ['user' => $this->user->id], navigate: true);
+        $this->redirectRoute('admin.system.users.show', ['user' => $this->user->id], navigate: true);
     }
 }; ?>
 
 <div>
     <x-admin.layout heading="Edit User">
         <x-slot name="header">
-            <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
+            <flux:button :href="route('admin.system.users.index')" wire:navigate variant="ghost">
                 {{ __('Back to Users') }}
             </flux:button>
         </x-slot>
@@ -112,16 +124,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                     label="Confirm New Password" />
             </div>
 
-            {{-- User Type (Read-only) --}}
+            {{-- User Type --}}
             <div class="mt-6">
-                <flux:input id="userType" label="User Type" :value="ucfirst(str_replace('_', ' ', $userType))" disabled />
+                <flux:select wire:model.live="userType" id="userType" label="User Type" required>
+                    <option value="{{ Role::REGULAR->value }}">{{ __('Regular') }}</option>
+                    <option value="{{ Role::ADMIN->value }}">{{ __('Admin') }}</option>
+                    <option value="{{ Role::INVENTORY_MANAGER->value }}">{{ __('Inventory Manager') }}</option>
+                </flux:select>
             </div>
 
             {{-- Division Selection --}}
-            @if ($userType === 'inventory_manager')
+            @if ($userType === Role::INVENTORY_MANAGER->value)
                 <div class="mt-6">
                     <flux:select wire:model.live="divisionId" id="divisionId" label="Division"
-                        :required="$userType === 'inventory_manager'">
+                        :required="$userType === '{{ Role::INVENTORY_MANAGER->value }}'">
                         <option value="">{{ __('Select a division') }}</option>
                         @foreach ($divisions as $division)
                             <option value="{{ $division->id }}">{{ $division->name }}</option>
@@ -134,7 +150,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <flux:button variant="primary" type="submit">
                     {{ __('Update User') }}
                 </flux:button>
-                <flux:button :href="route('admin.users.index')" wire:navigate variant="ghost">
+                <flux:button :href="route('admin.system.users.index')" wire:navigate variant="ghost">
                     {{ __('Cancel') }}
                 </flux:button>
             </div>

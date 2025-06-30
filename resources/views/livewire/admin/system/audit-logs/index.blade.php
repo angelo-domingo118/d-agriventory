@@ -11,10 +11,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <x-admin.layout heading="Employees & Divisions">
+    <x-admin.layout heading="Audit Logs">
         <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 overflow-hidden shadow-sm rounded-lg">
             <div class="p-6">
-                <p class="text-stone-600 dark:text-stone-400">This is a placeholder for the Employees & Divisions management page.</p>
+                <p class="text-stone-600 dark:text-stone-400">This is a placeholder for the Audit Logs page.</p>
             </div>
         </div>
     </x-admin.layout>

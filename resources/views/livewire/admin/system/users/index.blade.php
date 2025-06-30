@@ -64,7 +64,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10);
             
-        return view('livewire.admin.users.index', [
+        return view('livewire.admin.system.users.index', [
             'users' => $users,
         ]);
     }
@@ -74,7 +74,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.layout heading="User Management">
         <x-slot name="header">
             @adminpermission('create_users')
-                <flux:button :href="route('admin.users.create')" wire:navigate variant="primary">
+                <flux:button :href="route('admin.system.users.create')" wire:navigate variant="primary">
                     {{ __('Add User') }}
                 </flux:button>
             @endadminpermission
@@ -180,13 +180,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end space-x-2">
                                             @adminpermission('view_users')
-                                                <flux:button variant="ghost" :href="route('admin.users.show', $user)" wire:navigate>
+                                                <flux:button variant="ghost" :href="route('admin.system.users.show', $user)" wire:navigate>
                                                     {{ __('View') }}
                                                 </flux:button>
                                             @endadminpermission
                                             
                                             @adminpermission('edit_users')
-                                                <flux:button variant="ghost" :href="route('admin.users.edit', $user)" wire:navigate>
+                                                <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate>
                                                     {{ __('Edit') }}
                                                 </flux:button>
                                             @endadminpermission

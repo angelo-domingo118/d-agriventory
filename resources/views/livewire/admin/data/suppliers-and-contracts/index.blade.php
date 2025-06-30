@@ -6,8 +6,8 @@ use Livewire\Attributes\Layout;
 new #[Layout('components.layouts.app')] class extends Component {
     public function mount(): void
     {
-        // Verify the user has permission to view contracts
-        if (!auth()->user()->hasAdminPermission('view_inventory')) {
+        // Verify the user has permission to view suppliers and contracts
+        if (!auth()->user()->hasAdminPermission('view_suppliers_and_contracts')) {
             abort(403);
         }
     }

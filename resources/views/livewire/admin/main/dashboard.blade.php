@@ -58,7 +58,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <x-dashboard.action-card 
                             :title="__('Manage Users')" 
                             :description="__('Add, edit, or remove user accounts')" 
-                            :href="route('admin.users.index')">
+                            :href="route('admin.system.users.index')">
                             {{ __('View All Users →') }}
                         </x-dashboard.action-card>
                     @endadminpermission
@@ -76,7 +76,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <x-dashboard.action-card 
                             :title="__('Reports')" 
                             :description="__('View and generate system reports')" 
-                            :href="route('admin.reports.index')">
+                            :href="route('admin.main.reports.index')">
                             {{ __('View Reports →') }}
                         </x-dashboard.action-card>
                     @endadminpermission
