@@ -12,22 +12,22 @@
                     <x-app-logo />
                 </a>
 
-                <flux:navlist class="grid gap-0.5 mt-4" variant="outline">
-                    @if (auth()->check())
-                        @if (auth()->user()->adminUser)
-                            @include('partials.navigation.admin')
-                        @elseif (auth()->user()->divisionInventoryManager)
-                            @include('partials.navigation.inventory-manager')
-                        @else
-                            <!-- Default navigation for users without specific roles -->
-                            <flux:navlist.item icon="house" href="{{ route('dashboard') }}" wire:navigate>
-                                {{ __('Dashboard') }}
-                            </flux:navlist.item>
+                <div class="flex-1 overflow-y-auto">
+                    <flux:navlist class="grid gap-0.5 mt-4" variant="outline">
+                        @if (auth()->check())
+                            @if (auth()->user()->adminUser)
+                                @include('partials.navigation.admin')
+                            @elseif (auth()->user()->divisionInventoryManager)
+                                @include('partials.navigation.inventory-manager')
+                            @else
+                                <!-- Default navigation for users without specific roles -->
+                                <flux:navlist.item icon="house" href="{{ route('dashboard') }}" wire:navigate>
+                                    {{ __('Dashboard') }}
+                                </flux:navlist.item>
+                            @endif
                         @endif
-                    @endif
-                </flux:navlist>
-
-                <flux:spacer />
+                    </flux:navlist>
+                </div>
 
                 <!-- Desktop User Menu -->
                 <flux:dropdown class="hidden lg:block" position="bottom" align="start">
