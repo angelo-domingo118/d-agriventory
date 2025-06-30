@@ -12,7 +12,20 @@
                     <x-app-logo />
                 </a>
 
-                <div class="flex-1 overflow-y-auto">
+                <div
+                    class="relative flex-1 overflow-y-auto"
+                    x-data="{
+                        showIndicator: false,
+                        checkScroll() {
+                            const el = this.$el;
+                            const tolerance = 1;
+                            this.showIndicator = el.scrollHeight > el.clientHeight && (el.scrollHeight - el.clientHeight - el.scrollTop > tolerance);
+                        }
+                    }"
+                    x-init="checkScroll()"
+                    @scroll.debounce.50ms="checkScroll()"
+                    @resize.window.debounce.150ms="checkScroll()"
+                >
                     <flux:navlist class="grid gap-0.5 mt-4" variant="outline">
                         @if (auth()->check())
                             @if (auth()->user()->adminUser)
@@ -27,6 +40,16 @@
                             @endif
                         @endif
                     </flux:navlist>
+
+                    <div
+                        x-show="showIndicator"
+                        x-transition
+                        class="pointer-events-none fixed bottom-0 left-0 right-0 z-10 flex h-20 items-end justify-center bg-gradient-to-t from-stone-50 to-transparent pb-4 dark:from-stone-900"
+                        style="width: inherit;"
+                        aria-hidden="true"
+                    >
+                        <x-flux::icon name="chevron-down" class="h-6 w-6 animate-bounce text-stone-600 dark:text-stone-300" />
+                    </div>
                 </div>
 
                 <!-- Desktop User Menu -->
