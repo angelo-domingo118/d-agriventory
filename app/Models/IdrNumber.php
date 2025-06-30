@@ -27,6 +27,7 @@ class IdrNumber extends Model
         'contract_item_id',
         'inventory_code',
         'ors',
+        'date_prepared',
         'date_accepted',
         'remarks',
     ];
@@ -37,6 +38,7 @@ class IdrNumber extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'date_prepared' => 'date',
         'date_accepted' => 'date',
     ];
 

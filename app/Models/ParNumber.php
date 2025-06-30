@@ -21,11 +21,13 @@ class ParNumber extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'par_number',
         'assigned_employee_id',
         'contract_item_id',
         'area_code',
         'building_code',
         'account_code',
+        'date_prepared',
         'date_accepted',
         'remarks',
     ];
@@ -36,6 +38,7 @@ class ParNumber extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'date_prepared' => 'date',
         'date_accepted' => 'date',
     ];
 

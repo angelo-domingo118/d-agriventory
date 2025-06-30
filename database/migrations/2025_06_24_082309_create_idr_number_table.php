@@ -19,9 +19,17 @@ return new class extends Migration
             $table->foreignId('contract_item_id')->constrained('contract_items')->onDelete('cascade');
             $table->string('inventory_code')->comment('IDR specific field.');
             $table->string('ors')->comment('IDR specific field.');
+            $table->date('date_prepared')->comment('Date when the document was prepared');
             $table->date('date_accepted');
             $table->text('remarks')->nullable();
             $table->timestamps();
+
+            // Add indexes for frequently queried fields
+            $table->index('assigned_employee_id');
+            $table->index('approving_employee_id');
+            $table->index('contract_item_id');
+            $table->index('date_prepared');
+            $table->index('date_accepted');
         });
     }
 

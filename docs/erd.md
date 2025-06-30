@@ -8,6 +8,7 @@ erDiagram
     users {
         bigint id PK " // mandatory"
         varchar name " // mandatory"
+        varchar username UK " // mandatory"
         varchar email UK " // mandatory"
         varchar password " // mandatory"
         varchar remember_token " // nullable"
@@ -18,6 +19,10 @@ erDiagram
     admin_users {
         bigint id PK " // mandatory"
         bigint user_id FK " // mandatory"
+        varchar role " // default: 'admin'"
+        json permissions " // nullable, custom permission sets"
+        boolean is_active " // default: true"
+        timestamp last_login_at " // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
     }
@@ -111,10 +116,12 @@ erDiagram
     }
     ics_number {
         bigint id PK " // mandatory"
+        varchar ics_number UK " // mandatory, unique ICS document number"
         bigint assigned_employee_id FK " // mandatory"
         bigint contract_item_id FK " // mandatory"
         enum ics_type "SPLV, SPHV. // mandatory"
         int estimated_useful_life "ICS specific field. // mandatory"
+        date date_prepared " // mandatory, when the document was prepared"
         date date_accepted " // mandatory"
         text remarks " // nullable"
         timestamp created_at " // mandatory"
@@ -139,11 +146,13 @@ erDiagram
     }
     par_number {
         bigint id PK " // mandatory"
+        varchar par_number UK " // mandatory, unique PAR document number"
         bigint assigned_employee_id FK " // mandatory"
         bigint contract_item_id FK " // mandatory"
         varchar area_code "PAR specific field. // mandatory"
         varchar building_code "PAR specific field. // mandatory"
         varchar account_code "PAR specific field. // mandatory"
+        date date_prepared " // mandatory, when the document was prepared"
         date date_accepted " // mandatory"
         text remarks " // nullable"
         timestamp created_at " // mandatory"
@@ -174,6 +183,7 @@ erDiagram
         bigint contract_item_id FK " // mandatory"
         varchar inventory_code "IDR specific field. // mandatory"
         varchar ors "IDR specific field. // mandatory"
+        date date_prepared " // mandatory, when the document was prepared"
         date date_accepted " // mandatory"
         text remarks " // nullable"
         timestamp created_at " // mandatory"

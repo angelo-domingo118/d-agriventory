@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('par_number', function (Blueprint $table) {
             $table->id();
+            $table->string('par_number')->unique()->comment('Unique PAR document number');
             $table->foreignId('assigned_employee_id')->constrained('employees')->onDelete('cascade');
             $table->foreignId('contract_item_id')->constrained('contract_items')->onDelete('cascade');
             $table->string('area_code')->comment('PAR specific field.');
             $table->string('building_code')->comment('PAR specific field.');
             $table->string('account_code')->comment('PAR specific field.');
+            $table->date('date_prepared')->comment('Date when the document was prepared');
             $table->date('date_accepted');
             $table->text('remarks')->nullable();
             $table->timestamps();
@@ -28,6 +30,7 @@ return new class extends Migration
             $table->index('area_code');
             $table->index('building_code');
             $table->index('account_code');
+            $table->index('date_prepared');
             $table->index('date_accepted');
         });
     }

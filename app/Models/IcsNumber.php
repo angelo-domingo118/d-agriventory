@@ -27,10 +27,12 @@ class IcsNumber extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'ics_number',
         'assigned_employee_id',
         'contract_item_id',
         'ics_type',
         'estimated_useful_life',
+        'date_prepared',
         'date_accepted',
         'remarks',
     ];
@@ -41,6 +43,7 @@ class IcsNumber extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'date_prepared' => 'date',
         'date_accepted' => 'date',
     ];
 
