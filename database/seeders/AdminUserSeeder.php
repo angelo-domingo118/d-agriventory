@@ -20,19 +20,23 @@ class AdminUserSeeder extends Seeder
             : 'password'; // Simple password for non-production environments
 
         // Create a default admin user
-        $adminUser = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'username' => 'admin',
-            'password' => Hash::make($password),
-            'email_verified_at' => now(),
-        ]);
+        $adminUser = User::firstOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Admin',
+                'email' => 'admin@example.com',
+                'password' => Hash::make($password),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        AdminUser::create([
-            'user_id' => $adminUser->id,
-            'role' => 'admin',
-            'is_active' => true,
-            'last_login_at' => now(),
-        ]);
+        AdminUser::firstOrCreate(
+            ['user_id' => $adminUser->id],
+            [
+                'role' => 'admin',
+                'is_active' => true,
+                'last_login_at' => now(),
+            ]
+        );
     }
 }
