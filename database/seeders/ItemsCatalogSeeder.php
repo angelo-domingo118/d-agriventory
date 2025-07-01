@@ -49,11 +49,23 @@ class ItemsCatalogSeeder extends Seeder
         $upperItemName = Str::upper($itemName);
 
         $unitMap = [
-            'kg' => ['FERTILIZER', 'UREA', 'PHOSPHATE', 'POTASH', 'RICE BRAN', 'PULVERIZER', 'POWDER', 'CRUMBLE', 'PELLET', 'SEEDS', 'BEAN', 'PEANUT', 'CORN'],
+            'kg' => ['FERTILIZER', 'UREA', 'PHOSPHATE', 'POTASH', 'RICE BRAN', 'POWDER', 'CRUMBLE', 'PELLET', 'SEEDS', 'BEAN', 'PEANUT', 'CORN', 'KILOGRAM'],
             'liter' => ['PAINT', 'LIQUID', 'MOLASSES', 'CONCENTRATE', 'EM-1'],
+            'gallon' => ['GALLON'],
             'meter' => ['HOSE', 'ROPE', 'WIRE', 'SHEET', 'NET'],
             'pack' => ['PACK'],
-            'unit' => ['SET', 'KIT'],
+            'set' => ['SET', 'KIT', 'WITH', 'WORKSTATION'],
+            'unit' => ['UNIT', 'COMPUTER', 'PRINTER', 'PHOTOCOPIER', 'TANK', 'PULVERIZER', 'MACHINE', 'EQUIPMENT', 'DISPLAY', 'TERMINAL', 'STERILIZER', 'FREEZER', 'DISPENSER', 'LIGHT', 'TELEVISION', 'UPS', 'COOLER', 'SHREDDER', 'METER', 'SCALE', 'BATH'],
+            'bag' => ['BAG', 'SACK'],
+            'book' => ['BOOK', 'JOURNAL', 'BULLETIN', 'NEWS LETTER'],
+            'bottle' => ['BOTTLE'],
+            'box' => ['BOX', 'BIN'],
+            'can' => ['CAN', 'CANISTER'],
+            'container' => ['CONTAINER', 'DRUM'],
+            'copy' => ['COPY', 'MANUAL'],
+            'roll' => ['ROLL'],
+            'head' => ['SHEEP'],
+            'lot' => ['KIOSK', 'LOT'],
         ];
 
         foreach ($unitMap as $unit => $keywords) {
