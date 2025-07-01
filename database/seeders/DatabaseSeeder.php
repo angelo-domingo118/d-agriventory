@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
                 PrimaryCategorySeeder::class,
                 SecondaryCategorySeeder::class,
                 ItemsCatalogSeeder::class,
+                ItemSpecificationSeeder::class,
                 SupplierAndContractSeeder::class,
             ]);
         }

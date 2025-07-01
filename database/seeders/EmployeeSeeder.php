@@ -58,8 +58,10 @@ class EmployeeSeeder extends Seeder
 
         foreach ($employeeNames as $fullName) {
             $parts = explode(', ', $fullName);
-            if (count($parts) === 2) {
-                $formattedName = trim($parts[1]).' '.trim($parts[0]);
+            if (count($parts) >= 2) {
+                $lastName = array_shift($parts); // Get the last name
+                $firstNameAndSuffix = implode(', ', $parts); // Re-join the first name and any suffixes
+                $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
                 Employee::firstOrCreate(['name' => $formattedName]);
             } else {
                 $this->command->warn("Skipping malformed employee name: {$fullName}");
