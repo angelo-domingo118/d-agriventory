@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
                 ItemsCatalogSeeder::class,
                 ItemSpecificationSeeder::class,
                 SupplierAndContractSeeder::class,
+                ContractItemsSeeder::class,
             ]);
         }
     }
