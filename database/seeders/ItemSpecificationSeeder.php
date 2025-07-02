@@ -2,16 +2,14 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ItemsCatalog;
 use App\Models\ItemSpecification;
+use Illuminate\Database\Seeder;
 
 class ItemSpecificationSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
     public function run(): void
     {
@@ -42,4 +40,4 @@ class ItemSpecificationSeeder extends Seeder
 
         $this->command->info('Finished seeding item specifications.');
     }
-} 
+}

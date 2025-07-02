@@ -299,4 +299,4 @@ return [
     'RACHET DIE STOCK (PIPE THREADER)' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => '¼", ⅜", ½", ¾", 1", 1¼" (no. 62), with case'],
     ],
-]; 
+];

@@ -70,7 +70,7 @@ class ItemsCatalogSeeder extends Seeder
 
         foreach ($unitMap as $unit => $keywords) {
             // Use a regex with word boundaries for precise, whole-word matching.
-            $pattern = '/\b(' . implode('|', array_map('preg_quote', $keywords)) . ')\b/';
+            $pattern = '/\b('.implode('|', array_map('preg_quote', $keywords)).')\b/';
             if (preg_match($pattern, $upperItemName)) {
                 return $unit;
             }

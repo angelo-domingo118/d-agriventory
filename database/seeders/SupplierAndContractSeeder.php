@@ -120,4 +120,4 @@ class SupplierAndContractSeeder extends Seeder
 
         $this->command->info('Finished seeding suppliers and contracts.');
     }
-} 
+}
