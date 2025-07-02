@@ -238,7 +238,7 @@ return [
     'EXTENSION WIRE' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'heavy duty, 3 gangs, flat cord, 5 meters'],
     ],
-    'PRUNNING SAW' => [
+    'PRUNING SAW' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'manual, two-component plastic handle'],
     ],
     'PULVERIZER' => [

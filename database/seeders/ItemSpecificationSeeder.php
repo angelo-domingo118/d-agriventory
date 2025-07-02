@@ -18,7 +18,13 @@ class ItemSpecificationSeeder extends Seeder
         // Fetch all items catalog at once to avoid N+1 queries in the loop.
         $itemsCatalog = ItemsCatalog::all()->keyBy('name');
 
-        $specificationsData = config('seeders.item_specifications');
+        $filePath = database_path('seeders/data/item_specifications.php');
+        if (! file_exists($filePath)) {
+            $this->command->error('Item specifications data file not found at: '.$filePath);
+
+            return;
+        }
+        $specificationsData = require $filePath;
 
         foreach ($specificationsData as $itemName => $specs) {
             if ($itemsCatalog->has($itemName)) {

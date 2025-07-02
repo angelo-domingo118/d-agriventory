@@ -14,7 +14,14 @@ class ItemsCatalogSeeder extends Seeder
      */
     public function run(): void
     {
-        $items = config('seeders.items_catalog');
+        $filePath = database_path('seeders/data/items_catalog.php');
+
+        if (! file_exists($filePath)) {
+            $this->command->error('Items catalog data file not found at: '.$filePath);
+
+            return;
+        }
+        $items = require $filePath;
 
         // Fetch all secondary categories at once and key by name to prevent N+1 queries.
         $secondaryCategoriesMap = SecondaryCategory::all()->keyBy('name');

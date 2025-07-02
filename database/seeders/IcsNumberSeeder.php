@@ -106,6 +106,16 @@ class IcsNumberSeeder extends Seeder
         }
 
         $icsType = $contractItem->unit_price > self::SPHV_THRESHOLD ? 'SPHV' : 'SPLV';
+
+        $date_prepared_value = $icsItem['date_prepared'];
+        if (is_array($date_prepared_value)) {
+            // If it's an array of dates, pick one randomly for each item in the range.
+            $date_prepared_string = $date_prepared_value[array_rand($date_prepared_value)];
+        } else {
+            // Handle single date string, also taking the first part if it's a " & " separated string.
+            $date_prepared_string = explode(' & ', $date_prepared_value)[0];
+        }
+
         $newIcsNumber = IcsNumber::updateOrCreate(
             ['ics_number' => $icsNumber],
             [
@@ -113,7 +123,7 @@ class IcsNumberSeeder extends Seeder
                 'contract_item_id' => $contractItem->id,
                 'ics_type' => $icsType,
                 'estimated_useful_life' => 5,
-                'date_prepared' => $this->parseDate(explode(' & ', $icsItem['date_prepared'])[0], $icsNumber),
+                'date_prepared' => $this->parseDate($date_prepared_string, $icsNumber),
                 'date_accepted' => $this->parseDate($icsItem['date_accepted'], $icsNumber),
                 'remarks' => $icsItem['remarks'],
             ]
@@ -193,14 +203,20 @@ class IcsNumberSeeder extends Seeder
         return null;
     }
 
+    /**
+     * Get the data from the PHP data file.
+     *
+     * @return array
+     */
     private function getIcsData(): array
     {
-        $path = database_path('seeders/data/ics_data.json');
-        if (!file_exists($path)) {
-            $this->command->error("ICS data file not found at: {$path}");
+        $filePath = database_path('seeders/data/ics_data.php');
+        if (! file_exists($filePath)) {
+            $this->command->warn('ICS data file not found, skipping: '.$filePath);
+
             return [];
         }
-        $json = file_get_contents($path);
-        return json_decode($json, true);
+
+        return require $filePath;
     }
 } 
