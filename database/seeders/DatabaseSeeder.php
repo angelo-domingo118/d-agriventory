@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
                 ItemSpecificationSeeder::class,
                 SupplierAndContractSeeder::class,
                 ContractItemsSeeder::class,
+                IcsNumberSeeder::class,
             ]);
         }
     }

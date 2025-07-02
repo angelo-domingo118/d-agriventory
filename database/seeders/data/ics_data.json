@@ -1,0 +1,1870 @@
+[
+    {
+        "ics_number": "1",
+        "quantity": 11,
+        "article": "TIME ATTENDANCE TERMINAL",
+        "document_source": "Supplier: Competitive Card Solutions Phils., Inc. ; Contract/PO/IB No: 254-1928",
+        "date_prepared": "1/7/25",
+        "date_accepted": "1/7/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For Office use"
+    },
+    {
+        "ics_number": "10",
+        "quantity": 1,
+        "article": "TIME ATTENDANCE 1",
+        "document_source": "Supplier: Competitive Card Solutions Phils., Inc. ; Contract/PO/IB No: 254-1928",
+        "date_prepared": "1/7/25",
+        "date_accepted": "1/7/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For Office use"
+    },
+    {
+        "ics_number": "13",
+        "quantity": 2,
+        "article": "GUN TACKER",
+        "document_source": "Supplier: Bump Baby & Beyond Specialized Goods Trading ; Contract/PO/IB No: 254-2030",
+        "date_prepared": "1/15/25",
+        "date_accepted": "1/8/25",
+        "issued_to": "DANGATAN, Merinda Mae",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "15",
+        "quantity": 1,
+        "article": "USB DOCK",
+        "document_source": "Supplier: Arjelon Enterprises and Trading ; Contract/PO/IB No: 211-1664",
+        "date_prepared": "1/20/25",
+        "date_accepted": "1/13/25",
+        "issued_to": "CALANTAS, Octaviano",
+        "remarks": "For FOD (Corn) use"
+    },
+    {
+        "ics_number": "16",
+        "quantity": 1,
+        "article": "USB HUB",
+        "document_source": "Supplier: Arjelon Enterprises and Trading ; Contract/PO/IB No: 211-1664",
+        "date_prepared": "1/20/25",
+        "date_accepted": "1/13/25",
+        "issued_to": "CALANTAS, Octaviano",
+        "remarks": "For FOD (Corn) use"
+    },
+    {
+        "ics_number": "17",
+        "quantity": 11,
+        "article": "OFFICE CHAIR",
+        "document_source": "Supplier: Arjelon Enteprises and Trading Corporation ; Contract/PO/IB No: 254-1633",
+        "date_prepared": "1/27/25",
+        "date_accepted": "1/22/25",
+        "issued_to": "ROSARIO, Crisante",
+        "remarks": "For AMIA Office use"
+    },
+    {
+        "ics_number": "28",
+        "quantity": 2,
+        "article": "PRINTER",
+        "document_source": "Supplier: ESM Learning Enterprise ; Contract/PO/IB No: 256-1730",
+        "date_prepared": "1/28/25",
+        "date_accepted": "1/24/25",
+        "issued_to": "CELO, Lloyd Edward",
+        "remarks": "For FOD (HVCDP) use"
+    },
+    {
+        "ics_number": "30",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Infoworkx Inc. ; Contract/PO/IB No: 254-1907",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/16/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (HRP) use"
+    },
+    {
+        "ics_number": "31",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Infoworkx Inc. ; Contract/PO/IB No: 254-1907",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/16/25",
+        "issued_to": "DACULAN, Bruce",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "32",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Infoworkx Inc. ; Contract/PO/IB No: 254-1907",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/16/25",
+        "issued_to": "MARAFO, Maricel",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "33",
+        "quantity": 1,
+        "article": "PHOTOCOPIER",
+        "document_source": "Supplier: Copylandia Office Systems Corporation ; Contract/PO/IB No: 254-2296",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/24/25",
+        "issued_to": "ESTANGKI, Olivia",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "34",
+        "quantity": 1,
+        "article": "PHOTOCOPIER",
+        "document_source": "Supplier: Copylandia Office Systems Corporation ; Contract/PO/IB No: 254-2296",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/24/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (HRP) use"
+    },
+    {
+        "ics_number": "35",
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "SOPOSOP, Jennifer",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "36",
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "CAPIS, Magdalena",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "37",
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "CADALIG, Mylene",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "38",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "KIGIS, Karl Glenn",
+        "remarks": "For REGULATORY/LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "39",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "BUGTONG, Michael",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "40",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "SALASA, Henry Gwyn Jonathan",
+        "remarks": "For REGULATORY/LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "41",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "TAKINAN, Kimberly",
+        "remarks": "For REGULATORY/LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "42",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "CADALIG, Mylene",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "43",
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER (CPU ONLY)",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "VALDEZ, Daisy Jane",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "44",
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER (CPU ONLY)",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2133",
+        "date_prepared": "1/31/25",
+        "date_accepted": "1/27/25",
+        "issued_to": "KUDAN, Still",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "45",
+        "quantity": 15,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 254-256",
+        "date_prepared": "2/10/25",
+        "date_accepted": "2/4/25",
+        "issued_to": "SORIANO, Ronan",
+        "remarks": "For SAAD use"
+    },
+    {
+        "ics_number": "60",
+        "quantity": 4,
+        "article": "PRINTER",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 254-256",
+        "date_prepared": "2/10/25",
+        "date_accepted": "2/4/25",
+        "issued_to": "SORIANO, Ronan",
+        "remarks": "For SAAD use"
+    },
+    {
+        "ics_number": "64",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-2297",
+        "date_prepared": "2/11/25",
+        "date_accepted": "2/7/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (Rice) use"
+    },
+    {
+        "ics_number": "65",
+        "quantity": 1,
+        "article": "CALCULATOR",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-2297",
+        "date_prepared": "2/11/25",
+        "date_accepted": "2/7/25",
+        "issued_to": "PASTOR, Miriam",
+        "remarks": "For FOD (Rice) use"
+    },
+    {
+        "ics_number": "66",
+        "quantity": 2,
+        "article": "PLASTIC DRUM",
+        "document_source": "Supplier: Joana Tools and General Merchandise ; Contract/PO/IB No: 211-2052",
+        "date_prepared": "2/13/25",
+        "date_accepted": "1/6/25",
+        "issued_to": "NGOWEPAN, Corazon",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "68",
+        "quantity": 2,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Laser Marketing ; Contract/PO/IB No: 254-2354",
+        "date_prepared": "2/13/25",
+        "date_accepted": "1/31/25",
+        "issued_to": "OWAY, Rey",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "ics_number": "70",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "PASTOR, Miriam",
+        "remarks": "For FOD (HVCDP) use"
+    },
+    {
+        "ics_number": "71",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "AFANGKA, Emily",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "72",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "73",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "DACULAN, Bruce",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "74",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "GASPAR, Melfer",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "75",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2024-222",
+        "date_prepared": "2/13/25",
+        "date_accepted": "2/5/25",
+        "issued_to": "ELADJOE, Kevin Joe",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "76",
+        "quantity": 1,
+        "article": "TELEVISION",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 256-2325",
+        "date_prepared": "2/14/25",
+        "date_accepted": "2/6/25",
+        "issued_to": "DAWAYAN, Jennilyn",
+        "remarks": "For ORED use"
+    },
+    {
+        "ics_number": "77",
+        "quantity": 1,
+        "article": "INTERNET DISH ANTENNA",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-2085",
+        "date_prepared": "2/20/25",
+        "date_accepted": "1/21/25",
+        "issued_to": "ULILA, Luis",
+        "remarks": "For AMAD Office use"
+    },
+    {
+        "ics_number": "78",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Laser Marketing ; Contract/PO/IB No: 254-2162",
+        "date_prepared": "2/28/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "BAYODAO, Marcial",
+        "remarks": "For RAED Office use"
+    },
+    {
+        "ics_number": "79",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Laser Marketing ; Contract/PO/IB No: 254-2162",
+        "date_prepared": "2/28/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "LA MADRID, Jovy",
+        "remarks": "For RAED Office use"
+    },
+    {
+        "ics_number": "80",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Laser Marketing ; Contract/PO/IB No: 254-2162",
+        "date_prepared": "2/28/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "COSME, Jezhelie Mae",
+        "remarks": "For RAED Office use"
+    },
+    {
+        "ics_number": "81",
+        "quantity": 1,
+        "article": "MOUSE",
+        "document_source": "Supplier: Bump Baby & Beyond Specialized Goods & Trading ; Contract/PO/IB No: 256-2436",
+        "date_prepared": "3/10/25",
+        "date_accepted": "2/19/25",
+        "issued_to": "SALASA, Henry Gwyn Jonathan",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "82",
+        "quantity": 1,
+        "article": "MOUSE",
+        "document_source": "Supplier: Bump Baby & Beyond Specialized Goods & Trading ; Contract/PO/IB No: 256-2436",
+        "date_prepared": "3/10/25",
+        "date_accepted": "2/19/25",
+        "issued_to": "POTECTAN, Jelly Pearl",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "83",
+        "quantity": 4,
+        "article": "WEIGHING SCALE",
+        "document_source": "Supplier: Murasaka Enterprises ; Contract/PO/IB No: reimbursement",
+        "date_prepared": "3/10/25",
+        "date_accepted": "3/5/25",
+        "issued_to": "LORENZO, Efren",
+        "remarks": "For AMAD use"
+    },
+    {
+        "ics_number": "87",
+        "quantity": 2,
+        "article": "POWERBANK",
+        "document_source": "Supplier: Laser Marketing ; Contract/PO/IB No: 256-2424",
+        "date_prepared": "3/10/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "OWAY, Rey",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "range": [
+            89,
+            123
+        ],
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2025-01",
+        "date_prepared": "3/11/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "Multiple",
+        "remarks": "Multiple",
+        "exclude": []
+    },
+    {
+        "ics_number": "124",
+        "quantity": 2,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2025-01",
+        "date_prepared": "3/11/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "SALASA, Henry Gwyn Jonathan",
+        "remarks": "For LEGAL Office use"
+    },
+    {
+        "range": [
+            126,
+            158
+        ],
+        "exclude": [
+            140
+        ],
+        "quantity": 1,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2025-01",
+        "date_prepared": "3/11/25 & 3/12/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "Multiple",
+        "remarks": "Multiple"
+    },
+    {
+        "ics_number": "140",
+        "quantity": 2,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 2025-01",
+        "date_prepared": "3/11/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "MOLLANEDA, Rosemarie",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "159",
+        "quantity": 3,
+        "article": "WHEELBARROW",
+        "document_source": "Supplier: Wi-al Construction Builders ; Contract/PO/IB No: 256-2517",
+        "date_prepared": "3/17/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "DOYAYAG, Urchris",
+        "remarks": "For REGULATORY (Dairy Development Project) use"
+    },
+    {
+        "ics_number": "162",
+        "quantity": 1,
+        "article": "WEIGHING SCALE",
+        "document_source": "Supplier: Wi-al Construction Builders ; Contract/PO/IB No: 256-2517",
+        "date_prepared": "3/17/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "DOYAYAG, Urchris",
+        "remarks": "For REGULATORY (Dairy Development Project) use"
+    },
+    {
+        "ics_number": "163",
+        "quantity": 1,
+        "article": "STERILIZER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 254-1078",
+        "date_prepared": "3/17/25",
+        "date_accepted": "1/20/25",
+        "issued_to": "POTECTAN, Jelly Pearl",
+        "remarks": "For REGULATORY use"
+    },
+    {
+        "ics_number": "164",
+        "quantity": 1,
+        "article": "EXTENSION CORD",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "range": [
+            165,
+            168
+        ],
+        "quantity": 1,
+        "article": "PAPER SHREDDER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "Multiple",
+        "remarks": "Multiple",
+        "exclude": []
+    },
+    {
+        "ics_number": "169",
+        "quantity": 1,
+        "article": "WASTE BIN",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "170",
+        "quantity": 1,
+        "article": "WASTE BIN",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "171",
+        "quantity": 1,
+        "article": "WASTE BIN",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "172",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "SALES, Precil",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "ics_number": "173",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "PICPICAN, Charles",
+        "remarks": "For PMED use"
+    },
+    {
+        "ics_number": "174",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "BALANZA, Susan",
+        "remarks": "For PMED use"
+    },
+    {
+        "ics_number": "175",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: The Stable Educational Supply ; Contract/PO/IB No: 253-1901",
+        "date_prepared": "3/24/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "MOSQUEDA, Vilma",
+        "remarks": "For ORTD for Research and Regulations use"
+    },
+    {
+        "ics_number": "176",
+        "quantity": 1,
+        "article": "EXTENSION WIRE",
+        "document_source": "Supplier: Officetech General Merchandise ; Contract/PO/IB No: 256-2391",
+        "date_prepared": "3/26/25",
+        "date_accepted": "2/21/25",
+        "issued_to": "OCHAVE, Kathleen Grace",
+        "remarks": "For AFD (Budget Unit) use"
+    },
+    {
+        "ics_number": "177",
+        "quantity": 1,
+        "article": "EXTENSION WIRE",
+        "document_source": "Supplier: Officetech General Merchandise ; Contract/PO/IB No: 256-2391",
+        "date_prepared": "3/26/25",
+        "date_accepted": "2/21/25",
+        "issued_to": "OCHAVE, Kathleen Grace",
+        "remarks": "For AFD (Budget Unit) use"
+    },
+    {
+        "ics_number": "178",
+        "quantity": 3,
+        "article": "MOSQUITO KILLER",
+        "document_source": "Supplier: Officetech General Merchandise ; Contract/PO/IB No: 256-2391",
+        "date_prepared": "3/26/25",
+        "date_accepted": "2/21/25",
+        "issued_to": "OCHAVE, Kathleen Grace",
+        "remarks": "For AFD (Budget Unit) use"
+    },
+    {
+        "ics_number": "181",
+        "quantity": 7,
+        "article": "SOLAR-POWERED STREET LIGHT",
+        "document_source": "Supplier: Kait Builders and Construction ; Contract/PO/IB No: 2024-234",
+        "date_prepared": "3/27/25",
+        "date_accepted": "2/18/25",
+        "issued_to": "DELA ROSA, Nicasio",
+        "remarks": "Installed at ROS APAYAO"
+    },
+    {
+        "ics_number": "188",
+        "quantity": 7,
+        "article": "SOLAR-POWERED STREET LIGHT",
+        "document_source": "Supplier: Kait Builders and Construction ; Contract/PO/IB No: 2024-234",
+        "date_prepared": "3/27/25",
+        "date_accepted": "2/18/25",
+        "issued_to": "ODANOS, Angel",
+        "remarks": "Installed at ROS KALINGA"
+    },
+    {
+        "ics_number": "195",
+        "quantity": 6,
+        "article": "SOLAR-POWERED STREET LIGHT",
+        "document_source": "Supplier: Kait Builders and Construction ; Contract/PO/IB No: 2024-234",
+        "date_prepared": "3/27/25",
+        "date_accepted": "2/18/25",
+        "issued_to": "GACAWEN, Jimmy",
+        "remarks": "Installed at BABRC"
+    },
+    {
+        "ics_number": "201",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "PADAWIL, Godffrey",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "202",
+        "quantity": 1,
+        "article": "ELECTRONIC INSECT KILLER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SABADO, Joan",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "203",
+        "quantity": 1,
+        "article": "ELECTRONIC INSECT KILLER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "CASAPAO, May-Anne",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "204",
+        "quantity": 1,
+        "article": "ELECTRONIC INSECT KILLER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SULIPA, Kenneth Paul",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "205",
+        "quantity": 1,
+        "article": "TOWER FAN",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SABADO, Joan",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "206",
+        "quantity": 1,
+        "article": "TOWER FAN",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "CASAPAO, May-Anne",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "207",
+        "quantity": 1,
+        "article": "TOWER FAN",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SULIPA, Kenneth Paul",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "208",
+        "quantity": 2,
+        "article": "KEYBOARD with MOUSE",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SABADO, Joan",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "210",
+        "quantity": 1,
+        "article": "KEYBOARD with MOUSE",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: 254-2520",
+        "date_prepared": "3/14/25",
+        "date_accepted": "2/20/25",
+        "issued_to": "SULIPA, Kenneth Paul",
+        "remarks": "For AFD (Accounting Unit) use"
+    },
+    {
+        "ics_number": "211",
+        "quantity": 4,
+        "article": "CHEST COOLER",
+        "document_source": "Supplier: Ban Bee Commercial Co. Inc. ; Contract/PO/IB No: 254-109",
+        "date_prepared": "3/26/25",
+        "date_accepted": "2/28/25",
+        "issued_to": "TAKINAN, Kimberly",
+        "remarks": "For LIVESTOCK use"
+    },
+    {
+        "ics_number": "215",
+        "quantity": 1,
+        "article": "UPRIGHT FREEZER",
+        "document_source": "Supplier: Markenjes Grains and General Merchandise ; Contract/PO/IB No: 256-41",
+        "date_prepared": "3/31/25",
+        "date_accepted": "3/7/25",
+        "issued_to": "NABUS, Heather Laxe",
+        "remarks": "For ILD (RADDL) use"
+    },
+    {
+        "ics_number": "216",
+        "quantity": 1,
+        "article": "DIGITAL THERMOMETER",
+        "document_source": "Supplier: Noveaulab Asia Corporation ; Contract/PO/IB No: 254-1141",
+        "date_prepared": "3/31/25",
+        "date_accepted": "3/17/25",
+        "issued_to": "ESUSAN, Mara Alyssa",
+        "remarks": "For ILD (RFCAL) use"
+    },
+    {
+        "ics_number": "217",
+        "quantity": 1,
+        "article": "HOT PLATE",
+        "document_source": "Supplier: Noveaulab Asia Corporation ; Contract/PO/IB No: 254-1141",
+        "date_prepared": "3/31/25",
+        "date_accepted": "2/27/25",
+        "issued_to": "ESUSAN, Mara Alyssa",
+        "remarks": "For ILD (RFCAL) use"
+    },
+    {
+        "ics_number": "218",
+        "quantity": 1,
+        "article": "WATER BATH",
+        "document_source": "Supplier: Noveaulab Asia Corporation ; Contract/PO/IB No: 253-840",
+        "date_prepared": "3/31/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "NABUS, Heather Laxe",
+        "remarks": "For ILD (RADDL) use"
+    },
+    {
+        "ics_number": "219",
+        "quantity": 2,
+        "article": "HELMET",
+        "document_source": "Supplier: ASC Tire Supply and General Merchandise ; Contract/PO/IB No: 256-1914",
+        "date_prepared": "4/2/25",
+        "date_accepted": "2/14/25",
+        "issued_to": "SICWATEN, Friedy",
+        "remarks": "For AFD (GSO) use"
+    },
+    {
+        "ics_number": "221",
+        "quantity": 2,
+        "article": "DISPLAY PORT",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-2043",
+        "date_prepared": "4/4/25",
+        "date_accepted": "3/4/25",
+        "issued_to": "TUBA-ANG, May Ann",
+        "remarks": "For FOD (HRP) use"
+    },
+    {
+        "ics_number": "223",
+        "quantity": 2,
+        "article": "VGA DISPLAYPORT",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-2043",
+        "date_prepared": "4/4/25",
+        "date_accepted": "3/4/25",
+        "issued_to": "TUBA-ANG, May Ann",
+        "remarks": "For FOD (HRP) use"
+    },
+    {
+        "ics_number": "225",
+        "quantity": 2,
+        "article": "POWERPOINT PRESENTER",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-2043",
+        "date_prepared": "4/4/25",
+        "date_accepted": "3/4/25",
+        "issued_to": "TUBA-ANG, May Ann",
+        "remarks": "For FOD (HRP) use"
+    },
+    {
+        "ics_number": "227",
+        "quantity": 1,
+        "article": "KNAPSACK SPRAYER",
+        "document_source": "Supplier: Wilconstruct Enterprises ; Contract/PO/IB No: 256-298",
+        "date_prepared": "4/4/25",
+        "date_accepted": "4/2/25",
+        "issued_to": "WAYET, Delbert",
+        "remarks": "For RESEARCH use"
+    },
+    {
+        "ics_number": "228",
+        "quantity": 1,
+        "article": "TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks, Ironwork & General Merchandise ; Contract/PO/IB No: 254-2128",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "CANOR, Jayvee",
+        "remarks": "For LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "229",
+        "quantity": 1,
+        "article": "TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks, Ironwork & General Merchandise ; Contract/PO/IB No: 254-2128",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/10/25",
+        "issued_to": "CANOR, Jayvee",
+        "remarks": "For LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "230",
+        "quantity": 1,
+        "article": "TELEVISION",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-137",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/24/25",
+        "issued_to": "BUDAS, Jason",
+        "remarks": "For PMED (ICTS) use"
+    },
+    {
+        "ics_number": "231",
+        "quantity": 2,
+        "article": "MONITOR",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-137",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/24/25",
+        "issued_to": "BUDAS, Jason",
+        "remarks": "For PMED (ICTS) use"
+    },
+    {
+        "ics_number": "233",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-137",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/24/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "234",
+        "quantity": 1,
+        "article": "PORTABLE AUDIO",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-137",
+        "date_prepared": "4/7/25",
+        "date_accepted": "3/24/25",
+        "issued_to": "BUDAS, Jason",
+        "remarks": "For PMED (ICTS) use"
+    },
+    {
+        "ics_number": "235",
+        "quantity": 1,
+        "article": "EXTENSION WIRE",
+        "document_source": "Supplier: Universal Care Consumer Goods Trading ; Contract/PO/IB No: 254-2108",
+        "date_prepared": "4/28/25",
+        "date_accepted": "3/24/25",
+        "issued_to": "PE, Oliver",
+        "remarks": "For FOD (4K) use"
+    },
+    {
+        "ics_number": "236",
+        "quantity": 2,
+        "article": "KNAPSACK SPRAYER",
+        "document_source": "Supplier: Desamme Hardware & Auto Supply Incorporated ; Contract/PO/IB No: 256-263",
+        "date_prepared": "5/5/25",
+        "date_accepted": "4/4/25",
+        "issued_to": "ODANOS, Angel",
+        "remarks": "For ROS KALINGA use"
+    },
+    {
+        "ics_number": "238",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-285",
+        "date_prepared": "5/5/25",
+        "date_accepted": "4/10/25",
+        "issued_to": "OWAY, Rey",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "ics_number": "239",
+        "quantity": 2,
+        "article": "MONITOR",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-285",
+        "date_prepared": "5/5/25",
+        "date_accepted": "4/10/25",
+        "issued_to": "OWAY, Rey",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "ics_number": "241",
+        "quantity": 8,
+        "article": "MODULAR WORKSTATION",
+        "document_source": "Supplier: Real Form Furniture Shop ; Contract/PO/IB No: 254-323",
+        "date_prepared": "5/5/25",
+        "date_accepted": "4/28/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "249",
+        "quantity": 1,
+        "article": "PULVERIZER",
+        "document_source": "Supplier: A. Camarillo Trading ; Contract/PO/IB No: 256-1775",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "ANDRES, Joshua",
+        "remarks": "For RESEARCH Division use"
+    },
+    {
+        "ics_number": "250",
+        "quantity": 2,
+        "article": "PH METER",
+        "document_source": "Supplier: A. Camarillo Trading ; Contract/PO/IB No: 256-1775",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "MON, Leah",
+        "remarks": "For RESEARCH Division use"
+    },
+    {
+        "ics_number": "252",
+        "quantity": 1,
+        "article": "ILLUMINANCE METER",
+        "document_source": "Supplier: A. Camarillo Trading ; Contract/PO/IB No: 256-1775",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "MON, Leah",
+        "remarks": "For RESEARCH Division use"
+    },
+    {
+        "ics_number": "253",
+        "quantity": 1,
+        "article": "THERMOMETER/HYGROMETER",
+        "document_source": "Supplier: A. Camarillo Trading ; Contract/PO/IB No: 256-1775",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "MON, Leah",
+        "remarks": "For RESEARCH Division use"
+    },
+    {
+        "ics_number": "254",
+        "quantity": 1,
+        "article": "DIGITAL WEIGHING SCALE",
+        "document_source": "Supplier: A. Camarillo Trading ; Contract/PO/IB No: 256-1775",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "MON, Leah",
+        "remarks": "For RESEARCH Division use"
+    },
+    {
+        "ics_number": "255",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-284",
+        "date_prepared": "5/14/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "LUCAS, Jovinia",
+        "remarks": "For RESEARCH (Corn R&D) use"
+    },
+    {
+        "ics_number": "256",
+        "quantity": 1,
+        "article": "PAPER SHREDDER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-284",
+        "date_prepared": "5/14/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "LUCAS, Jovinia",
+        "remarks": "For RESEARCH (Corn R&D) use"
+    },
+    {
+        "ics_number": "257",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-284",
+        "date_prepared": "5/14/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "LUCAS, Jovinia",
+        "remarks": "For RESEARCH (Corn R&D) use"
+    },
+    {
+        "ics_number": "258",
+        "quantity": 1,
+        "article": "FILING CABINET",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "POTECTAN, Jelly Pearl",
+        "remarks": "For REGULATORY use"
+    },
+    {
+        "ics_number": "259",
+        "quantity": 1,
+        "article": "FILING CABINET",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "DELIGEN, Leisley",
+        "remarks": "For FOD (Assistant Division Chief) Office use"
+    },
+    {
+        "ics_number": "260",
+        "quantity": 1,
+        "article": "FILING CABINET",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "KIGIS, Karl Glenn",
+        "remarks": "For REGULATORY use"
+    },
+    {
+        "ics_number": "261",
+        "quantity": 1,
+        "article": "FILING CABINET",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "CAMBOD, Sally",
+        "remarks": "For AFD (HRMDS) Office use"
+    },
+    {
+        "ics_number": "262",
+        "quantity": 1,
+        "article": "OFFICE CHAIR",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "KIGIS, Karl Glenn",
+        "remarks": "For REGULATORY use"
+    },
+    {
+        "ics_number": "263",
+        "quantity": 1,
+        "article": "OFFICE CHAIR",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "CANOR, Jayvee",
+        "remarks": "For LIVESTOCK use"
+    },
+    {
+        "ics_number": "264",
+        "quantity": 2,
+        "article": "OFFICE CHAIR",
+        "document_source": "Supplier: MDG Construction and Enterprise ; Contract/PO/IB No: 254-2387",
+        "date_prepared": "5/14/25",
+        "date_accepted": "2/3/25",
+        "issued_to": "PADAWIL, Godffrey",
+        "remarks": "For AFD (Accounting Unit) Office use"
+    },
+    {
+        "ics_number": "266",
+        "quantity": 2,
+        "article": "FLIP PEN/PRESENTER",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-393",
+        "date_prepared": "5/14/25",
+        "date_accepted": "5/5/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) Office use"
+    },
+    {
+        "ics_number": "268",
+        "quantity": 1,
+        "article": "EXTERNAL DATA STORAGE",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-393",
+        "date_prepared": "5/14/25",
+        "date_accepted": "5/5/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) Office use"
+    },
+    {
+        "ics_number": "269",
+        "quantity": 1,
+        "article": "EXTERNAL DATA STORAGE",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 256-393",
+        "date_prepared": "5/14/25",
+        "date_accepted": "5/5/25",
+        "issued_to": "MANG-OSAN, Jhazelyn",
+        "remarks": "For AFD (HRMDS) Office use"
+    },
+    {
+        "ics_number": "270",
+        "quantity": 4,
+        "article": "UPS",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-652",
+        "date_prepared": "5/15/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "LORENZO, Efren",
+        "remarks": "For AMAD Office use"
+    },
+    {
+        "ics_number": "274",
+        "quantity": 1,
+        "article": "EXTERNAL HARD DRIVE",
+        "document_source": "Supplier: CA Bliss Enterprise ; Contract/PO/IB No: 254-451",
+        "date_prepared": "5/16/25",
+        "date_accepted": "5/6/25",
+        "issued_to": "AGRIFINO, Janice",
+        "remarks": "For RAFIS use"
+    },
+    {
+        "ics_number": "275",
+        "quantity": 2,
+        "article": "PRESENTATION LASER POINTER",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-569",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/9/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) use"
+    },
+    {
+        "ics_number": "277",
+        "quantity": 2,
+        "article": "KEYBOARD",
+        "document_source": "Supplier: Paper Cart Marketing ; Contract/PO/IB No: 256-491",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) use"
+    },
+    {
+        "ics_number": "279",
+        "quantity": 2,
+        "article": "SAFETY HARNESS",
+        "document_source": "Supplier: 02 Consumer Goods Trading ; Contract/PO/IB No: 256-34",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "281",
+        "quantity": 1,
+        "article": "SAFETY HARNESS",
+        "document_source": "Supplier: 02 Consumer Goods Trading ; Contract/PO/IB No: 256-34",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "SORIANO, Ronan",
+        "remarks": "For SAAD use"
+    },
+    {
+        "ics_number": "282",
+        "quantity": 3,
+        "article": "EXHAUST FAN",
+        "document_source": "Supplier: 02 Consumer Goods Trading ; Contract/PO/IB No: 256-34",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "SORIANO, Ronan",
+        "remarks": "For SAAD use"
+    },
+    {
+        "ics_number": "285",
+        "quantity": 2,
+        "article": "FAN",
+        "document_source": "Supplier: Seige Techgrinds ICT & Business Solutions Co. ; Contract/PO/IB No: 254-578",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "PATNA-AN, Haily",
+        "remarks": "For ILD use"
+    },
+    {
+        "ics_number": "287",
+        "quantity": 7,
+        "article": "OFFICE CHAIR",
+        "document_source": "Supplier: Seige Techgrinds ICT & Business Solutions Co. ; Contract/PO/IB No: 254-578",
+        "date_prepared": "5/19/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "PATNA-AN, Haily",
+        "remarks": "For ILD use"
+    },
+    {
+        "ics_number": "294",
+        "quantity": 14,
+        "article": "PALLET",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-397",
+        "date_prepared": "5/20/25",
+        "date_accepted": "4/22/25",
+        "issued_to": "MAYOS, Jean",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "308",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Segalpz Consumer Goods Trading ; Contract/PO/IB No: reimbursement",
+        "date_prepared": "5/21/25",
+        "date_accepted": "3/31/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For AFD (GSO) use"
+    },
+    {
+        "ics_number": "309",
+        "quantity": 1,
+        "article": "UPS",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "KUDAN, Still",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "310",
+        "quantity": 1,
+        "article": "UPS",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "CANOR, Jayvee",
+        "remarks": "For LIVESTOCK Office use"
+    },
+    {
+        "ics_number": "311",
+        "quantity": 1,
+        "article": "UPS",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "TUMBAGA, Melchor",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "312",
+        "quantity": 1,
+        "article": "UPS",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "TAKINAN, Kimberly",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "313",
+        "quantity": 1,
+        "article": "UPS",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "KIGIS, Karl Glenn",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "314",
+        "quantity": 2,
+        "article": "WIRED HEADPHONES",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "BETA-A, Eunice",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "316",
+        "quantity": 1,
+        "article": "WIRED HEADPHONES",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "KUDAN, Still",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "317",
+        "quantity": 1,
+        "article": "LAPTOP COMPUTER",
+        "document_source": "Supplier: HDG Construction & Enterprise ; Contract/PO/IB No: 254-2383",
+        "date_prepared": "5/26/25",
+        "date_accepted": "2/13/25",
+        "issued_to": "POTECTAN, Jelly Pearl",
+        "remarks": "For REGULATORY Office use"
+    },
+    {
+        "ics_number": "318",
+        "quantity": 1,
+        "article": "BIN BOX",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "MAYOS, Jean",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "319",
+        "quantity": 5,
+        "article": "PUSH CART TROLLEY",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "324",
+        "quantity": 5,
+        "article": "PUSH CART TROLLEY",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "329",
+        "quantity": 1,
+        "article": "PRICE TAGGER",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "MAYOS, Jean",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "330",
+        "quantity": 15,
+        "article": "PALLET",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "345",
+        "quantity": 4,
+        "article": "STEEL RACK",
+        "document_source": "Supplier: Cinco Vaqueros Corp. ; Contract/PO/IB No: 254-165",
+        "date_prepared": "5/26/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "MAYOS, Jean",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "349",
+        "quantity": 10,
+        "article": "AWNING CANOPY",
+        "document_source": "Supplier: ESM Learning Enterprise ; Contract/PO/IB No: 254-359",
+        "date_prepared": "5/26/25",
+        "date_accepted": "4/28/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "359",
+        "quantity": 2,
+        "article": "FOLDING OUTDOOR CHAIR",
+        "document_source": "Supplier: ESM Learning Enterprise ; Contract/PO/IB No: 254-359",
+        "date_prepared": "5/26/25",
+        "date_accepted": "4/28/25",
+        "issued_to": "MAYOS, Jean",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "361",
+        "quantity": 2,
+        "article": "FOLDING STORAGE BOX",
+        "document_source": "Supplier: ESM Learning Enterprise ; Contract/PO/IB No: 254-359",
+        "date_prepared": "5/26/25",
+        "date_accepted": "4/28/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "363",
+        "quantity": 1,
+        "article": "PARABOLIC TENT",
+        "document_source": "Supplier: ESM Learning Enterprise ; Contract/PO/IB No: 254-359",
+        "date_prepared": "5/26/25",
+        "date_accepted": "4/28/25",
+        "issued_to": "DULAY, Oliver",
+        "remarks": "For AMAD (KADIWA) use"
+    },
+    {
+        "ics_number": "364",
+        "quantity": 1,
+        "article": "PAPER SHREDDER",
+        "document_source": "Supplier: Officetech General Merchandise ; Contract/PO/IB No: 256-513",
+        "date_prepared": "5/27/25",
+        "date_accepted": "4/30/25",
+        "issued_to": "COTENG, Florence",
+        "remarks": "For AFD (Budget Unit) use"
+    },
+    {
+        "ics_number": "365",
+        "quantity": 2,
+        "article": "DIGITAL WEIGHING SCALE",
+        "document_source": "Supplier: Markenjes Grains and General Merchandise ; Contract/PO/IB No: 256-417",
+        "date_prepared": "5/27/25",
+        "date_accepted": "5/2/25",
+        "issued_to": "OWAY, Rey",
+        "remarks": "For FOD (OAP) use"
+    },
+    {
+        "ics_number": "367",
+        "quantity": 1,
+        "article": "EXTENSION CORD",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-515",
+        "date_prepared": "5/28/25",
+        "date_accepted": "5/9/25",
+        "issued_to": "MANG-OSAN, Jhazelyn",
+        "remarks": "For AFD (HRMDS) use"
+    },
+    {
+        "ics_number": "368",
+        "quantity": 1,
+        "article": "EXTENSION CORD",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-515",
+        "date_prepared": "5/28/25",
+        "date_accepted": "5/9/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) use"
+    },
+    {
+        "ics_number": "369",
+        "quantity": 1,
+        "article": "WHITE BOARD",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: 256-515",
+        "date_prepared": "5/28/25",
+        "date_accepted": "5/27/25",
+        "issued_to": "BAGNOS, Tetchie Belle",
+        "remarks": "For AFD (HRMDS) use"
+    },
+    {
+        "ics_number": "370",
+        "quantity": 4,
+        "article": "WATER TANK",
+        "document_source": "Supplier: Wi-al Construction Builders ; Contract/PO/IB No: 254-352",
+        "date_prepared": "5/28/25",
+        "date_accepted": "5/5/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For Office use"
+    },
+    {
+        "ics_number": "374",
+        "quantity": 10,
+        "article": "TRASH BIN",
+        "document_source": "Supplier: Wi-al Construction Builders ; Contract/PO/IB No: 254-352",
+        "date_prepared": "5/28/25",
+        "date_accepted": "5/5/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For Office use"
+    },
+    {
+        "ics_number": "384",
+        "quantity": 1,
+        "article": "WATER DISPENSER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 256-382",
+        "date_prepared": "6/2/25",
+        "date_accepted": "5/22/25",
+        "issued_to": "ALIMURUNG, Alma",
+        "remarks": "For AFD (Cashiering Unit) use"
+    },
+    {
+        "ics_number": "385",
+        "quantity": 1,
+        "article": "MOUSE",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: BLANK-1",
+        "date_prepared": "6/2/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "DANGATAN, Merinda Mae",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "386",
+        "quantity": 1,
+        "article": "KEYBOARD",
+        "document_source": "Supplier: Catalyst Computer Office Equipment Wholesaling ; Contract/PO/IB No: BLANK-1",
+        "date_prepared": "6/2/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "DANGATAN, Merinda Mae",
+        "remarks": "For AFD (Supply and Property Unit) use"
+    },
+    {
+        "ics_number": "387",
+        "quantity": 1,
+        "article": "PALLETTE",
+        "document_source": "Supplier: Zippy Trading Corporation ; Contract/PO/IB No: 254-266",
+        "date_prepared": "6/4/25",
+        "date_accepted": "4/23/25",
+        "issued_to": "DOYAYAG, Urchris",
+        "remarks": "For DAIRY Farm use"
+    },
+    {
+        "ics_number": "388",
+        "quantity": 2,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-488",
+        "date_prepared": "6/4/25",
+        "date_accepted": "5/27/25",
+        "issued_to": "BAG-EO, Ramon",
+        "remarks": "For PMED use"
+    },
+    {
+        "ics_number": "390",
+        "quantity": 1,
+        "article": "POWERBANK",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-488",
+        "date_prepared": "6/4/25",
+        "date_accepted": "5/27/25",
+        "issued_to": "QUEVADA, John Patrick",
+        "remarks": "For PMED use"
+    },
+    {
+        "ics_number": "391",
+        "quantity": 1,
+        "article": "PRINTER",
+        "document_source": "Supplier: Hexacom Enterprises ; Contract/PO/IB No: 254-365",
+        "date_prepared": "6/9/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "LORENZO, Efren",
+        "remarks": "For AMAD use"
+    },
+    {
+        "range": [
+            392,
+            395
+        ],
+        "quantity": 1,
+        "article": "EXECUTIVE CHAIR",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "Multiple",
+        "remarks": "Multiple",
+        "exclude": []
+    },
+    {
+        "ics_number": "396",
+        "quantity": 1,
+        "article": "EXECUTIVE TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "DELIGEN, Leisley",
+        "remarks": "For (FOD) ODC use"
+    },
+    {
+        "ics_number": "397",
+        "quantity": 1,
+        "article": "EXECUTIVE TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "PASTOR, Miriam",
+        "remarks": "For FOD (HVCDP) use"
+    },
+    {
+        "ics_number": "398",
+        "quantity": 1,
+        "article": "EXECUTIVE TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "399",
+        "quantity": 8,
+        "article": "OFFICE TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "FRANCO, Edwin Joseph",
+        "remarks": "For FOD (RICE) use"
+    },
+    {
+        "ics_number": "407",
+        "quantity": 1,
+        "article": "STANDING DESK",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "MANGAL-IP, Azon",
+        "remarks": "For AFD (Accounting Unit)"
+    },
+    {
+        "ics_number": "408",
+        "quantity": 8,
+        "article": "TRAINING TABLE",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "AFANGKA, Emily",
+        "remarks": "For FOD (ODC) use"
+    },
+    {
+        "ics_number": "416",
+        "quantity": 1,
+        "article": "MONOBLOCK CHAIR",
+        "document_source": "Supplier: Arvil Joy Woodworks and General Merchandise ; Contract/PO/IB No: 254-2476",
+        "date_prepared": "6/9/25",
+        "date_accepted": "6/2/25",
+        "issued_to": "AFANGKA, Emily",
+        "remarks": "For FOD use"
+    },
+    {
+        "ics_number": "417",
+        "quantity": 1,
+        "article": "MOUSE",
+        "document_source": "Supplier: Cokins Everywear and General Merchandise ; Contract/PO/IB No: 253-1899",
+        "date_prepared": "6/10/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "418",
+        "quantity": 1,
+        "article": "DESK ORGANIZER",
+        "document_source": "Supplier: Cokins Everywear and General Merchandise ; Contract/PO/IB No: 253-1899",
+        "date_prepared": "6/10/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "419",
+        "quantity": 1,
+        "article": "EXTENSION CORD",
+        "document_source": "Supplier: Cokins Everywear and General Merchandise ; Contract/PO/IB No: 253-1899",
+        "date_prepared": "6/10/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "CALIAS, Jezhelie Mae",
+        "remarks": "For RAED use"
+    },
+    {
+        "ics_number": "420",
+        "quantity": 1,
+        "article": "FIRE EXTINGUISHER",
+        "document_source": "Supplier: Cokins Everywear and General Merchandise ; Contract/PO/IB No: 253-1899",
+        "date_prepared": "6/10/25",
+        "date_accepted": "2/17/25",
+        "issued_to": "VIRADOR, Ellyn",
+        "remarks": "For FOD (AMIA) use"
+    },
+    {
+        "ics_number": "421",
+        "quantity": 11,
+        "article": "STREET LIGHT",
+        "document_source": "Supplier: Glit Solar Trading ; Contract/PO/IB No: 254-669",
+        "date_prepared": "6/11/25",
+        "date_accepted": "5/14/25",
+        "issued_to": "GACAWEN, Jimmy",
+        "remarks": "Installed in BABRC"
+    },
+    {
+        "ics_number": "432",
+        "quantity": 1,
+        "article": "LATERAL FILING CABINET",
+        "document_source": "Supplier: Baguio Prince Enterprise ; Contract/PO/IB No: 256-559",
+        "date_prepared": "6/11/25",
+        "date_accepted": "5/9/25",
+        "issued_to": "PINOS-AN, Pedro",
+        "remarks": "For APCO (Mt. Province) use"
+    },
+    {
+        "ics_number": "433",
+        "quantity": 2,
+        "article": "DESKTOP COMPUTER",
+        "document_source": "Supplier: Bhipolito Office Supplies ; Contract/PO/IB No: 254-364",
+        "date_prepared": "6/11/25",
+        "date_accepted": "5/20/25",
+        "issued_to": "TALUSIG, Brigette",
+        "remarks": "For AMAD use"
+    },
+    {
+        "ics_number": "435",
+        "quantity": 1,
+        "article": "TRIER",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "436",
+        "quantity": 1,
+        "article": "SHARPENING STONE",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "437",
+        "quantity": 2,
+        "article": "DIGITAL HUMIDITY & TEMPERATURE METER",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "439",
+        "quantity": 1,
+        "article": "THERMOMETER",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "440",
+        "quantity": 1,
+        "article": "PRUNNING SAW",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "441",
+        "quantity": 1,
+        "article": "EARTH AUGER DRILL BIT DIGGER",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "442",
+        "quantity": 1,
+        "article": "BOLO",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "443",
+        "quantity": 1,
+        "article": "PANABAS",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "444",
+        "quantity": 1,
+        "article": "POST HOLE DIGGER",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "445",
+        "quantity": 1,
+        "article": "RACHET DIE STOCK (PIPE THREADER)",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "446",
+        "quantity": 1,
+        "article": "BARETA BAR",
+        "document_source": "Supplier: Nestor Aquino ; Contract/PO/IB No: 254-327",
+        "date_prepared": "6/13/25",
+        "date_accepted": "4/15/25",
+        "issued_to": "TIGGANGAY, Benedicto",
+        "remarks": "For ROS APAYAO use"
+    },
+    {
+        "ics_number": "447",
+        "quantity": 1,
+        "article": "TAPE MEASURE",
+        "document_source": "Supplier: Wilconstruct Enterprise ; Contract/PO/IB No: 256-358",
+        "date_prepared": "6/13/25",
+        "date_accepted": "6/3/25",
+        "issued_to": "FANGASAN, Veronica",
+        "remarks": "For RESEARCH use"
+    },
+    {
+        "ics_number": "448",
+        "quantity": 1,
+        "article": "TAPE MEASURE",
+        "document_source": "Supplier: Wilconstruct Enterprise ; Contract/PO/IB No: 256-358",
+        "date_prepared": "6/13/25",
+        "date_accepted": "6/3/25",
+        "issued_to": "DICKSEN, Julio Earl",
+        "remarks": "For AFD (GSO) use"
+    },
+    {
+        "ics_number": "449",
+        "quantity": 1,
+        "article": "TAPE MEASURE",
+        "document_source": "Supplier: Wilconstruct Enterprise ; Contract/PO/IB No: 256-358",
+        "date_prepared": "6/13/25",
+        "date_accepted": "6/3/25",
+        "issued_to": "ANDISO, Esther",
+        "remarks": "For RESEARCH use"
+    }
+]
