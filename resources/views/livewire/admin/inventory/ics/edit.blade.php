@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Illuminate\Database\Eloquent\Collection;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public IcsNumber $icsNumber;
@@ -24,8 +25,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $date_prepared = '';
     public string $remarks = '';
 
-    public $allContracts;
-    public $allEmployees;
+    public Collection $allContracts;
+    public Collection $allEmployees;
 
     public function mount(IcsNumber $icsNumber): void
     {
@@ -42,9 +43,15 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->contract_id = $this->icsNumber->contractItem->contract_id;
         }
 
-        // Pre-load data to prevent re-querying on each render
-        $this->allContracts = Contract::with('supplier:id,name')->get(['id', 'contract_number', 'supplier_id']);
-        $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
+        $this->memo = $this->icsNumber->memo ?? '';
+
+        // Pre-load data for select dropdowns
+        $this->allContracts = Contract::with('supplier:id,name')
+            ->orderBy('contract_number')
+            ->get(['id', 'contract_number', 'supplier_id']);
+
+        $this->allEmployees = Employee::orderBy('name')
+            ->get(['id', 'name']);
     }
 
     #[Computed]
@@ -91,18 +98,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->dispatch('ics-deleted');
             session()->flash('success', 'ICS record deleted successfully.');
             $this->redirect(route('admin.inventory.ics.index'), navigate: true);
-        } catch (\Exception $e) {
-            // Log the exception for debugging
-            \Illuminate\Support\Facades\Log::error('Error deleting ICS record: ' . $e->getMessage());
-
-            // Check for foreign key constraint violation
-            if ($e instanceof \Illuminate\Database\QueryException && str_contains($e->getMessage(), 'Foreign key constraint fails')) {
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (($e->errorInfo[1] ?? null) === 1451) { // FK constraint
                 session()->flash('error', 'Cannot delete this record because it is referenced by other records.');
             } else {
-                session()->flash('error', 'An unexpected error occurred while deleting the record.');
+                session()->flash('error', 'An unexpected database error occurred while deleting the record.');
             }
-        }
-    }
+            \Log::warning('ICS delete failed', ['ics_id' => $this->icsNumber->id, 'error' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            // Log the exception for debugging
+            \Illuminate\Support\Facades\Log::error('Error deleting ICS record: ' . $e->getMessage());
+            session()->flash('error', 'An unexpected error occurred while deleting the record.');
+        }    }
 }; ?>
 
 <div x-data="{ showDeleteModal: @entangle('showDeleteModal') }">

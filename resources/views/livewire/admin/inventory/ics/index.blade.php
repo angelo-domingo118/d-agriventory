@@ -33,17 +33,20 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function icsNumbers()
     {
+        $search = addcslashes($this->search, '%_');
+
         return IcsNumber::with([
                 'assignedEmployee.division',
                 'contractItem.itemSpecification.catalogItem'
             ])
-            ->when($this->search, function ($query) {
-                $query->where(function($q) {
-                    $q->whereHas('contractItem.itemSpecification.catalogItem', function ($subq) {
-                        $subq->where('name', 'like', '%' . $this->search . '%');
-                    })->orWhereHas('assignedEmployee', function ($subq) {
-                        $subq->where('name', 'like', '%' . $this->search . '%');
-                    });
+            ->when($this->search, function ($query) use ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('ics_number', 'like', '%' . $search . '%')
+                        ->orWhereHas('contractItem.itemSpecification.catalogItem', function ($subq) use ($search) {
+                            $subq->where('name', 'like', '%' . $search . '%');
+                        })->orWhereHas('assignedEmployee', function ($subq) use ($search) {
+                            $subq->where('name', 'like', '%' . $search . '%');
+                        });
                 });
             })
             ->when($this->divisionId, function ($query) {
