@@ -467,4 +467,4 @@ class ContractItemsSeeder extends Seeder
 
         return $baseCode.'-'.uniqid();
     }
-} 
+}

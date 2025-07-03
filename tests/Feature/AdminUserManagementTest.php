@@ -26,7 +26,7 @@ test('admin dashboard is accessible by admin users', function () {
 test('admin dashboard is not accessible by regular users', function () {
     $this->actingAs($this->regularUser)
         ->get(route('admin.dashboard'))
-        ->assertRedirect(route('dashboard'));
+        ->assertForbidden();
 });
 
 test('admin users index page is accessible by admin users', function () {
@@ -64,14 +64,14 @@ test('admin users can edit users', function () {
 test('regular users cannot access admin user management', function () {
     $this->actingAs($this->regularUser)
         ->get(route('admin.system.users.index'))
-        ->assertRedirect(route('dashboard'));
+        ->assertForbidden();
 
     $this->actingAs($this->regularUser)
         ->get(route('admin.system.users.create'))
-        ->assertRedirect(route('dashboard'));
+        ->assertForbidden();
 
     $user = User::factory()->create();
     $this->actingAs($this->regularUser)
         ->get(route('admin.system.users.edit', $user))
-        ->assertRedirect(route('dashboard'));
+        ->assertForbidden();
 });

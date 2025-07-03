@@ -16,7 +16,7 @@ class HasAdminPermission
     public function handle(Request $request, Closure $next, string $permission): Response
     {
         if (! $request->user() || ! $request->user()->hasAdminPermission($permission)) {
-            return redirect()->route('dashboard')->with('error', "Not authorized. You need the '{$permission}' permission to access this page.");
+            abort(403, "Not authorized. You need the '{$permission}' permission to access this page.");
         }
 
         return $next($request);

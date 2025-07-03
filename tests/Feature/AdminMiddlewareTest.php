@@ -51,17 +51,18 @@ test('is admin middleware allows access to admin users', function () {
 });
 
 test('is admin middleware redirects regular users', function () {
+    $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    $this->expectExceptionMessage('Not authorized.');
+
     $request = Request::create('/admin/dashboard');
     $request->setUserResolver(function () {
         return $this->regularUser;
     });
 
     $middleware = new IsAdmin;
-    $response = $middleware->handle($request, function ($req) {
+    $middleware->handle($request, function ($req) {
         return response('Allowed');
     });
-
-    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
 });
 
 test('has admin permission middleware allows access when user has the required permission', function () {
@@ -79,15 +80,16 @@ test('has admin permission middleware allows access when user has the required p
 });
 
 test('inactive admin user is blocked from admin routes', function () {
+    $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    $this->expectExceptionMessage('Not authorized.');
+
     $request = Request::create('/admin/dashboard');
     $request->setUserResolver(function () {
         return $this->inactiveAdminUser;
     });
 
     $middleware = new IsAdmin;
-    $response = $middleware->handle($request, function ($req) {
+    $middleware->handle($request, function ($req) {
         return response('Allowed');
     });
-
-    expect($response)->toBeInstanceOf(\Illuminate\Http\RedirectResponse::class);
 });

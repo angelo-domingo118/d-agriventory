@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\IcsItemBatch;
 use App\Models\IcsNumber;
 use App\Models\ItemComponent;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -35,6 +34,7 @@ class DesktopComputerSeeder extends Seeder
 
                 if (! $icsNumberModel) {
                     $this->command->warn("ICS number '{$item['ics_number']}' not found. Skipping batch item for article '{$item['article']}'.");
+
                     continue;
                 }
 
@@ -65,7 +65,7 @@ class DesktopComputerSeeder extends Seeder
 
     private function parseDesktopDescription(string $description): array
     {
-        $lines = preg_split("/\\r\\n|\\n|\\r/", $description);
+        $lines = preg_split('/\\r\\n|\\n|\\r/', $description);
 
         // Separate main component lines from sub-component lines
         $mainComponentLines = [];
@@ -93,7 +93,7 @@ class DesktopComputerSeeder extends Seeder
 
         // Parse all sub-components
         $subComponents = $this->parseSubComponents($subComponentLines);
-        
+
         return array_merge($components, $subComponents);
     }
 
@@ -101,7 +101,7 @@ class DesktopComputerSeeder extends Seeder
     {
         $mainDesc = implode("\n", $lines);
         $mainComponent = ['component_type' => 'System Unit'];
-        
+
         $details = $this->parseBrandModelAndSerial($mainDesc);
         $mainComponent = array_merge($mainComponent, $details);
 
@@ -125,6 +125,7 @@ class DesktopComputerSeeder extends Seeder
                     $components[] = $currentComponentData;
                     $currentComponentData = null;
                 }
+
                 continue;
             }
 
@@ -139,11 +140,11 @@ class DesktopComputerSeeder extends Seeder
                     $line = trim(substr($line, 1));
                 }
             }
-            
+
             if (! $currentComponentData) {
                 continue;
             }
-            
+
             $details = $this->parseBrandModelAndSerial($line);
             $currentComponentData = array_merge($currentComponentData, $details);
         }
@@ -151,7 +152,7 @@ class DesktopComputerSeeder extends Seeder
         if ($currentComponentData) {
             $components[] = $currentComponentData;
         }
-        
+
         return $components;
     }
 
@@ -165,8 +166,12 @@ class DesktopComputerSeeder extends Seeder
             $brand = ! empty($parts[0]) && strlen($parts[0]) < 255 ? $parts[0] : null;
             $model = ! empty($parts[1]) && strlen($parts[1]) < 255 ? $parts[1] : null;
 
-            if ($brand) $details['brand'] = $brand;
-            if ($model) $details['model'] = $model;
+            if ($brand) {
+                $details['brand'] = $brand;
+            }
+            if ($model) {
+                $details['model'] = $model;
+            }
 
         } elseif (preg_match('/(Serial Number|Casing Number):\\s*(.+)/i', $text, $matches)) {
             $serial = trim($matches[2]);
@@ -174,7 +179,7 @@ class DesktopComputerSeeder extends Seeder
                 $details['serial_number'] = $serial;
             }
         }
-        
+
         return $details;
     }
 

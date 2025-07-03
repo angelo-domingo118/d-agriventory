@@ -24,11 +24,12 @@ class IcsItemBatchSeeder extends Seeder
                 if (str_contains(strtoupper($item['Article']), 'DESKTOP COMPUTER')) {
                     continue;
                 }
-                
+
                 $icsNumberModel = $icsNumbers->get($item['ICS Number']);
 
                 if (! $icsNumberModel) {
                     $this->command->warn("ICS number '{$item['ICS Number']}' not found. Skipping batch item for article '{$item['Article']}'.");
+
                     continue;
                 }
 
@@ -61,11 +62,8 @@ class IcsItemBatchSeeder extends Seeder
         return null;
     }
 
-    /**
-     * @return array
-     */
     private function getIcsItemBatchesData(): array
     {
         return include database_path('seeders/data/ics_item_batches_data.php');
     }
-} 
+}

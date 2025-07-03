@@ -21,7 +21,7 @@ class IsAdmin
             ! $user->isAdmin() ||
             ! $user->adminUser ||
             ! $user->adminUser->is_active) {
-            return redirect()->route('dashboard')->with('error', 'Not authorized.');
+            abort(403, 'Not authorized.');
         }
 
         return $next($request);

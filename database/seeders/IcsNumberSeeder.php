@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\Contract;
 use App\Models\ContractItem;
 use App\Models\Employee;
-use App\Models\IcsNumber;
 use App\Models\IcsItemBatch;
+use App\Models\IcsNumber;
 use App\Models\ItemsCatalog;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -49,11 +49,11 @@ class IcsNumberSeeder extends Seeder
 
     private function seedChunk(array $chunk, array &$usedContractItemIds): void
     {
-        $contractNumbers = collect($chunk)->map(fn($item) => $this->parseContractNumber($item['contract_po_ib_number']))->filter()->unique()->all();
+        $contractNumbers = collect($chunk)->map(fn ($item) => $this->parseContractNumber($item['contract_po_ib_number']))->filter()->unique()->all();
         $articles = collect($chunk)->pluck('article')->unique()->all();
         $employeeNames = collect($chunk)->pluck('issued_to')->unique();
-        
-        $mappedEmployeeNames = $employeeNames->map(fn($name) => $this->employeeNameMap[$name] ?? $name)->all();
+
+        $mappedEmployeeNames = $employeeNames->map(fn ($name) => $this->employeeNameMap[$name] ?? $name)->all();
         $formattedNames = $this->formatEmployeeNames($mappedEmployeeNames);
 
         $contracts = Contract::whereIn('contract_po_ib_number', $contractNumbers)->get()->keyBy('contract_po_ib_number');
@@ -76,8 +76,9 @@ class IcsNumberSeeder extends Seeder
 
         $contractNumber = $this->parseContractNumber($icsItem['contract_po_ib_number']);
         $contract = $contracts->get($contractNumber);
-        if (!$contract) {
+        if (! $contract) {
             $this->command->warn("Contract '{$contractNumber}' not found for ICS #{$icsNumber}. Skipping.");
+
             return;
         }
 
@@ -86,22 +87,25 @@ class IcsNumberSeeder extends Seeder
         $employeeName = $this->formatEmployeeName($correctedName);
         $employee = $employees->get($employeeName);
 
-        if (!$employee && $issuedTo !== 'Multiple') {
+        if (! $employee && $issuedTo !== 'Multiple') {
             $this->command->warn("Employee '{$issuedTo}' ('{$employeeName}') not found for ICS #{$icsNumber}. Skipping.");
+
             return;
         } elseif ($issuedTo === 'Multiple') {
             $employee = $employees->random();
         }
 
         $item = $itemsCatalog->get($icsItem['article']);
-        if (!$item) {
+        if (! $item) {
             $this->command->warn("Item '{$icsItem['article']}' not found for ICS #{$icsNumber}. Skipping.");
+
             return;
         }
 
         $contractItem = $this->findContractItem($contract->id, $item->id, $usedContractItemIds);
-        if (!$contractItem) {
+        if (! $contractItem) {
             $this->command->warn("ContractItem for '{$icsItem['article']}' in contract '{$contractNumber}' not found. Skipping ICS #{$icsNumber}.");
+
             return;
         }
 
@@ -153,18 +157,19 @@ class IcsNumberSeeder extends Seeder
     private function findContractItem(int $contractId, int $itemCatalogId, array $usedContractItemIds)
     {
         $contractItems = ContractItem::where('contract_id', $contractId)
-            ->whereHas('itemSpecification', fn($q) => $q->where('item_catalog_id', $itemCatalogId))
+            ->whereHas('itemSpecification', fn ($q) => $q->where('item_catalog_id', $itemCatalogId))
             ->get();
-        
+
         return $contractItems->first();
     }
-    
+
     private function parseDate(string $dateString, string $icsNumber): ?Carbon
     {
         try {
             return Carbon::createFromFormat('n/j/y', trim($dateString));
         } catch (\Exception $e) {
             $this->command->warn("Could not parse date '{$dateString}' for ICS #{$icsNumber}. Setting date to null.");
+
             return null;
         }
     }
@@ -173,7 +178,7 @@ class IcsNumberSeeder extends Seeder
     {
         return array_map([$this, 'formatEmployeeName'], $fullNames);
     }
-    
+
     private function formatEmployeeName(string $fullName): string
     {
         if ($fullName === 'Multiple') {
@@ -185,7 +190,8 @@ class IcsNumberSeeder extends Seeder
         }
         $lastName = array_shift($parts);
         $firstNameAndSuffix = implode(', ', $parts);
-        return trim($firstNameAndSuffix) . ' ' . trim($lastName);
+
+        return trim($firstNameAndSuffix).' '.trim($lastName);
     }
 
     private function parseContractNumber(string $contractNumber): ?string
@@ -195,8 +201,6 @@ class IcsNumberSeeder extends Seeder
 
     /**
      * Get the data from the PHP data file.
-     *
-     * @return array
      */
     private function getIcsData(): array
     {
@@ -209,4 +213,4 @@ class IcsNumberSeeder extends Seeder
 
         return require $filePath;
     }
-} 
+}

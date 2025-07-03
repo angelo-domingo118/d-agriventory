@@ -59,13 +59,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
     });
 
     // Inventory management routes
-    Route::prefix('inventory')->name('inventory.')->middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
-        Volt::route('/', 'admin.inventory.index')->name('index');
-        Volt::route('ics', 'admin.inventory.ics.index')->name('ics.index');
-        Volt::route('par', 'admin.inventory.par.index')->name('par.index');
-        Volt::route('idr', 'admin.inventory.idr.index')->name('idr.index');
-        Volt::route('transfers', 'admin.inventory.transfers.index')->name('transfers.index');
-        Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
+            Volt::route('/', 'admin.inventory.index')->name('index');
+            Volt::route('ics', 'admin.inventory.ics.index')->name('ics.index');
+            Volt::route('ics/{icsNumber}', 'admin.inventory.ics.show')->name('ics.show');
+            Volt::route('par', 'admin.inventory.par.index')->name('par.index');
+            Volt::route('idr', 'admin.inventory.idr.index')->name('idr.index');
+            Volt::route('transfers', 'admin.inventory.transfers.index')->name('transfers.index');
+            Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
+        });
+
+        Route::middleware([HasAdminPermission::class.':create_inventory'])->group(function () {
+            Volt::route('ics-create', 'admin.inventory.ics.create')->name('ics.create');
+        });
+
+        Route::middleware([HasAdminPermission::class.':edit_inventory'])->group(function () {
+            Volt::route('ics/{icsNumber}/edit', 'admin.inventory.ics.edit')->name('ics.edit');
+        });
     });
 
     // Data management routes

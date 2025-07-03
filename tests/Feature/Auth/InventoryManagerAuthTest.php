@@ -67,7 +67,7 @@ class InventoryManagerAuthTest extends TestCase
         $response = $this->get(route('admin.dashboard'));
 
         // Should be redirected away from admin area
-        $response->assertRedirect(route('dashboard'));
+        $response->assertForbidden();
     }
 
     public function test_user_without_roles_cannot_access_inventory_manager_area(): void
