@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('idr_item_batches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('idr_number_id')->constrained('idr_number')->onDelete('cascade');
-            $table->integer('quantity')->comment('The initial total quantity for this batch/card.');
             $table->text('identification_data')->nullable()->comment('Serial numbers, asset tags.');
             $table->timestamps();
         });

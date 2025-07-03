@@ -31,6 +31,7 @@ class IcsNumber extends Model
         'assigned_employee_id',
         'contract_item_id',
         'ics_type',
+        'quantity',
         'estimated_useful_life',
         'date_prepared',
         'date_accepted',

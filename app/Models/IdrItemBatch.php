@@ -22,7 +22,6 @@ class IdrItemBatch extends Model
      */
     protected $fillable = [
         'idr_number_id',
-        'quantity',
         'identification_data',
     ];
 

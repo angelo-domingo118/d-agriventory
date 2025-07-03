@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('assigned_employee_id')->constrained('employees')->onDelete('cascade');
             $table->foreignId('contract_item_id')->constrained('contract_items')->onDelete('cascade');
             $table->enum('ics_type', ['SPLV', 'SPHV']);
+            $table->unsignedInteger('quantity')->comment('Quantity for this batch.');
             $table->integer('estimated_useful_life')->comment('ICS specific field.');
             $table->date('date_prepared')->comment('Date when the document was prepared');
             $table->date('date_accepted');

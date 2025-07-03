@@ -25,6 +25,7 @@ class IdrNumber extends Model
         'assigned_employee_id',
         'approving_employee_id',
         'contract_item_id',
+        'quantity',
         'inventory_code',
         'ors',
         'date_prepared',

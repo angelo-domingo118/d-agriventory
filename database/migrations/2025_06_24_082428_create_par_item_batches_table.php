@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('par_item_batches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('par_number_id')->constrained('par_number')->onDelete('cascade');
-            $table->unsignedInteger('quantity')->comment('Quantity for this batch.');
             $table->text('identification_data')->nullable()->comment('Serial numbers, asset tags.');
             $table->timestamps();
         });

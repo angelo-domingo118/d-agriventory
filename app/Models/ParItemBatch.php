@@ -21,7 +21,6 @@ class ParItemBatch extends Model
      */
     protected $fillable = [
         'par_number_id',
-        'quantity',
         'identification_data',
     ];
 

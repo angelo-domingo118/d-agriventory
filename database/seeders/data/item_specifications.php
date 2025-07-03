@@ -190,9 +190,8 @@ return [
         ['brand' => null, 'model' => 'LX1010B', 'detailed_specifications' => 'Digital Lux Meter'],
     ],
     'FLIP PEN/PRESENTER' => [
-        ['brand' => null, 'model' => null, 'detailed_specifications' => 'PPT Presentation Pen, wireless rechargeable laser pointer, remote control plug and play'],
-        ['brand' => null, 'model' => null, 'detailed_specifications' => 'PPT presentation pen, USB smart charging'],
-        ['brand' => null, 'model' => null, 'detailed_specifications' => 'Wireless presenter, laser pointer'],
+        ['brand' => null, 'model' => null, 'detailed_specifications' => 'Wireless presenter with laser pointer'],
+        ['brand' => null, 'model' => null, 'detailed_specifications' => 'Wireless presenter with laser pointer, rechargeable'],
     ],
     'EXHAUST FAN' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'Ventilating Fan, strong wind, silent operation'],
@@ -234,9 +233,6 @@ return [
     ],
     'PARABOLIC TENT' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'heavy duty'],
-    ],
-    'EXTENSION WIRE' => [
-        ['brand' => null, 'model' => null, 'detailed_specifications' => 'heavy duty, 3 gangs, flat cord, 5 meters'],
     ],
     'PRUNING SAW' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'manual, two-component plastic handle'],
@@ -292,9 +288,6 @@ return [
     ],
     'HELMET' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => 'without handle, heavy duty'],
-    ],
-    'WASTE BIN' => [
-        ['brand' => null, 'model' => null, 'detailed_specifications' => 'yellow, 15L capacity, marked with biodegradable'],
     ],
     'RACHET DIE STOCK (PIPE THREADER)' => [
         ['brand' => null, 'model' => null, 'detailed_specifications' => '¼", ⅜", ½", ¾", 1", 1¼" (no. 62), with case'],

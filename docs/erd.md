@@ -120,6 +120,7 @@ erDiagram
         bigint assigned_employee_id FK " // mandatory"
         bigint contract_item_id FK " // mandatory"
         enum ics_type "SPLV, SPHV. // mandatory"
+        int quantity "Quantity for this batch. // mandatory"
         int estimated_useful_life "ICS specific field. // mandatory"
         date date_prepared " // mandatory, when the document was prepared"
         date date_accepted " // mandatory"
@@ -130,7 +131,6 @@ erDiagram
     ics_item_batches {
         bigint id PK " // mandatory"
         bigint ics_number_id FK " // mandatory"
-        int quantity "Quantity for this batch. // mandatory"
         text identification_data "Serial numbers, asset tags. // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
@@ -149,6 +149,7 @@ erDiagram
         varchar par_number UK " // mandatory, unique PAR document number"
         bigint assigned_employee_id FK " // mandatory"
         bigint contract_item_id FK " // mandatory"
+        int quantity "Quantity for this batch. // mandatory"
         varchar area_code "PAR specific field. // mandatory"
         varchar building_code "PAR specific field. // mandatory"
         varchar account_code "PAR specific field. // mandatory"
@@ -161,7 +162,6 @@ erDiagram
     par_item_batches {
         bigint id PK " // mandatory"
         bigint par_number_id FK " // mandatory"
-        int quantity "Quantity for this batch. // mandatory"
         text identification_data "Serial numbers, asset tags. // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
@@ -181,6 +181,7 @@ erDiagram
         bigint assigned_employee_id FK "The employee responsible for the stock (e.g. Supply Officer). // mandatory"
         bigint approving_employee_id FK "The division chief who approves this IDR. // mandatory"
         bigint contract_item_id FK " // mandatory"
+        int quantity "The initial total quantity for this batch/card. // mandatory"
         varchar inventory_code "IDR specific field. // mandatory"
         varchar ors "IDR specific field. // mandatory"
         date date_prepared " // mandatory, when the document was prepared"
@@ -192,7 +193,6 @@ erDiagram
     idr_item_batches {
         bigint id PK " // mandatory"
         bigint idr_number_id FK " // mandatory"
-        int quantity "The initial total quantity for this batch/card. // mandatory"
         text identification_data "Serial numbers, asset tags. // nullable"
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"

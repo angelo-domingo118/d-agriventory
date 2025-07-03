@@ -24,6 +24,7 @@ class ParNumber extends Model
         'par_number',
         'assigned_employee_id',
         'contract_item_id',
+        'quantity',
         'area_code',
         'building_code',
         'account_code',

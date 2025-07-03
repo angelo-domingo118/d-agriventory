@@ -88,7 +88,7 @@ class IcsNumberSeeder extends Seeder
 
         if (!$employee && $issuedTo !== 'Multiple') {
             $this->command->warn("Employee '{$issuedTo}' ('{$employeeName}') not found for ICS #{$icsNumber}. Skipping.");
-                 return;
+            return;
         } elseif ($issuedTo === 'Multiple') {
             $employee = $employees->random();
         }
@@ -122,17 +122,17 @@ class IcsNumberSeeder extends Seeder
                 'assigned_employee_id' => $employee->id,
                 'contract_item_id' => $contractItem->id,
                 'ics_type' => $icsType,
+                'quantity' => $icsItem['quantity'],
                 'estimated_useful_life' => 5,
                 'date_prepared' => $this->parseDate($date_prepared_string, $icsNumber),
                 'date_accepted' => $this->parseDate($icsItem['date_accepted'], $icsNumber),
                 'remarks' => $icsItem['remarks'],
             ]
         );
-        $usedContractItemIds[$contractItem->id] = true;
 
         IcsItemBatch::updateOrCreate(
             ['ics_number_id' => $newIcsNumber->id],
-            ['quantity' => $icsItem['quantity']]
+            []
         );
     }
 
@@ -156,13 +156,6 @@ class IcsNumberSeeder extends Seeder
             ->whereHas('itemSpecification', fn($q) => $q->where('item_catalog_id', $itemCatalogId))
             ->get();
         
-        if ($contractItems->count() > 1) {
-            $unused = $contractItems->first(fn($item) => !isset($usedContractItemIds[$item->id]));
-            if ($unused) {
-                return $unused;
-            }
-        }
-
         return $contractItems->first();
     }
     

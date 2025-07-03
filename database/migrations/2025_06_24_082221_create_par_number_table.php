@@ -16,12 +16,15 @@ return new class extends Migration
             $table->string('par_number')->unique()->comment('Unique PAR document number');
             $table->foreignId('assigned_employee_id')->constrained('employees')->onDelete('cascade');
             $table->foreignId('contract_item_id')->constrained('contract_items')->onDelete('cascade');
+            $table->unsignedInteger('quantity')->comment('The initial total quantity for this batch/card.');
             $table->string('area_code')->comment('PAR specific field.');
             $table->string('building_code')->comment('PAR specific field.');
             $table->string('account_code')->comment('PAR specific field.');
             $table->date('date_prepared')->comment('Date when the document was prepared');
             $table->date('date_accepted');
             $table->text('remarks')->nullable();
+            $table->string('inventory_code')->comment('PAR specific field.');
+            $table->date('date_acquired')->comment('Date when the property was acquired');
             $table->timestamps();
 
             // Add indexes for frequently queried fields
@@ -32,6 +35,8 @@ return new class extends Migration
             $table->index('account_code');
             $table->index('date_prepared');
             $table->index('date_accepted');
+            $table->index('date_acquired');
+            $table->index('quantity');
         });
     }
 

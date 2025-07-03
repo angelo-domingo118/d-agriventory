@@ -21,7 +21,6 @@ class IcsItemBatch extends Model
      */
     protected $fillable = [
         'ics_number_id',
-        'quantity',
         'identification_data',
     ];
 
