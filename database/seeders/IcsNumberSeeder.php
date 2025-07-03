@@ -49,7 +49,7 @@ class IcsNumberSeeder extends Seeder
 
     private function seedChunk(array $chunk, array &$usedContractItemIds): void
     {
-        $contractNumbers = collect($chunk)->map(fn($item) => $this->parseContractNumber($item['document_source']))->filter()->unique()->all();
+        $contractNumbers = collect($chunk)->map(fn($item) => $this->parseContractNumber($item['contract_po_ib_number']))->filter()->unique()->all();
         $articles = collect($chunk)->pluck('article')->unique()->all();
         $employeeNames = collect($chunk)->pluck('issued_to')->unique();
         
@@ -74,7 +74,7 @@ class IcsNumberSeeder extends Seeder
         $icsNumber = $icsNumber ?? $icsItem['ics_number'];
         $this->command->info("Seeding ICS #{$icsNumber}");
 
-        $contractNumber = $this->parseContractNumber($icsItem['document_source']);
+        $contractNumber = $this->parseContractNumber($icsItem['contract_po_ib_number']);
         $contract = $contracts->get($contractNumber);
         if (!$contract) {
             $this->command->warn("Contract '{$contractNumber}' not found for ICS #{$icsNumber}. Skipping.");
@@ -195,12 +195,9 @@ class IcsNumberSeeder extends Seeder
         return trim($firstNameAndSuffix) . ' ' . trim($lastName);
     }
 
-    private function parseContractNumber(string $documentSource): ?string
+    private function parseContractNumber(string $contractNumber): ?string
     {
-        if (preg_match('/Contract\/PO\/IB No:\s*(.*)/', $documentSource, $matches)) {
-            return trim($matches[1]);
-        }
-        return null;
+        return trim($contractNumber);
     }
 
     /**
