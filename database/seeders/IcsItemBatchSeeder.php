@@ -32,10 +32,20 @@ class IcsItemBatchSeeder extends Seeder
                     continue;
                 }
 
-                IcsItemBatch::create([
-                    'ics_number_id' => $icsNumberModel->id,
-                    'identification_data' => $this->parseIdentificationData($item['Description']),
-                ]);
+                $quantity = $item['Quantity'] ?? 1;
+                $identificationData = $this->parseIdentificationData($item['Description']);
+
+                // If a unique identifier (like a serial number) is found, the quantity should always be 1.
+                if ($identificationData !== null) {
+                    $quantity = 1;
+                }
+
+                for ($i = 0; $i < $quantity; $i++) {
+                    IcsItemBatch::create([
+                        'ics_number_id' => $icsNumberModel->id,
+                        'identification_data' => $identificationData,
+                    ]);
+                }
             }
         });
 

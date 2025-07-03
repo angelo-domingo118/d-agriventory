@@ -14,62 +14,8 @@ return [
   [
     "Article" => "OFFICE CHAIR",
     "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "Brand/Model: Ofix G11 gaming chair\ncradle flexi ergonomic office chair",
-    "ICS Number" => "17"
+    "ICS Number" => "17",
+    "Quantity" => 12
   ],
   [
     "Article" => "PRINTER",
@@ -139,12 +85,8 @@ return [
   [
     "Article" => "GUN TACKER",
     "Description" => "Brand: Inco\nfor wood, insulation, light wiring and upholstery",
-    "ICS Number" => "13"
-  ],
-  [
-    "Article" => "GUN TACKER",
-    "Description" => "Brand: Inco\nfor wood, insulation, light wiring and upholstery",
-    "ICS Number" => "13"
+    "ICS Number" => "13",
+    "Quantity" => 2
   ],
   [
     "Article" => "PRINTER",
@@ -164,12 +106,8 @@ return [
   [
     "Article" => "KEYBOARD with MOUSE",
     "Description" => "Brand: Philips keyboard and mouse",
-    "ICS Number" => "208"
-  ],
-  [
-    "Article" => "KEYBOARD with MOUSE",
-    "Description" => "Brand: Philips keyboard and mouse",
-    "ICS Number" => "208"
+    "ICS Number" => "208",
+    "Quantity" => 2
   ],
   [
     "Article" => "KEYBOARD with MOUSE",
@@ -179,22 +117,8 @@ return [
   [
     "Article" => "CHEST COOLER",
     "Description" => "Brand: Coleman CL\n65 quartz, wheeled",
-    "ICS Number" => "211"
-  ],
-  [
-    "Article" => "CHEST COOLER",
-    "Description" => "Brand: Coleman CL\n65 quartz, wheeled",
-    "ICS Number" => "211"
-  ],
-  [
-    "Article" => "CHEST COOLER",
-    "Description" => "Brand: Coleman CL\n65 quartz, wheeled",
-    "ICS Number" => "211"
-  ],
-  [
-    "Article" => "CHEST COOLER",
-    "Description" => "Brand: Coleman CL\n65 quartz, wheeled",
-    "ICS Number" => "211"
+    "ICS Number" => "211",
+    "Quantity" => 4
   ],
   [
     "Article" => "UPRIGHT FREEZER",
@@ -219,12 +143,8 @@ return [
   [
     "Article" => "HELMET",
     "Description" => "",
-    "ICS Number" => "219"
-  ],
-  [
-    "Article" => "HELMET",
-    "Description" => "",
-    "ICS Number" => "219"
+    "ICS Number" => "219",
+    "Quantity" => 2
   ],
   [
     "Article" => "DISPLAY PORT",
@@ -234,12 +154,8 @@ return [
   [
     "Article" => "WHEELBARROW",
     "Description" => "Brand: Viking \ngalvanized, deep type tray\nsolid tire, 60 liters capacity",
-    "ICS Number" => "159"
-  ],
-  [
-    "Article" => "WHEELBARROW",
-    "Description" => "Brand: Viking \ngalvanized, deep type tray\nsolid tire, 60 liters capacity",
-    "ICS Number" => "159"
+    "ICS Number" => "159",
+    "Quantity" => 2
   ],
   [
     "Article" => "WEIGHING SCALE",
@@ -314,47 +230,14 @@ return [
   [
     "Article" => "MOSQUITO KILLER",
     "Description" => "Brand/Model: Daimaru BT2X10W\nelectric",
-    "ICS Number" => "178"
-  ],
-  [
-    "Article" => "MOSQUITO KILLER",
-    "Description" => "Brand/Model: Daimaru BT2X10W\nelectric",
-    "ICS Number" => "178"
+    "ICS Number" => "178",
+    "Quantity" => 2
   ],
   [
     "Article" => "SOLAR-POWERED STREET LIGHT",
     "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
-  ],
-  [
-    "Article" => "SOLAR-POWERED STREET LIGHT",
-    "Description" => "with PIR motion sensor, 6m high street light pole\nwith concrete pedestal footing",
-    "ICS Number" => "181"
+    "ICS Number" => "181",
+    "Quantity" => 7
   ],
   [
     "Article" => "SOLAR-POWERED STREET LIGHT",
@@ -389,12 +272,8 @@ return [
   [
     "Article" => "WIRED HEADPHONES",
     "Description" => "Brand/Model: AWEI GM-5",
-    "ICS Number" => "314"
-  ],
-  [
-    "Article" => "WIRED HEADPHONES",
-    "Description" => "Brand/Model: AWEI GM-5",
-    "ICS Number" => "314"
+    "ICS Number" => "314",
+    "Quantity" => 2
   ],
   [
     "Article" => "WIRED HEADPHONES",
@@ -414,42 +293,14 @@ return [
   [
     "Article" => "PUSH CART TROLLEY",
     "Description" => "with foldable handle\n200 kgs capacity",
-    "ICS Number" => "319"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n200 kgs capacity",
-    "ICS Number" => "319"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n200 kgs capacity",
-    "ICS Number" => "319"
+    "ICS Number" => "319",
+    "Quantity" => 5
   ],
   [
     "Article" => "PUSH CART TROLLEY",
     "Description" => "with foldable handle\n300 kgs capacity",
-    "ICS Number" => "324"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n300 kgs capacity",
-    "ICS Number" => "324"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n300 kgs capacity",
-    "ICS Number" => "324"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n300 kgs capacity",
-    "ICS Number" => "324"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n300 kgs capacity",
-    "ICS Number" => "324"
+    "ICS Number" => "324",
+    "Quantity" => 5
   ],
   [
     "Article" => "PRICE TAGGER",
@@ -459,42 +310,8 @@ return [
   [
     "Article" => "PALLET",
     "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
+    "ICS Number" => "330",
+    "Quantity" => 15
   ],
   [
     "Article" => "PRINTER",
@@ -664,12 +481,8 @@ return [
   [
     "Article" => "PLASTIC DRUM",
     "Description" => "200 liters",
-    "ICS Number" => "66"
-  ],
-  [
-    "Article" => "PLASTIC DRUM",
-    "Description" => "200 liters",
-    "ICS Number" => "66"
+    "ICS Number" => "66",
+    "Quantity" => 2
   ],
   [
     "Article" => "LAPTOP COMPUTER",
@@ -764,32 +577,14 @@ return [
   [
     "Article" => "WEIGHING SCALE",
     "Description" => "Brand/Model: Ingco Electronic Scale\n30 kgs capacity",
-    "ICS Number" => "83"
-  ],
-  [
-    "Article" => "WEIGHING SCALE",
-    "Description" => "Brand/Model: Ingco Electronic Scale\n30 kgs capacity",
-    "ICS Number" => "83"
-  ],
-  [
-    "Article" => "WEIGHING SCALE",
-    "Description" => "Brand/Model: Ingco Electronic Scale\n30 kgs capacity",
-    "ICS Number" => "83"
-  ],
-  [
-    "Article" => "WEIGHING SCALE",
-    "Description" => "Brand/Model: Ingco Electronic Scale\n30 kgs capacity",
-    "ICS Number" => "83"
+    "ICS Number" => "83",
+    "Quantity" => 4
   ],
   [
     "Article" => "POWERBANK",
     "Description" => "Brand/Model: Bavin PC089 Pro\n30000 mAh",
-    "ICS Number" => "87"
-  ],
-  [
-    "Article" => "POWERBANK",
-    "Description" => "Brand/Model: Bavin PC089 Pro\n30000 mAh",
-    "ICS Number" => "87"
+    "ICS Number" => "87",
+    "Quantity" => 2
   ],
   [
     "Article" => "EXTERNAL DATA STORAGE",
@@ -834,32 +629,20 @@ return [
   [
     "Article" => "PRESENTATION LASER POINTER",
     "Description" => "PPT presentation pen\nUSB smart charging",
-    "ICS Number" => "275"
-  ],
-  [
-    "Article" => "PRESENTATION LASER POINTER",
-    "Description" => "PPT presentation pen\nUSB smart charging",
-    "ICS Number" => "275"
+    "ICS Number" => "275",
+    "Quantity" => 2
   ],
   [
     "Article" => "KEYBOARD",
     "Description" => "Brand: Deluxe\nwireless keyboard and mouse combo",
-    "ICS Number" => "277"
-  ],
-  [
-    "Article" => "KEYBOARD",
-    "Description" => "Brand: Deluxe\nwireless keyboard and mouse combo",
-    "ICS Number" => "277"
+    "ICS Number" => "277",
+    "Quantity" => 2
   ],
   [
     "Article" => "SAFETY HARNESS",
     "Description" => "Brand: Ingco\nwith comfort pad on thigh strap and waist strap\nwith multiple attachment and adjustment point\nhigh strength polyester",
-    "ICS Number" => "279"
-  ],
-  [
-    "Article" => "SAFETY HARNESS",
-    "Description" => "Brand: Ingco\nwith comfort pad on thigh strap and waist strap\nwith multiple attachment and adjustment point\nhigh strength polyester",
-    "ICS Number" => "279"
+    "ICS Number" => "279",
+    "Quantity" => 2
   ],
   [
     "Article" => "SAFETY HARNESS",
@@ -869,17 +652,8 @@ return [
   [
     "Article" => "EXHAUST FAN",
     "Description" => "Ventilating Fan\nstrong wind, silent operation",
-    "ICS Number" => "282"
-  ],
-  [
-    "Article" => "EXHAUST FAN",
-    "Description" => "Ventilating Fan\nstrong wind, silent operation",
-    "ICS Number" => "282"
-  ],
-  [
-    "Article" => "EXHAUST FAN",
-    "Description" => "Ventilating Fan\nstrong wind, silent operation",
-    "ICS Number" => "282"
+    "ICS Number" => "282",
+    "Quantity" => 3
   ],
   [
     "Article" => "FAN",
@@ -894,87 +668,14 @@ return [
   [
     "Article" => "OFFICE CHAIR",
     "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
-  ],
-  [
-    "Article" => "OFFICE CHAIR",
-    "Description" => "ergonomic office chair\nheavy duty",
-    "ICS Number" => "287"
+    "ICS Number" => "287",
+    "Quantity" => 8
   ],
   [
     "Article" => "PALLET",
     "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "reversible type, load: 1500 kgs\nmaterial: HDPE",
-    "ICS Number" => "294"
+    "ICS Number" => "294",
+    "Quantity" => 9
   ],
   [
     "Article" => "PRINTER",
@@ -982,149 +683,33 @@ return [
     "ICS Number" => "308"
   ],
   [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n200 kgs capacity",
-    "ICS Number" => "319"
-  ],
-  [
-    "Article" => "PUSH CART TROLLEY",
-    "Description" => "with foldable handle\n200 kgs capacity",
-    "ICS Number" => "319"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
-    "Article" => "PALLET",
-    "Description" => "one-way export pallet\n1000x1200x120mm, 1 ton capacity",
-    "ICS Number" => "330"
-  ],
-  [
     "Article" => "STEEL RACK",
     "Description" => "with wheels\n864(L) x 457(W) x 1905mm",
-    "ICS Number" => "345"
-  ],
-  [
-    "Article" => "STEEL RACK",
-    "Description" => "with wheels\n864(L) x 457(W) x 1905mm",
-    "ICS Number" => "345"
-  ],
-  [
-    "Article" => "STEEL RACK",
-    "Description" => "with wheels\n864(L) x 457(W) x 1905mm",
-    "ICS Number" => "345"
-  ],
-  [
-    "Article" => "STEEL RACK",
-    "Description" => "with wheels\n864(L) x 457(W) x 1905mm",
-    "ICS Number" => "345"
+    "ICS Number" => "345",
+    "Quantity" => 4
   ],
   [
     "Article" => "AWNING CANOPY",
     "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
+    "ICS Number" => "349",
+    "Quantity" => 11
   ],
   [
     "Article" => "FOLDING OUTDOOR CHAIR",
     "Description" => "waterproof, black\nload bearing 150kgs",
-    "ICS Number" => "359"
-  ],
-  [
-    "Article" => "FOLDING OUTDOOR CHAIR",
-    "Description" => "waterproof, black\nload bearing 150kgs",
-    "ICS Number" => "359"
+    "ICS Number" => "359",
+    "Quantity" => 2
   ],
   [
     "Article" => "FOLDING STORAGE BOX",
     "Description" => "extended to portable table\nmultifunctional",
-    "ICS Number" => "361"
-  ],
-  [
-    "Article" => "FOLDING STORAGE BOX",
-    "Description" => "extended to portable table\nmultifunctional",
-    "ICS Number" => "361"
+    "ICS Number" => "361",
+    "Quantity" => 2
   ],
   [
     "Article" => "PARABOLIC TENT",
     "Description" => "waterproof, blue",
     "ICS Number" => "363"
-  ],
-  [
-    "Article" => "AWNING CANOPY",
-    "Description" => "roll up with scallop design\nwaterproof, heatproof\ngreen, with free rope and 2 ft of eyelets",
-    "ICS Number" => "349"
   ],
   [
     "Article" => "PAPER SHREDDER",
@@ -1159,77 +744,14 @@ return [
   [
     "Article" => "WATER TANK",
     "Description" => "stainless, 1000 liters\nvertical, with stand",
-    "ICS Number" => "370"
-  ],
-  [
-    "Article" => "WATER TANK",
-    "Description" => "stainless, 1000 liters\nvertical, with stand",
-    "ICS Number" => "370"
-  ],
-  [
-    "Article" => "WATER TANK",
-    "Description" => "stainless, 1000 liters\nvertical, with stand",
-    "ICS Number" => "370"
-  ],
-  [
-    "Article" => "WATER TANK",
-    "Description" => "stainless, 1000 liters\nvertical, with stand",
-    "ICS Number" => "370"
+    "ICS Number" => "370",
+    "Quantity" => 4
   ],
   [
     "Article" => "TRASH BIN",
     "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
-  ],
-  [
-    "Article" => "TRASH BIN",
-    "Description" => "yellow, red, green, 120 liters each\nwith metal frame",
-    "ICS Number" => "374"
+    "ICS Number" => "374",
+    "Quantity" => 11
   ],
   [
     "Article" => "WATER DISPENSER",
@@ -1255,6 +777,11 @@ return [
     "Article" => "DESKTOP COMPUTER",
     "Description" => "Brand/Model: Acer Aspire TC-1775\nSerial Number: DTBLQSP001502010179600\nMONITOR\n    Brand/Model: Acer SA222Q\n   Serial Number: MMTX5SP00345100BAA2X00\nKEYBOARD & MOUSE\nUPS\n   Brand/Model: Cyper Power UT1000EGLCD\n   Serial Number: 320710DZ30000390",
     "ICS Number" => "388"
+  ],
+  [
+    "Article" => "DESKTOP COMPUTER",
+    "Description" => "Brand/Model: Acer Aspire TC-1785\nSerial Number: DTBLNSP003452003D89600\nMONITOR\n   Brand/Model: Phillips 24E2N110\n   Serial Number: UHB243801377\nKEYBOARD & MOUSE",
+    "ICS Number" => "433"
   ],
   [
     "Article" => "DESKTOP COMPUTER",
@@ -1309,42 +836,8 @@ return [
   [
     "Article" => "OFFICE TABLE",
     "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
-  ],
-  [
-    "Article" => "OFFICE TABLE",
-    "Description" => "customized design, solid wood/plywood\nwith built in 4 drawers, 3 drawers",
-    "ICS Number" => "399"
+    "ICS Number" => "399",
+    "Quantity" => 8
   ],
   [
     "Article" => "STANDING DESK",
@@ -1354,42 +847,8 @@ return [
   [
     "Article" => "TRAINING TABLE",
     "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
-  ],
-  [
-    "Article" => "TRAINING TABLE",
-    "Description" => "foldable training table\nwith metal shelves, metal leg",
-    "ICS Number" => "408"
+    "ICS Number" => "408",
+    "Quantity" => 8
   ],
   [
     "Article" => "MONOBLOCK CHAIR",
@@ -1419,52 +878,8 @@ return [
   [
     "Article" => "STREET LIGHT",
     "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
+    "ICS Number" => "421",
+    "Quantity" => 11
   ],
   [
     "Article" => "LATERAL FILING CABINET",
@@ -1474,11 +889,6 @@ return [
   [
     "Article" => "DESKTOP COMPUTER",
     "Description" => "Brand/Model: Acer Aspire TC-1785\nSerial Number: DTBLNSP003452003F09600\nMONITOR\n   Brand/Model: Phillips 24E2N110\n   Serial Number: UHB2438013761\nKEYBOARD & MOUSE",
-    "ICS Number" => "433"
-  ],
-  [
-    "Article" => "DESKTOP COMPUTER",
-    "Description" => "Brand/Model: Acer Aspire TC-1785\nSerial Number: DTBLNSP003452003D89600\nMONITOR\n   Brand/Model: Phillips 24E2N110\n   Serial Number: UHB243801377\nKEYBOARD & MOUSE",
     "ICS Number" => "433"
   ],
   [
@@ -1495,11 +905,6 @@ return [
     "Article" => "DIGITAL HUMIDITY & TEMPERATURE METER",
     "Description" => "Brand/Model: Incgo HETHT01\nSerial Number: H12E-D144143",
     "ICS Number" => "437"
-  ],
-  [
-    "Article" => "STREET LIGHT",
-    "Description" => "300 watts, with auto on and off\naluminum housing and glass cover\nwith solar panel with mounting accessories",
-    "ICS Number" => "421"
   ],
   [
     "Article" => "DIGITAL HUMIDITY & TEMPERATURE METER",
