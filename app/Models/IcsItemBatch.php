@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IcsItemBatch extends Model
 {
@@ -30,5 +31,13 @@ class IcsItemBatch extends Model
     public function icsNumber(): BelongsTo
     {
         return $this->belongsTo(IcsNumber::class);
+    }
+
+    /**
+     * Get the components for the item batch.
+     */
+    public function components(): HasMany
+    {
+        return $this->hasMany(ItemComponent::class, 'ics_item_batch_id');
     }
 }

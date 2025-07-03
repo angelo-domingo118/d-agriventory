@@ -135,6 +135,16 @@ erDiagram
         timestamp created_at " // mandatory"
         timestamp updated_at " // mandatory"
     }
+    item_components {
+        bigint id PK " // mandatory"
+        bigint ics_item_batch_id FK " // mandatory"
+        varchar component_type "e.g., Monitor, Casing, UPS // mandatory"
+        varchar brand " // nullable"
+        varchar model " // nullable"
+        varchar serial_number " // nullable"
+        timestamp created_at " // mandatory"
+        timestamp updated_at " // mandatory"
+    }
     ics_transfers {
         bigint id PK " // mandatory"
         bigint ics_number_id FK " // mandatory"
@@ -248,6 +258,7 @@ erDiagram
     employees ||--o{ ics_number : "assigned_ics"
     contract_items ||--o{ ics_number : "sourced_from_ics"
     ics_number ||--o{ ics_item_batches : "contains_ics_batches"
+    ics_item_batches ||--o{ item_components : "has"
     ics_number ||--o{ ics_transfers : "transferred_via_ics"
     employees ||--o{ ics_transfers : "ics_from_employee"
     employees ||--o{ ics_transfers : "ics_to_employee"

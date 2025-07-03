@@ -14,13 +14,17 @@ class IcsItemBatchSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command->info('Seeding ICS item batches...');
+        $this->command->info('Seeding ICS item batches (excluding desktops)...');
 
         $data = $this->getIcsItemBatchesData();
         $icsNumbers = IcsNumber::all()->keyBy('ics_number');
 
         DB::transaction(function () use ($data, $icsNumbers) {
             foreach ($data as $item) {
+                if (str_contains(strtoupper($item['Article']), 'DESKTOP COMPUTER')) {
+                    continue;
+                }
+                
                 $icsNumberModel = $icsNumbers->get($item['ICS Number']);
 
                 if (! $icsNumberModel) {
@@ -35,45 +39,16 @@ class IcsItemBatchSeeder extends Seeder
             }
         });
 
-        $this->command->info('Finished seeding ICS item batches.');
+        $this->command->info('Finished seeding non-desktop ICS item batches.');
     }
 
-    /**
-     * Extracts identifying information from the description string.
-     *
-     * @param  string  $description
-     * @return string|null
-     */
     private function parseIdentificationData(string $description): ?string
     {
-        $identifying_data = [];
-        $lines = explode("\n", $description);
-        $current_context = '';
-
-        foreach ($lines as $line) {
-            $trimmed_line = trim($line);
-
-            if (in_array(strtoupper($trimmed_line), ['MONITOR', 'UPS'])) {
-                $current_context = ucfirst(strtolower($trimmed_line));
-                continue;
-            }
-
-            if (preg_match('/(Serial Number|Casing Number):\s*(.*)/i', $line, $matches)) {
-                $identifier_type = trim($matches[1]);
-                $identifier_value = trim($matches[2]);
-
-                if (! empty($identifier_value)) {
-                    $full_identifier = $current_context ? "{$current_context} {$identifier_type}" : $identifier_type;
-                    $identifying_data[] = "{$full_identifier}: {$identifier_value}";
-                }
-            }
+        if (preg_match('/(?:Serial Number:|Casing Number:)\\s*(.*)/i', $description, $matches)) {
+            return trim($matches[1]);
         }
 
-        if (empty($identifying_data)) {
-            return null;
-        }
-
-        return implode("\n", $identifying_data);
+        return null;
     }
 
     /**

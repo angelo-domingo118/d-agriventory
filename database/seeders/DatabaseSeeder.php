@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
                 ContractItemsSeeder::class,
                 IcsNumberSeeder::class,
                 IcsItemBatchSeeder::class,
+                DesktopComputerSeeder::class,
             ]);
         }
     }
