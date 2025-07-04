@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IcsNumber extends Model
 {
@@ -81,5 +82,13 @@ class IcsNumber extends Model
     public function transfers(): HasMany
     {
         return $this->hasMany(IcsTransfer::class);
+    }
+
+    /**
+     * Get the latest transfer for this ICS number.
+     */
+    public function latestTransfer(): HasOne
+    {
+        return $this->hasOne(IcsTransfer::class)->latest('transfer_date');
     }
 }

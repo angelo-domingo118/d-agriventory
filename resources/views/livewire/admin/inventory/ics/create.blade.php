@@ -32,7 +32,9 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function contracts()
     {
-        return Contract::with('supplier')->get();
+        return Contract::with('supplier:id,name')
+            ->orderBy('contract_po_ib_number')
+            ->get(['id', 'contract_po_ib_number', 'supplier_id']);
     }
 
     #[Computed]
@@ -43,14 +45,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         return ContractItem::where('contract_id', $this->contract_id)
-            ->with('itemSpecification.catalogItem')
+            ->with('itemSpecification.catalogItem:id,name')
             ->get();
     }
 
     #[Computed]
     public function employees()
     {
-        return Employee::orderBy('name')->get();
+        return Employee::orderBy('name')->get(['id', 'name']);
     }
 
     public function store(): void
@@ -89,70 +91,74 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
-    <form wire:submit="store" class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                Create New ICS Record
-            </h1>
-            <div class="flex items-center gap-x-4">
-                <x-action-message class="me-3" on="ics-created">
-                    {{ __('Record saved successfully.') }}
-                </x-action-message>
-                <flux:button variant="ghost" :href="route('admin.inventory.ics.index')" wire:navigate>
-                    Cancel
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    Save Record
-                </flux:button>
+<div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+    <form wire:submit="store">
+        <div class="border-b border-stone-200 p-6 dark:border-stone-700">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                    Create New ICS Record
+                </h1>
+                <div class="flex items-center gap-x-4">
+                    <x-action-message class="me-3" on="ics-created">
+                        {{ __('Record saved successfully.') }}
+                    </x-action-message>
+                    <flux:button variant="ghost" :href="route('admin.inventory.ics.index')" wire:navigate>
+                        Cancel
+                    </flux:button>
+                    <flux:button type="submit" variant="primary">
+                        Save Record
+                    </flux:button>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div class="md:col-span-2">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="ics_number" label="ICS Number" required />
+        <div class="p-6">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <flux:input wire:model="ics_number" label="ICS Number" required />
 
-                    <flux:select wire:model.live="contract_id" label="Contract" required>
-                        <option value="">Select a contract</option>
-                        @foreach($this->contracts as $contract)
-                            <option value="{{ $contract->id }}">
-                                {{ $contract->contract_number }} - {{ $contract->supplier->name }}
-                            </option>
-                        @endforeach
-                    </flux:select>
+                        <flux:select wire:model.live="contract_id" label="Contract" required>
+                            <option value="">Select a contract</option>
+                            @foreach($this->contracts as $contract)
+                                <option value="{{ $contract->id }}">
+                                    {{ $contract->contract_po_ib_number }} - {{ $contract->supplier->name }}
+                                </option>
+                            @endforeach
+                        </flux:select>
 
-                    <flux:select wire:model="contract_item_id" label="Item from Contract" required :disabled="!$this->contract_id">
-                        <option value="">Select an item</option>
-                        @foreach($this->contractItems as $item)
-                            <option value="{{ $item->id }}">
-                                {{ $item->itemSpecification->catalogItem->name }}
-                            </option>
-                        @endforeach
-                    </flux:select>
+                        <flux:select wire:model="contract_item_id" label="Item from Contract" required :disabled="!$this->contract_id">
+                            <option value="">Select an item</option>
+                            @foreach($this->contractItems as $item)
+                                <option value="{{ $item->id }}">
+                                    {{ $item->itemSpecification->catalogItem->name }}
+                                </option>
+                            @endforeach
+                        </flux:select>
 
-                    <flux:select wire:model="assigned_employee_id" label="Assign to Employee" required>
-                        <option value="">Select an employee</option>
-                        @foreach($this->employees as $employee)
-                            <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                        @endforeach
-                    </flux:select>
+                        <flux:select wire:model="assigned_employee_id" label="Assign to Employee" required>
+                            <option value="">Select an employee</option>
+                            @foreach($this->employees as $employee)
+                                <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                            @endforeach
+                        </flux:select>
 
-                    <flux:input wire:model="quantity" type="number" label="Quantity" min="1" required />
+                        <flux:input wire:model="quantity" type="number" label="Quantity" min="1" required />
 
-                    <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required />
+                        <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required />
+                    </div>
                 </div>
-            </div>
-            <div class="md:col-span-1">
-                <div class="space-y-6">
-                    <flux:select wire:model="ics_type" label="ICS Type" required>
-                        <option value="SPLV">Small Value (SPLV)</option>
-                        <option value="SPHV">High Value (SPHV)</option>
-                    </flux:select>
+                <div class="md:col-span-1">
+                    <div class="space-y-6">
+                        <flux:select wire:model="ics_type" label="ICS Type" required>
+                            <option value="SPLV">Small Value (SPLV)</option>
+                            <option value="SPHV">High Value (SPHV)</option>
+                        </flux:select>
 
-                    <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                        <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
 
-                    <flux:textarea wire:model="remarks" label="Remarks" rows="5" />
+                        <flux:textarea wire:model="remarks" label="Remarks" rows="5" />
+                    </div>
                 </div>
             </div>
         </div>
