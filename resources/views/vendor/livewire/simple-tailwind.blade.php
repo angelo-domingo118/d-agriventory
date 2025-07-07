@@ -4,7 +4,7 @@ if (! isset($scrollTo)) {
 }
 
 $scrollIntoViewJsSnippet = ($scrollTo !== false)
-    ? "(\$el.closest('" . addslashes($scrollTo) . "') || document.querySelector('" . addslashes($scrollTo) . "')).scrollIntoView()"
+    ? "(\$el.closest(" . json_encode($scrollTo) . ") || document.querySelector(" . json_encode($scrollTo) . ")).scrollIntoView()"
     : '';
 @endphp
 

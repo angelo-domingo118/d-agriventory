@@ -12,15 +12,8 @@ if ($variant === 'solid') {
 $class = Flux::classes('shrink-0')
     ->add(match($variant) {
         'outline' => 'size-6',
-        'solid' => 'size-5',
-        default => 'size-4',
+        'solid'   => 'size-5',
     });
-
-$strokeWidth = match ($variant) {
-    'outline' => 2,
-    'mini' => 2.25,
-    'micro' => 2.5,
-};
 @endphp
 
 <svg {{ $attributes->merge([
