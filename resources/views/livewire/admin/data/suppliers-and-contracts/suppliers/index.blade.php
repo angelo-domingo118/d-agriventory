@@ -2,6 +2,7 @@
 
 use App\Models\Supplier;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
@@ -11,25 +12,48 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public ?Supplier $editing = null;
     public bool $showCreateModal = false;
-    public string $search = '';
 
-    public function mount()
+    // View state
+    public string $search = '';
+    public int $perPage = 10;
+    public string $sortColumn = 'name';
+    public string $sortDirection = 'asc';
+    public bool $showFilters = false;
+
+    // Filters
+    // No specific filters for suppliers for now
+
+    public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
     }
 
-    public function getSuppliersProperty()
+    #[Computed]
+    public function filtersActive(): bool
     {
-        return Supplier::when($this->search, function ($query, $search) {
+        // Add filter properties to this check in the future
+        return false;
+    }
+
+    #[Computed]
+    public function suppliers()
+    {
+        $query = Supplier::query()
+            ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('address', 'like', "%{$search}%")
                     ->orWhere('contact_person', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->orderBy('name')
-            ->paginate(10);
+            });
+
+        return $query->orderBy($this->sortColumn, $this->sortDirection)->paginate($this->perPage);
+    }
+    
+    public function resetFilters()
+    {
+        // No filters to reset yet
     }
 
     public function newSupplier(): void
@@ -46,7 +70,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function save(): void
     {
-        $validated = $this->validate([
+        $this->validate([
             'editing.name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($this->editing->id)],
             'editing.address' => ['nullable', 'string', 'max:255'],
             'editing.contact_person' => ['nullable', 'string', 'max:255'],
@@ -60,6 +84,16 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->dispatch('supplier-saved');
         session()->flash('success', 'Supplier saved successfully.');
     }
+    
+    public function sortBy(string $field): void
+    {
+        if ($this->sortColumn === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortColumn = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
 
     public function with(): array
     {
@@ -69,52 +103,143 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<div x-data="{ showFilters: @entangle('showFilters') }">
     <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-stone-700 dark:text-stone-200">Suppliers</h2>
-        <div class="flex items-center gap-x-4">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search suppliers..." />
-            <flux:button wire:click="newSupplier" variant="primary">New Supplier</flux:button>
+        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+            Suppliers
+        </h1>
+        <div class="flex items-center gap-x-2">
+             <div x-data="{ open: false }" class="relative">
+                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                    <x-flux::icon.settings-2 class="h-5 w-5" />
+                    <span class="sr-only">Toggle View Options</span>
+                </flux:button>
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </flux:select>
+                    </div>
+                </div>
+            </div>
+            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
+            <flux:button variant="outline" x-on:click="showFilters = !showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+                <x-flux::icon.filter class="h-5 w-5" />
+                <span class="sr-only">Toggle Filters</span>
+            </flux:button>
+            <flux:button :href="route('admin.data.suppliers-and-contracts.suppliers.create')" variant="primary">New Supplier</flux:button>
+        </div>
+    </div>
+    
+    <div x-show="showFilters" x-collapse class="mt-4">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="p-4">
+                <p class="text-sm text-center text-stone-500 dark:text-stone-400">No filters available for this view yet.</p>
+            </div>
+            @if($this->filtersActive)
+            <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
+                <flux:button variant="ghost" wire:click="resetFilters">
+                    Reset Filters
+                </flux:button>
+            </div>
+            @endif
+        </div>
+    </div>
+    
+     <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-stone-600 dark:text-stone-400">
+            @if ($this->suppliers->total() > 0)
+                <span>Showing {{ $this->suppliers->firstItem() }} to {{ $this->suppliers->lastItem() }} of <strong>{{ $this->suppliers->total() }}</strong> results.</span>
+            @else
+                <span>No results found.</span>
+            @endif
+        </div>
+        <div class="w-full max-w-xs">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search anything..."
+            >
+                <x-slot:leading>
+                    <x-flux::icon.search class="size-5 text-stone-400" />
+                </x-slot:leading>
+            </flux:input>
         </div>
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-        <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-            <thead class="bg-stone-50 dark:bg-stone-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Contact Person</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Email</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Phone</th>
-                    <th scope="col" class="relative px-6 py-3">
-                        <span class="sr-only">Edit</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                @forelse($suppliers as $supplier)
-                    <tr wire:key="supplier-{{ $supplier->id }}">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $supplier->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->contact_person }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->email }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->phone }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                            <flux:button wire:click="edit({{ $supplier->id }})" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
-                        </td>
-                    </tr>
-                @empty
+    <div class="mt-4 flow-root">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                            No suppliers found.
-                        </td>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                                Name
+                                @if ($sortColumn === 'name')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('contact_person')" class="flex cursor-pointer items-center">
+                                Contact Person
+                                @if ($sortColumn === 'contact_person')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('email')" class="flex cursor-pointer items-center">
+                                Email
+                                @if ($sortColumn === 'email')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Phone</th>
+                        <th scope="col" class="relative px-6 py-3">
+                            <span class="sr-only">Edit</span>
+                        </th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                    @forelse($suppliers as $supplier)
+                        <tr wire:key="supplier-{{ $supplier->id }}">
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $supplier->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->contact_person }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->email }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->phone }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                <flux:button :href="route('admin.data.suppliers-and-contracts.suppliers.edit', $supplier)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                                No suppliers found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-    <div class="mt-4">
-        {{ $suppliers->links() }}
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $suppliers->links() }}
+        </div>
     </div>
 
     <!-- Create/Edit Modal -->
@@ -131,8 +256,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <flux:input wire:model="editing.contact_person" label="Contact Person" />
                         <flux:input wire:model="editing.email" label="Email Address" type="email" />
-                        <flux:input wire:model="editing.phone" label="Phone Number" />
                     </div>
+                    <flux:input wire:model="editing.phone" label="Phone Number" />
                 </div>
 
                 <x-slot:footer>
@@ -144,4 +269,4 @@ new #[Layout('components.layouts.app')] class extends Component {
             </form>
         </flux:modal>
     @endif
-</div> 
+</div>

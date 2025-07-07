@@ -18,6 +18,9 @@ return new class extends Migration
             $table->foreignId('secondary_category_id')->constrained()->onDelete('cascade');
             $table->string('code', 50)->unique()->comment('Universal item code.');
             $table->timestamps();
+
+            $table->index('unit');
+            $table->fullText('name');
         });
     }
 

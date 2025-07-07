@@ -4,7 +4,9 @@ use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Position;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
@@ -16,7 +18,19 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public ?Employee $editing = null;
     public bool $showCreateModal = false;
+    
+    // View and filter state
     public string $search = '';
+    public bool $showFilters = false;
+    public int $perPage = 10;
+    
+    // Filter properties
+    public ?int $filterPosition = null;
+    public ?int $filterDivision = null;
+
+    // Sorting properties
+    public string $sortColumn = 'name';
+    public string $sortDirection = 'asc';
 
     // For creating/editing user credentials
     public string $username = '';
@@ -31,8 +45,35 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
     }
+    
+    public function sortBy(string $column): void
+    {
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortColumn = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
 
-    public function getEmployeesProperty()
+    public function resetFilters()
+    {
+        $this->reset('filterPosition', 'filterDivision');
+    }
+    
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    #[Computed]
+    public function filtersActive(): bool
+    {
+        return $this->filterPosition || $this->filterDivision;
+    }
+
+    #[Computed]
+    public function employees()
     {
         return Employee::with(['user', 'position', 'division'])
             ->when($this->search, function ($query, $search) {
@@ -41,16 +82,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                     ->orWhereHas('position', fn ($q) => $q->where('title', 'like', "%{$search}%"))
                     ->orWhereHas('division', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
-            ->orderBy('name')
-            ->paginate(10);
+            ->when($this->filterPosition, fn(Builder $q) => $q->where('position_id', $this->filterPosition))
+            ->when($this->filterDivision, fn(Builder $q) => $q->where('division_id', $this->filterDivision))
+            ->orderBy($this->sortColumn, $this->sortDirection)
+            ->paginate($this->perPage);
     }
 
-    public function getPositionsProperty()
+    #[Computed]
+    public function positions()
     {
         return Position::orderBy('title')->get();
     }
 
-    public function getDivisionsProperty()
+    #[Computed]
+    public function divisions()
     {
         return Division::orderBy('name')->get();
     }
@@ -138,48 +183,180 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<div x-data="{ showFilters: @entangle('showFilters') }">
     <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-stone-700 dark:text-stone-200">Employees</h2>
-        <div class="flex items-center gap-x-4">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search employees..." />
-            <flux:button wire:click="newEmployee" variant="primary">New Employee</flux:button>
+        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+            Employees
+        </h1>
+        <div class="flex items-center gap-x-2">
+             <div x-data="{ open: false }" class="relative">
+                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                    <x-flux::icon.settings-2 class="h-5 w-5" />
+                    <span class="sr-only">Toggle View Options</span>
+                </flux:button>
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </flux:select>
+                    </div>
+                </div>
+            </div>
+            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
+            <flux:button variant="outline" x-on:click="showFilters = !showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+                <x-flux::icon.filter class="h-5 w-5" />
+                <span class="sr-only">Toggle Filters</span>
+            </flux:button>
+            <flux:button :href="route('admin.data.employees-and-divisions.employees.create')" variant="primary">New Employee</flux:button>
+        </div>
+    </div>
+    
+    <div x-show="showFilters" x-collapse class="mt-4">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+             <div class="border-b border-stone-200 p-4 dark:border-stone-700">
+                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <flux:select wire:model.live="filterPosition" label="Position">
+                            <option value="">Any Position</option>
+                            @foreach($this->positions as $position)
+                                <option value="{{ $position->id }}">{{ $position->title }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                    <div>
+                        <flux:select wire:model.live="filterDivision" label="Division">
+                            <option value="">Any Division</option>
+                             @foreach($this->divisions as $division)
+                                <option value="{{ $division->id }}">{{ $division->name }}</option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                </div>
+            </div>
+            @if($this->filtersActive)
+                <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
+                    <flux:button variant="ghost" wire:click="resetFilters">
+                        Reset Filters
+                    </flux:button>
+                </div>
+            @endif
+        </div>
+    </div>
+    
+     <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-stone-600 dark:text-stone-400">
+            @if ($this->employees->total() > 0)
+                <span>Showing {{ $this->employees->firstItem() }} to {{ $this->employees->lastItem() }} of <strong>{{ $this->employees->total() }}</strong> results.</span>
+            @else
+                <span>No results found.</span>
+            @endif
+        </div>
+        <div class="w-full max-w-xs">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search anything..."
+            >
+                <x-slot:leading>
+                    <x-flux::icon.search class="size-5 text-stone-400" />
+                </x-slot:leading>
+            </flux:input>
         </div>
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-        <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-            <thead class="bg-stone-50 dark:bg-stone-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Employee #</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Position</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Division</th>
-                    <th scope="col" class="relative px-6 py-3">
-                        <span class="sr-only">Edit</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                @forelse($employees as $employee)
-                    <tr wire:key="employee-{{ $employee->id }}">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $employee->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->employee_number }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->position?->title ?? 'N/A' }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->division?->name ?? 'N/A' }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                            <flux:button wire:click="edit({{ $employee->id }})" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
-                        </td>
-                    </tr>
-                @empty
+    <div class="mt-4 flow-root">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                            No employees found.
-                        </td>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                                Name
+                                @if($sortColumn === 'name')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('position_id')" class="flex cursor-pointer items-center">
+                                Position
+                                @if($sortColumn === 'position_id')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('division_id')" class="flex cursor-pointer items-center">
+                                Division/Office
+                                @if($sortColumn === 'division_id')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            User Account
+                        </th>
+                        <th scope="col" class="relative px-6 py-3">
+                            <span class="sr-only">Edit</span>
+                        </th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                    @forelse($employees as $employee)
+                        <tr wire:key="employee-{{ $employee->id }}">
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">
+                                <div class="flex items-center">
+                                    <div>
+                                        <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee->name }}</div>
+                                        <div class="text-stone-500 dark:text-stone-400">{{ $employee->employee_number }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->position?->title ?? 'No Position' }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->division?->name ?? 'No Division' }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                @if($employee->user)
+                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
+                                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                                            <circle cx="4" cy="4" r="3" />
+                                        </svg>
+                                        Active
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-800 dark:bg-stone-700 dark:text-stone-200">
+                                        Inactive
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                <flux:button :href="route('admin.data.employees-and-divisions.employees.edit', $employee)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                                No employees found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="mt-4">
@@ -200,13 +377,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <flux:input wire:model="editing.employee_number" label="Employee Number" required />
                         <flux:select wire:model="editing.position_id" label="Position" required>
                             <option value="">Select a position</option>
-                            @foreach($positions as $position)
+                            @foreach($this->positions as $position)
                                 <option value="{{ $position->id }}">{{ $position->title }}</option>
                             @endforeach
                         </flux:select>
                         <flux:select wire:model="editing.division_id" label="Division/Office" required>
                             <option value="">Select a division</option>
-                            @foreach($divisions as $division)
+                            @foreach($this->divisions as $division)
                                 <option value="{{ $division->id }}">{{ $division->name }}</option>
                             @endforeach
                         </flux:select>

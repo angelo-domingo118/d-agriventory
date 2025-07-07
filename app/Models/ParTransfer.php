@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ParTransfer extends Model
 {
+    use HasFactory;
+
     /**
      * The table associated with the model.
      *
@@ -40,7 +43,7 @@ class ParTransfer extends Model
      */
     public function parNumber(): BelongsTo
     {
-        return $this->belongsTo(ParNumber::class);
+        return $this->belongsTo(ParNumber::class, 'par_number_id');
     }
 
     /**

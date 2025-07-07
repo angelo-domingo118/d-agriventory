@@ -15,9 +15,9 @@
 
 <!-- DATA -->
 <flux:navlist.group :heading="__('DATA')">
-    <flux:navlist.item icon="layout-grid" :href="route('admin.data.items.index')" :current="request()->routeIs('admin.data.items.*')" wire:navigate class="py-6 text-lg">{{ __('Items & Categories') }}</flux:navlist.item>
-    <flux:navlist.item icon="users" :href="route('admin.data.employees.index')" :current="request()->routeIs('admin.data.employees.*')" wire:navigate class="py-6 text-lg">{{ __('Employees & Divisions') }}</flux:navlist.item>
-    <flux:navlist.item icon="file-text" :href="route('admin.data.contracts.index')" :current="request()->routeIs('admin.data.contracts.*')" wire:navigate class="py-6 text-lg">{{ __('Suppliers & Contracts') }}</flux:navlist.item>
+    <flux:navlist.item icon="layout-grid" :href="route('admin.data.items-and-categories')" :current="request()->routeIs('admin.data.items-and-categories*')" wire:navigate class="py-6 text-lg">{{ __('Items & Categories') }}</flux:navlist.item>
+    <flux:navlist.item icon="users" :href="route('admin.data.employees-and-divisions')" :current="request()->routeIs('admin.data.employees-and-divisions*')" wire:navigate class="py-6 text-lg">{{ __('Employees & Divisions') }}</flux:navlist.item>
+    <flux:navlist.item icon="file-text" :href="route('admin.data.suppliers-and-contracts')" :current="request()->routeIs('admin.data.suppliers-and-contracts*')" wire:navigate class="py-6 text-lg">{{ __('Suppliers & Contracts') }}</flux:navlist.item>
 </flux:navlist.group>
 
 <!-- SYSTEM -->

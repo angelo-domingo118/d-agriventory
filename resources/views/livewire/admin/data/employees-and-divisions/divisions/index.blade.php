@@ -2,15 +2,22 @@
 
 use App\Models\Division;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
-
-    public ?Division $editing = null;
-    public bool $showCreateModal = false;
+    
+    // View and filter state
+    public string $search = '';
+    public bool $showFilters = false;
+    public int $perPage = 10;
+    
+    // Sorting properties
+    public string $sortColumn = 'name';
+    public string $sortDirection = 'asc';
 
     public function mount()
     {
@@ -18,36 +25,44 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
     }
-
-    public function getDivisionsProperty()
+    
+    public function sortBy(string $column): void
     {
-        return Division::orderBy('name')->paginate(10);
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortColumn = $column;
+            $this->sortDirection = 'asc';
+        }
     }
 
-    public function newDivision(): void
+    #[Computed]
+    public function filtersActive(): bool
     {
-        $this->editing = new Division();
-        $this->showCreateModal = true;
+        // Add filter properties here in the future
+        return false;
     }
 
-    public function edit(Division $division): void
+    public function resetFilters()
     {
-        $this->editing = $division;
-        $this->showCreateModal = true;
+        // No filters to reset yet
+    }
+    
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
     }
 
-    public function save(): void
+    #[Computed]
+    public function divisions()
     {
-        $validated = $this->validate([
-            'editing.name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')->ignore($this->editing->id)],
-            'editing.code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')->ignore($this->editing->id)],
-        ]);
-
-        $this->editing->save();
-
-        $this->showCreateModal = false;
-        $this->dispatch('division-saved');
-        session()->flash('success', 'Division saved successfully.');
+        return Division::query()
+            ->when($this->search, function ($query, $search) {
+                $query->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('code', 'like', '%' . $search . '%');
+            })
+            ->orderBy($this->sortColumn, $this->sortDirection)
+            ->paginate($this->perPage);
     }
 
     public function with(): array
@@ -58,67 +73,138 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<div x-data="{ showFilters: @entangle('showFilters') }">
     <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-stone-700 dark:text-stone-200">Divisions</h2>
-        <flux:button wire:click="newDivision" variant="primary">New Division</flux:button>
+        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+            Divisions
+        </h1>
+        <div class="flex items-center gap-x-2">
+             <div x-data="{ open: false }" class="relative">
+                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                    <x-flux::icon.settings-2 class="h-5 w-5" />
+                    <span class="sr-only">Toggle View Options</span>
+                </flux:button>
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </flux:select>
+                    </div>
+                </div>
+            </div>
+            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
+            <flux:button variant="outline" x-on:click="showFilters = !showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+                <x-flux::icon.filter class="h-5 w-5" />
+                <span class="sr-only">Toggle Filters</span>
+            </flux:button>
+            <flux:button :href="route('admin.data.employees-and-divisions.divisions.create')" variant="primary">New Division</flux:button>
+        </div>
+    </div>
+    
+    <div x-show="showFilters" x-collapse class="mt-4">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="p-4">
+                <p class="text-sm text-center text-stone-500 dark:text-stone-400">No filters available for this view yet.</p>
+            </div>
+            @if($this->filtersActive)
+                <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
+                    <flux:button variant="ghost" wire:click="resetFilters">
+                        Reset Filters
+                    </flux:button>
+                </div>
+            @endif
+        </div>
+    </div>
+    
+    <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-stone-600 dark:text-stone-400">
+            @if ($this->divisions->total() > 0)
+                <span>Showing {{ $this->divisions->firstItem() }} to {{ $this->divisions->lastItem() }} of <strong>{{ $this->divisions->total() }}</strong> results.</span>
+            @else
+                <span>No results found.</span>
+            @endif
+        </div>
+        <div class="w-full max-w-xs">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search anything..."
+            >
+                <x-slot:leading>
+                    <x-flux::icon.search class="size-5 text-stone-400" />
+                </x-slot:leading>
+            </flux:input>
+        </div>
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-        <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-            <thead class="bg-stone-50 dark:bg-stone-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Name</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Code</th>
-                    <th scope="col" class="relative px-6 py-3">
-                        <span class="sr-only">Edit</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                @forelse($divisions as $division)
-                    <tr wire:key="division-{{ $division->id }}">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $division->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $division->code }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                            <flux:button wire:click="edit({{ $division->id }})" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
-                        </td>
-                    </tr>
-                @empty
+
+    <div class="mt-4 flow-root">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr>
-                        <td colspan="3" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                            No divisions found.
-                        </td>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                                Name
+                                @if($sortColumn === 'name')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                             <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
+                                Code
+                                @if($sortColumn === 'code')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                        </th>
+                        <th scope="col" class="relative px-6 py-3">
+                            <span class="sr-only">Edit</span>
+                        </th>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                    @forelse($divisions as $division)
+                        <tr wire:key="division-{{ $division->id }}">
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $division->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $division->code }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                <flux:button :href="route('admin.data.employees-and-divisions.divisions.edit', $division)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                                No divisions found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
+
 
     <div class="mt-4">
         {{ $divisions->links() }}
     </div>
-
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Division
-                </x-slot:title>
-
-                <div class="space-y-4 p-6">
-                    <flux:input wire:model="editing.name" label="Name" required />
-                    <flux:input wire:model="editing.code" label="Code" required />
-                </div>
-
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
 </div> 

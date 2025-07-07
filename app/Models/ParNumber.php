@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ParNumber extends Model
 {
+    use HasFactory;
+
     /**
      * The table associated with the model.
      *
@@ -31,6 +35,8 @@ class ParNumber extends Model
         'date_prepared',
         'date_accepted',
         'remarks',
+        'inventory_code',
+        'date_acquired',
     ];
 
     /**
@@ -41,6 +47,7 @@ class ParNumber extends Model
     protected $casts = [
         'date_prepared' => 'date',
         'date_accepted' => 'date',
+        'date_acquired' => 'date',
     ];
 
     /**
@@ -64,7 +71,7 @@ class ParNumber extends Model
      */
     public function itemBatches(): HasMany
     {
-        return $this->hasMany(ParItemBatch::class);
+        return $this->hasMany(ParItemBatch::class, 'par_number_id');
     }
 
     /**
@@ -72,6 +79,11 @@ class ParNumber extends Model
      */
     public function transfers(): HasMany
     {
-        return $this->hasMany(ParTransfer::class);
+        return $this->hasMany(ParTransfer::class, 'par_number_id');
+    }
+
+    public function latestTransfer(): HasOne
+    {
+        return $this->hasOne(ParTransfer::class, 'par_number_id')->latestOfMany();
     }
 }

@@ -6,6 +6,7 @@ use App\Models\ItemSpecification;
 use App\Models\Supplier;
 use App\Models\ItemsCatalog;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
@@ -13,11 +14,15 @@ use Livewire\WithPagination;
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?Contract $editing = null;
-    public bool $showCreateModal = false;
+    // View state
     public string $search = '';
-
-    public array $items = [];
+    public int $perPage = 10;
+    public string $sortBy = 'created_at';
+    public string $sortDirection = 'desc';
+    public bool $showFilters = false;
+    
+    // Filters
+    public ?int $supplier_id = null;
 
     public function mount()
     {
@@ -26,108 +31,44 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
-    public function getContractsProperty()
+    #[Computed]
+    public function contracts()
     {
         return Contract::with('supplier')->withCount('contractItems')
             ->when($this->search, function ($query, $search) {
                 $query->where('contract_po_ib_number', 'like', "%{$search}%")
                     ->orWhereHas('supplier', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->when($this->supplier_id, fn($q) => $q->where('supplier_id', $this->supplier_id))
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->paginate($this->perPage);
+    }
+    
+    public function resetFilters(): void
+    {
+        $this->reset('supplier_id');
     }
 
-    public function getSuppliersProperty()
+    #[Computed]
+    public function suppliers()
     {
         return Supplier::orderBy('name')->get();
     }
     
-    public function getCatalogItemsProperty()
+    #[Computed]
+    public function catalogItems()
     {
         return ItemsCatalog::orderBy('name')->get();
     }
 
-    public function newContract(): void
+    public function sort($field): void
     {
-        $this->editing = new Contract();
-        $this->items = [['item_catalog_id' => '', 'quantity' => 1, 'unit_price' => 0]];
-        $this->showCreateModal = true;
-    }
-
-    public function edit(Contract $contract): void
-    {
-        $this->editing = $contract;
-        $this->items = $contract->contractItems->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'item_catalog_id' => $item->itemSpecification?->catalogItem?->id,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'detailed_specifications' => $item->itemSpecification?->detailed_specifications,
-            ];
-        })->all();
-
-        $this->showCreateModal = true;
-    }
-    
-    public function addItem(): void
-    {
-        $this->items[] = ['item_catalog_id' => '', 'quantity' => 1, 'unit_price' => 0];
-    }
-    
-    public function removeItem(int $index): void
-    {
-        array_splice($this->items, $index, 1);
-    }
-
-    public function save(): void
-    {
-        // This is a simplified save method. A real implementation would handle item specifications correctly.
-        $rules = [
-            'editing.supplier_id' => ['required', 'exists:suppliers,id'],
-            'editing.contract_po_ib_number' => ['required', 'string', 'max:255', Rule::unique('contracts')->ignore($this->editing->id)],
-            'items.*.item_catalog_id' => ['required', 'integer', Rule::exists('items_catalog', 'id')],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
-        ];
-        $this->validate($rules);
-
-        \Illuminate\Support\Facades\DB::transaction(function() {
-            $this->editing->save();
-            
-            $contractItemIds = [];
-
-            foreach($this->items as $itemData) {
-                if (empty($itemData['item_catalog_id'])) continue;
-                
-                $catalogItem = ItemsCatalog::find($itemData['item_catalog_id']);
-                if (!$catalogItem) continue;
-
-                $specDetails = $itemData['detailed_specifications'] ?? "Standard specifications for {$catalogItem->name}";
-
-                $specification = ItemSpecification::firstOrCreate(
-                    ['items_catalog_id' => $catalogItem->id, 'detailed_specifications' => $specDetails]
-                );
-
-                $contractItem = $this->editing->contractItems()->updateOrCreate(
-                    [
-                        'item_specification_id' => $specification->id,
-                    ],
-                    [
-                        'quantity' => $itemData['quantity'],
-                        'unit_price' => $itemData['unit_price'],
-                    ]
-                );
-                $contractItemIds[] = $contractItem->id;
-            }
-
-            // Delete contract items that are no longer in the form
-            $this->editing->contractItems()->whereNotIn('id', $contractItemIds)->delete();
-        });
-
-        $this->showCreateModal = false;
-        $this->dispatch('contract-saved');
-        session()->flash('success', 'Contract saved successfully.');
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
     }
 
     public function with(): array
@@ -135,122 +76,156 @@ new #[Layout('components.layouts.app')] class extends Component {
         return [
             'contracts' => $this->contracts,
             'suppliers' => $this->suppliers,
-            'catalogItems' => $this->catalogItems,
         ];
     }
 }; ?>
 
 <div>
     <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-stone-700 dark:text-stone-200">Contracts</h2>
-        <div class="flex items-center gap-x-4">
-            <flux:input wire:model.live.debounce.300ms="search" placeholder="Search contracts..." />
-            <flux:button wire:click="newContract" variant="primary">New Contract</flux:button>
+        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+            Contracts
+        </h1>
+        <div class="flex items-center gap-x-2">
+             <div x-data="{ open: false }" class="relative">
+                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                    <x-flux::icon.settings-2 class="h-5 w-5" />
+                    <span class="sr-only">Toggle View Options</span>
+                </flux:button>
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </flux:select>
+                    </div>
+                </div>
+            </div>
+            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
+            <flux:button variant="outline" wire:click="$toggle('showFilters')" class="!p-2 @if($supplier_id) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+                <x-flux::icon.filter class="h-5 w-5" />
+                <span class="sr-only">Toggle Filters</span>
+            </flux:button>
+            <flux:button tag="a" href="{{ route('admin.data.suppliers-and-contracts.contracts.create') }}" wire:navigate variant="primary">New Contract</flux:button>
+        </div>
+    </div>
+    
+    <div x-show="$wire.showFilters" x-collapse class="mt-4">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 p-4 dark:border-stone-700">
+                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <flux:select wire:model.live="supplier_id" label="Supplier">
+                        <option value="">All Suppliers</option>
+                        @foreach($this->suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                        @endforeach
+                    </flux:select>
+                </div>
+            </div>
+            <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
+                <flux:button variant="ghost" wire:click="resetFilters">
+                    Reset Filters
+                </flux:button>
+            </div>
+        </div>
+    </div>
+    
+     <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm text-stone-600 dark:text-stone-400">
+            @if ($this->contracts->total() > 0)
+                <span>Showing {{ $this->contracts->firstItem() }} to {{ $this->contracts->lastItem() }} of <strong>{{ $this->contracts->total() }}</strong> results.</span>
+            @else
+                <span>No results found.</span>
+            @endif
+        </div>
+        <div class="w-full max-w-xs">
+            <flux:input
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search anything..."
+            >
+                <x-slot:leading>
+                    <x-flux::icon.search class="size-5 text-stone-400" />
+                </x-slot:leading>
+            </flux:input>
         </div>
     </div>
 
-    <div class="mt-4 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-        <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-            <thead class="bg-stone-50 dark:bg-stone-800">
-                <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Contract/PO/IB Number</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Supplier</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Date Created</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">Items</th>
-                    <th scope="col" class="relative px-6 py-3">
-                        <span class="sr-only">Edit</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                @forelse($contracts as $contract)
-                    <tr wire:key="contract-{{ $contract->id }}">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $contract->contract_po_ib_number }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->supplier->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->created_at->format('M d, Y') }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->contract_items_count }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                            <flux:button wire:click="edit({{ $contract->id }})" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                            No contracts found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-4">
-        {{ $contracts->links() }}
-    </div>
-
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="4xl" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Contract
-                </x-slot:title>
-
-                <div class="space-y-6 p-6">
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <flux:input wire:model="editing.contract_po_ib_number" label="Contract/PO/IB Number" required />
-                        <flux:select wire:model="editing.supplier_id" label="Supplier" required>
-                            <option value="">Select a supplier</option>
-                            @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-
-                    <div class="relative">
-                      <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div class="w-full border-t border-stone-300 dark:border-stone-600"></div>
-                      </div>
-                      <div class="relative flex justify-center">
-                        <span class="bg-white px-3 text-base font-semibold leading-6 text-stone-900 dark:bg-stone-800 dark:text-stone-100">Contract Items</span>
-                      </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        @foreach($items as $index => $item)
-                            <div wire:key="item-{{$index}}" class="flex items-end gap-x-4 rounded-md border p-4 dark:border-stone-700">
-                                <div class="grid flex-grow grid-cols-1 gap-4 sm:grid-cols-3">
-                                    <flux:select wire:model="items.{{$index}}.item_catalog_id" label="Item">
-                                        <option value="">Select Item</option>
-                                        @foreach($catalogItems as $catalogItem)
-                                            <option value="{{$catalogItem->id}}">{{$catalogItem->name}}</option>
-                                        @endforeach
-                                    </flux:select>
-                                    <flux:input type="number" wire:model="items.{{$index}}.quantity" label="Quantity" min="1" />
-                                    <flux:input type="number" wire:model="items.{{$index}}.unit_price" label="Unit Price" min="0" step="0.01" />
-                                </div>
-                                <div class="flex-shrink-0">
-                                    <flux:button type="button" wire:click="removeItem({{$index}})" variant="danger" class="!p-2">
-                                        <x-flux::icon.x-mark class="h-5 w-5" />
-                                    </flux:button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                    
-                    <div>
-                        <flux:button type="button" wire:click="addItem" variant="outline">Add Item</flux:button>
-                    </div>
-
+    <div class="mt-4 flow-root">
+        <div class="overflow-x-auto">
+            <div class="inline-block min-w-full align-middle">
+                <div class="overflow-hidden rounded-lg border border-stone-200 shadow-sm dark:border-stone-700">
+                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                        <thead class="bg-stone-50 dark:bg-stone-800">
+                            <tr>
+                                <th scope="col" wire:click="sort('contract_po_ib_number')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    Contract/PO/IB No.
+                                    @if ($sortBy === 'contract_po_ib_number')
+                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                    @endif
+                                </th>
+                                <th scope="col" wire:click="sort('supplier_id')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    Supplier
+                                    @if ($sortBy === 'supplier_id')
+                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                    @endif
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    Items
+                                </th>
+                                <th scope="col" wire:click="sort('created_at')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    Date Added
+                                     @if ($sortBy === 'created_at')
+                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                    @endif
+                                </th>
+                                <th scope="col" class="relative px-6 py-3">
+                                    <span class="sr-only">Edit</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-700 dark:bg-stone-800/50">
+                             @forelse($this->contracts as $contract)
+                                <tr wire:key="contract-{{ $contract->id }}">
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $contract->contract_po_ib_number }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->supplier->name }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->contract_items_count }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->created_at->format('M d, Y') }}</td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                        <a href="{{ route('admin.data.suppliers-and-contracts.contracts.edit', $contract) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <x-flux::icon.file-text class="h-12 w-12 text-stone-400" />
+                                            <h3 class="mt-2 text-sm font-medium text-stone-900 dark:text-stone-100">No contracts found</h3>
+                                            <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                                                @if ($this->search || $this->supplier_id)
+                                                    Try adjusting your search or filters.
+                                                @else
+                                                   Get started by creating a new contract.
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        {{ $this->contracts->links() }}
+    </div>
 </div> 

@@ -65,6 +65,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
             Volt::route('ics', 'admin.inventory.ics.index')->name('ics.index');
             Volt::route('ics/{icsNumber}', 'admin.inventory.ics.show')->name('ics.show');
             Volt::route('par', 'admin.inventory.par.index')->name('par.index');
+            Volt::route('par/{parNumber}', 'admin.inventory.par.show')->name('par.show');
             Volt::route('idr', 'admin.inventory.idr.index')->name('idr.index');
             Volt::route('transfers', 'admin.inventory.transfers.index')->name('transfers.index');
             Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
@@ -72,19 +73,56 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
 
         Route::middleware([HasAdminPermission::class.':create_inventory'])->group(function () {
             Volt::route('ics-create', 'admin.inventory.ics.create')->name('ics.create');
+            Volt::route('par-create', 'admin.inventory.par.create')->name('par.create');
         });
 
         Route::middleware([HasAdminPermission::class.':edit_inventory'])->group(function () {
             Volt::route('ics/{icsNumber}/edit', 'admin.inventory.ics.edit')->name('ics.edit');
+            Volt::route('par/{parNumber}/edit', 'admin.inventory.par.edit')->name('par.edit');
         });
     });
 
     // Data management routes
     Route::prefix('data')->name('data.')->group(function () {
         Route::middleware([HasAdminPermission::class.':manage_data'])->group(function () {
-            Volt::route('items-and-categories', 'admin.data.items-and-categories.index')->name('items.index');
-            Volt::route('suppliers-and-contracts', 'admin.data.suppliers-and-contracts.index')->name('contracts.index');
-            Volt::route('employees-and-divisions', 'admin.data.employees-and-divisions.index')->name('employees.index');
+            Volt::route('employees-and-divisions', 'admin.data.employees-and-divisions.index')->name('employees-and-divisions');
+            Route::prefix('employees-and-divisions')->name('employees-and-divisions.')->group(function () {
+                Volt::route('divisions', 'admin.data.employees-and-divisions.divisions.index')->name('divisions.index');
+                Volt::route('divisions/create', 'admin.data.employees-and-divisions.divisions.create')->name('divisions.create');
+                Volt::route('divisions/{division}/edit', 'admin.data.employees-and-divisions.divisions.edit')->name('divisions.edit');
+
+                Volt::route('positions/create', 'admin.data.employees-and-divisions.positions.create')->name('positions.create');
+                Volt::route('positions/{position}/edit', 'admin.data.employees-and-divisions.positions.edit')->name('positions.edit');
+                
+                Volt::route('employees/create', 'admin.data.employees-and-divisions.employees.create')->name('employees.create');
+                Volt::route('employees/{employee}/edit', 'admin.data.employees-and-divisions.employees.edit')->name('employees.edit');
+            });
+            Volt::route('items-and-categories', 'admin.data.items-and-categories.index')->name('items-and-categories');
+            Route::prefix('items-and-categories')->name('items-and-categories.')->group(function () {
+                Volt::route('items-catalog/create', 'admin.data.items-and-categories.items-catalog.create')->name('items-catalog.create');
+                Volt::route('items-catalog/{item}/edit', 'admin.data.items-and-categories.items-catalog.edit')->name('items-catalog.edit');
+
+                Volt::route('primary-categories/create', 'admin.data.items-and-categories.primary-categories.create')->name('primary-categories.create');
+                Volt::route('primary-categories/{category}/edit', 'admin.data.items-and-categories.primary-categories.edit')->name('primary-categories.edit');
+
+                Volt::route('secondary-categories/create', 'admin.data.items-and-categories.secondary-categories.create')->name('secondary-categories.create');
+                Volt::route('secondary-categories/{category}/edit', 'admin.data.items-and-categories.secondary-categories.edit')->name('secondary-categories.edit');
+            });
+            
+            Volt::route('suppliers-and-contracts', 'admin.data.suppliers-and-contracts.index')->name('suppliers-and-contracts');
+            Route::prefix('suppliers-and-contracts')->name('suppliers-and-contracts.')->group(function () {
+                Route::prefix('suppliers')->name('suppliers.')->group(function() {
+                    Volt::route('/', 'admin.data.suppliers-and-contracts.suppliers.index')->name('index');
+                    Volt::route('create', 'admin.data.suppliers-and-contracts.suppliers.create')->name('create');
+                    Volt::route('{supplier}/edit', 'admin.data.suppliers-and-contracts.suppliers.edit')->name('edit');
+                });
+
+                Route::prefix('contracts')->name('contracts.')->group(function() {
+                    Volt::route('/', 'admin.data.suppliers-and-contracts.contracts.index')->name('index');
+                    Volt::route('create', 'admin.data.suppliers-and-contracts.contracts.create')->name('create');
+                    Volt::route('{contract}/edit', 'admin.data.suppliers-and-contracts.contracts.edit')->name('edit');
+                });
+            });
         });
     });
 
