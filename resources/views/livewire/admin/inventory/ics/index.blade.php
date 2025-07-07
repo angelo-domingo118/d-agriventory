@@ -139,13 +139,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->resetPage();
     }
 
-    public function refresh(): void
-    {
-        // This is an empty method, but calling it from the UI
-        // will trigger a re-render of the component, effectively
-        // refreshing the data.
-    }
-
     #[Computed]
     public function icsNumbers()
     {
@@ -435,7 +428,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
             <flux:button
                 variant="outline"
-                wire:click="refresh"
+                wire:click="$refresh"
                 class="!p-2"
             >
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
