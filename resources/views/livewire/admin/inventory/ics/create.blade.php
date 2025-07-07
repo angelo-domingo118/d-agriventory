@@ -70,8 +70,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         ]);
 
         DB::transaction(function () use ($validated) {
-            $date_prepared = $validated['date_prepared'] ?? now()->format('Y-m-d');
-
             IcsNumber::create([
                 'ics_number' => $validated['ics_number'],
                 'assigned_employee_id' => $validated['assigned_employee_id'],
@@ -79,8 +77,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'ics_type' => $validated['ics_type'],
                 'quantity' => $validated['quantity'],
                 'estimated_useful_life' => $validated['estimated_useful_life'],
-                'date_prepared' => $date_prepared,
-                'date_accepted' => $date_prepared, // Set accepted date same as prepared
+                'date_prepared' => $validated['date_prepared'],
+                'date_accepted' => $validated['date_prepared'], // Set accepted date same as prepared
                 'remarks' => $validated['remarks'],
             ]);
         });

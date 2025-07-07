@@ -527,7 +527,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                         <div class="space-y-6 p-6">
                              <flux:input wire:model="ics_number" label="ICS Number" required />
-                             <flux:input wire:model="ics_type" label="ICS Type" required>
+                             <flux:select wire:model="ics_type" label="ICS Type" required>
                                 <option value="SPLV">Small-Value (SPLV)</option>
                                 <option value="SPHV">High-Value (SPHV)</option>
                             </flux:select>
@@ -569,7 +569,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <option value="">Select an employee</option>
                     @foreach ($this->allEmployees as $employee)
                         <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) disabled @endif>
-                            {{ $employee->full_name }}
+                            {{ $employee->name }}
                         </option>
                     @endforeach
                 </flux:select>

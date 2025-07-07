@@ -9,12 +9,11 @@ if ($variant === 'solid') {
     throw new \Exception('The "solid" variant is not supported in Lucide.');
 }
 
-$classes = Flux::classes('shrink-0')
+$class = Flux::classes('shrink-0')
     ->add(match($variant) {
         'outline' => '[:where(&)]:size-6',
-        'solid' => '[:where(&)]:size-6',
-        'mini' => '[:where(&)]:size-5',
-        'micro' => '[:where(&)]:size-4',
+        'mini'    => '[:where(&)]:size-5',
+        'micro'   => '[:where(&)]:size-4',
     });
 
 $strokeWidth = match ($variant) {
@@ -25,18 +24,19 @@ $strokeWidth = match ($variant) {
 @endphp
 
 <svg
-    {{ $attributes->class($classes) }}
+    {{ $attributes->merge([
+        'class' => $class,
+        'fill' => 'none',
+        'viewBox' => '0 0 24 24',
+        'stroke-width' => '1.5',
+        'stroke' => 'currentColor',
+    ]) }}
     data-flux-icon
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="{{ $strokeWidth }}"
-    stroke-linecap="round"
-    stroke-linejoin="round"
     aria-hidden="true"
     data-slot="icon"
 >
-  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-  <path d="M21 3v5h-5" />
+    @if (in_array($variant, ['outline', 'mini', 'micro']))
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0 0 11.667 0l3.181-3.183m-4.991 0l-3.182-3.182a8.25 8.25 0 0 0-11.667 0L2.985 14.652z" />
+    @endif
 </svg>

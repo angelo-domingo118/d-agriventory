@@ -17,8 +17,8 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class IcsCreationTest extends TestCase
 {
@@ -95,6 +95,8 @@ class IcsCreationTest extends TestCase
             ->set('assigned_employee_id', $this->employee->id)
             ->set('quantity', 5)
             ->set('estimated_useful_life', 3)
+            ->set('ics_type', 'SPHV')
+            ->set('remarks', 'Test remarks')
             ->set('date_prepared', now()->format('Y-m-d'))
             ->call('store')
             ->assertRedirect(route('admin.inventory.ics.index'));
@@ -103,6 +105,8 @@ class IcsCreationTest extends TestCase
         $this->assertDatabaseHas('ics_number', [
             'ics_number' => 'ICS-2024-01',
             'quantity' => 5,
+            'ics_type' => 'SPHV',
+            'remarks' => 'Test remarks',
         ]);
     }
 

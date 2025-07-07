@@ -179,7 +179,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="space-y-4 p-6">
                         <div>
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Qty per Batch</span>
+                        <div>
+                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Total Quantity</span>
                             <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->quantity }} {{ $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</p>
                         </div>
                         <div>

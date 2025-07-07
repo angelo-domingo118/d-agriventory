@@ -5,14 +5,13 @@
 ])
 
 @php
-if ($variant === 'solid') {
-    throw new \Exception('The "solid" variant is not supported in Lucide.');
+if (!in_array($variant, ['outline', 'mini', 'micro'])) {
+    $variant = 'outline';
 }
 
-$classes = Flux::classes('shrink-0')
-    ->add(match($variant) {
+$class = Flux::classes('shrink-0')
+    ->add(match ($variant) {
         'outline' => '[:where(&)]:size-6',
-        'solid' => '[:where(&)]:size-6',
         'mini' => '[:where(&)]:size-5',
         'micro' => '[:where(&)]:size-4',
     });
@@ -25,7 +24,7 @@ $strokeWidth = match ($variant) {
 @endphp
 
 <svg
-    {{ $attributes->class($classes) }}
+    {{ $attributes->class($class) }}
     data-flux-icon
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
