@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,7 +14,9 @@ return new class extends Migration
     {
         Schema::table('par_number', function (Blueprint $table) {
             $table->index(['assigned_employee_id', 'date_prepared']);
-            $table->fullText('remarks');
+            if (!App::environment('testing')) {
+                $table->fullText('remarks');
+            }
         });
 
         Schema::table('employees', function (Blueprint $table) {
@@ -36,7 +39,9 @@ return new class extends Migration
     {
         Schema::table('par_number', function (Blueprint $table) {
             $table->dropIndex(['assigned_employee_id', 'date_prepared']);
-            $table->dropFullText('remarks');
+            if (!App::environment('testing')) {
+                $table->dropFullText('remarks');
+            }
         });
 
         Schema::table('employees', function (Blueprint $table) {

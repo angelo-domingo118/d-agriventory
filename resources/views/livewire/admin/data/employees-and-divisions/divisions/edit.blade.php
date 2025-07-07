@@ -7,6 +7,8 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public Division $division;
+    public string $name = '';
+    public string $code = '';
 
     public function mount(Division $division): void
     {
@@ -15,16 +17,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->division = $division;
+        $this->name = $division->name;
+        $this->code = $division->code;
     }
 
     public function save(): void
     {
         $validated = $this->validate([
-            'division.name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')->ignore($this->division->id)],
-            'division.code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')->ignore($this->division->id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')->ignore($this->division->id)],
+            'code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')->ignore($this->division->id)],
         ]);
 
-        $this->division->save();
+        $this->division->update($validated);
 
         session()->flash('success', 'Division updated successfully.');
         
@@ -59,8 +63,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     <form wire:submit.prevent="save" class="mt-8">
         <div class="max-w-2xl">
              <div class="space-y-6">
-                <flux:input wire:model="division.name" label="Name" required />
-                <flux:input wire:model="division.code" label="Code" required />
+                <flux:input wire:model="name" label="Name" required />
+                <flux:input wire:model="code" label="Code" required />
             </div>
 
             <div class="mt-8 flex items-center justify-between">

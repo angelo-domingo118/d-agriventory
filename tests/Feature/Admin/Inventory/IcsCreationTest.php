@@ -93,18 +93,19 @@ class IcsCreationTest extends TestCase
             ->set('contract_id', $this->contract->id)
             ->set('contract_item_id', $this->contractItem->id)
             ->set('assigned_employee_id', $this->employee->id)
-            ->set('quantity', 5)
+            ->set('quantity', 1)
             ->set('estimated_useful_life', 3)
             ->set('ics_type', 'SPHV')
             ->set('remarks', 'Test remarks')
-            ->set('date_prepared', now()->format('Y-m-d'))
+            ->set('date_prepared', now()->format('m/d/Y'))
+            ->set('date_accepted', now()->format('m/d/Y'))
             ->call('store')
             ->assertRedirect(route('admin.inventory.ics.index'));
 
         $this->assertTrue(IcsNumber::where('ics_number', 'ICS-2024-01')->exists());
         $this->assertDatabaseHas('ics_number', [
             'ics_number' => 'ICS-2024-01',
-            'quantity' => 5,
+            'quantity' => 1,
             'ics_type' => 'SPHV',
             'remarks' => 'Test remarks',
         ]);
@@ -116,15 +117,22 @@ class IcsCreationTest extends TestCase
         $this->actingAs($this->adminUser);
 
         Livewire::test('admin.inventory.ics.create')
+            ->set('ics_number', '')
+            ->set('contract_id', null)
+            ->set('contract_item_id', null)
+            ->set('assigned_employee_id', null)
+            ->set('estimated_useful_life', null)
+            ->set('date_prepared', '')
+            ->set('date_accepted', '')
             ->call('store')
             ->assertHasErrors([
                 'ics_number' => 'required',
                 'contract_id' => 'required',
                 'contract_item_id' => 'required',
                 'assigned_employee_id' => 'required',
-                'quantity' => 'required',
                 'estimated_useful_life' => 'required',
                 'date_prepared' => 'required',
+                'date_accepted' => 'required',
             ]);
     }
 

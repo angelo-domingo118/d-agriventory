@@ -6,25 +6,24 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public Division $division;
+    public string $name = '';
+    public string $code = '';
 
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-
-        $this->division = new Division();
     }
 
     public function save(): void
     {
-        $this->validate([
-            'division.name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')],
-            'division.code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')],
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('divisions', 'name')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')],
         ]);
 
-        $this->division->save();
+        Division::create($validated);
 
         session()->flash('success', 'Division created successfully.');
 
@@ -45,8 +44,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     <form wire:submit.prevent="save" class="mt-8">
         <div class="max-w-2xl">
              <div class="space-y-6">
-                <flux:input wire:model="division.name" label="Name" required />
-                <flux:input wire:model="division.code" label="Code" required />
+                <flux:input wire:model="name" label="Name" required />
+                <flux:input wire:model="code" label="Code" required />
             </div>
 
             <div class="mt-8 flex justify-end gap-x-4">

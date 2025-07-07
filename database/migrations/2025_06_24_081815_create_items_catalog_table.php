@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,9 +19,13 @@ return new class extends Migration
             $table->foreignId('secondary_category_id')->constrained()->onDelete('cascade');
             $table->string('code', 50)->unique()->comment('Universal item code.');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('unit');
-            $table->fullText('name');
+            
+            if (!App::environment('testing')) {
+                $table->fullText('name');
+            }
         });
     }
 
