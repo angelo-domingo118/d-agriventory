@@ -23,8 +23,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     public int $quantity = 1;
     public ?int $estimated_useful_life = null;
     public ?string $date_prepared = null;
+    public ?string $date_accepted = null;
     public string $remarks = '';
     public bool $use_current_date = true;
+    public bool $use_current_date_accepted = true;
 
     // Display only property
     public ?float $unit_price = 0.0;
@@ -44,6 +46,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         
         $this->generateIcsNumber();
         $this->date_prepared = now()->format('m/d/Y');
+        $this->date_accepted = now()->format('m/d/Y');
         
         // Pre-load data for select dropdowns
         $this->allContracts = Contract::with('supplier:id,name')
@@ -169,6 +172,15 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function updatedUseCurrentDateAccepted(bool $value): void
+    {
+        if ($value) {
+            $this->date_accepted = now()->format('m/d/Y');
+        } else {
+            $this->date_accepted = null;
+        }
+    }
+
     public function store(): void
     {
         $validated = $this->validate([
@@ -184,6 +196,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             }],
             'estimated_useful_life' => ['required', 'integer', 'min:1'],
             'date_prepared' => ['required', 'date_format:m/d/Y'],
+            'date_accepted' => ['required', 'date_format:m/d/Y'],
             'remarks' => ['nullable', 'string'],
             'batches.*.components.*.component_type' => ['required_with:batches.*.components.*.serial_number', 'nullable', 'string', 'max:255'],
             'batches.*.components.*.brand' => ['nullable', 'string', 'max:255'],
@@ -193,6 +206,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         DB::transaction(function () use ($validated) {
             $prepared_date = Carbon::createFromFormat('m/d/Y', $validated['date_prepared'])->format('Y-m-d');
+            $accepted_date = Carbon::createFromFormat('m/d/Y', $validated['date_accepted'])->format('Y-m-d');
 
             $ics = IcsNumber::create([
                 'ics_number' => $validated['ics_number'],
@@ -202,7 +216,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'quantity' => $validated['quantity'],
                 'estimated_useful_life' => $validated['estimated_useful_life'],
                 'date_prepared' => $prepared_date,
-                'date_accepted' => $prepared_date, // Set accepted date same as prepared
+                'date_accepted' => $accepted_date,
                 'remarks' => $validated['remarks'],
             ]);
 
@@ -425,7 +439,28 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 />
                             </div>
                         </div>
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="505" />
+                        <div x-data="{ isPar: $wire.get('isParItem') }" x-init="$watch('$wire.isParItem', value => isPar = value)">
+                            <flux:input
+                                x-mask="isPar ? '' : '99/99/9999'"
+                                wire:model.blur="date_accepted"
+                                type="text"
+                                label="Date Accepted"
+                                placeholder="MM/DD/YYYY"
+                                required
+                                :disabled="$isParItem"
+                                :readonly="$use_current_date_accepted"
+                                tabindex="505"
+                            />
+                            <x-input-error for="date_accepted" class="mt-2" />
+                            <div class="mt-2">
+                                <flux:checkbox
+                                    wire:model.live="use_current_date_accepted"
+                                    label="Use current date"
+                                    id="use_current_date_accepted"
+                                />
+                            </div>
+                        </div>
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="506" />
                     </div>
                 </div>
             </div>
