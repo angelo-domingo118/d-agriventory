@@ -20,7 +20,16 @@ class Employee extends Model
         'name',
         'division_id',
         'position_id',
+        'user_id',
     ];
+
+    /**
+     * Get the user account associated with this employee.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Get the division that employs this employee.

@@ -32,7 +32,7 @@ class Contract extends Model
     /**
      * Get the items contained in this contract.
      */
-    public function items(): HasMany
+    public function contractItems(): HasMany
     {
         return $this->hasMany(ContractItem::class);
     }

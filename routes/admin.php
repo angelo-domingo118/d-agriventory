@@ -81,11 +81,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
 
     // Data management routes
     Route::prefix('data')->name('data.')->group(function () {
-        Route::middleware([HasAdminPermission::class.':view_inventory'])->group(function () {
+        Route::middleware([HasAdminPermission::class.':manage_data'])->group(function () {
             Volt::route('items-and-categories', 'admin.data.items-and-categories.index')->name('items.index');
             Volt::route('suppliers-and-contracts', 'admin.data.suppliers-and-contracts.index')->name('contracts.index');
-        });
-        Route::middleware([HasAdminPermission::class.':view_employees'])->group(function () {
             Volt::route('employees-and-divisions', 'admin.data.employees-and-divisions.index')->name('employees.index');
         });
     });
