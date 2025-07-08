@@ -80,7 +80,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<div x-data="tableResizer('contracts_widths', { contract_number: 300, supplier: 250, items: 150, date: 180, actions: 100 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Contracts
@@ -100,6 +100,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </flux:select>
+                    </div>
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
+                        <flux:button
+                            variant="ghost"
+                            x-on:click="$dispatch('reset-column-widths')"
+                            class="w-full justify-center"
+                        >
+                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                            Reset Column Widths
+                        </flux:button>
                     </div>
                 </div>
             </div>
@@ -161,39 +172,51 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4 flow-root">
         <div class="overflow-x-auto">
             <div class="inline-block min-w-full align-middle">
-                <div class="overflow-hidden rounded-lg border border-stone-200 shadow-sm dark:border-stone-700">
-                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                         <thead class="bg-stone-50 dark:bg-stone-800">
-                            <tr>
-                                <th scope="col" wire:click="sort('contract_po_ib_number')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                    Contract/PO/IB No.
-                                    @if ($sortBy === 'contract_po_ib_number')
-                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
-                                    @endif
+                            <tr class="divide-x divide-stone-200 dark:divide-stone-700">
+                                <th scope="col" :style="`width: ${columnWidths.contract_number}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    <div wire:click="sort('contract_po_ib_number')" class="flex cursor-pointer items-center">
+                                        Contract/PO/IB No.
+                                        @if ($sortBy === 'contract_po_ib_number')
+                                            <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                        @endif
+                                    </div>
+                                    <div @mousedown="startResize($event, 'contract_number')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" wire:click="sort('supplier_id')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                    Supplier
-                                    @if ($sortBy === 'supplier_id')
-                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
-                                    @endif
+                                <th scope="col" :style="`width: ${columnWidths.supplier}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    <div wire:click="sort('supplier_id')" class="flex cursor-pointer items-center">
+                                        Supplier
+                                        @if ($sortBy === 'supplier_id')
+                                            <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                        @endif
+                                    </div>
+                                    <div @mousedown="startResize($event, 'supplier')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                    Items
+                                <th scope="col" :style="`width: ${columnWidths.items}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    <div class="flex items-center">
+                                        Items
+                                    </div>
+                                    <div @mousedown="startResize($event, 'items')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" wire:click="sort('created_at')" class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                    Date Added
-                                     @if ($sortBy === 'created_at')
-                                        <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
-                                    @endif
+                                <th scope="col" :style="`width: ${columnWidths.date}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                    <div wire:click="sort('created_at')" class="flex cursor-pointer items-center">
+                                        Date Added
+                                        @if ($sortBy === 'created_at')
+                                            <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                        @endif
+                                    </div>
+                                    <div @mousedown="startResize($event, 'date')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" class="relative px-6 py-3">
+                                <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3">
                                     <span class="sr-only">Edit</span>
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-700 dark:bg-stone-800/50">
+                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                              @forelse($this->contracts as $contract)
-                                <tr wire:key="contract-{{ $contract->id }}">
+                                <tr wire:key="contract-{{ $contract->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                                     <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $contract->contract_po_ib_number }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->supplier->name }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->contract_items_count }}</td>
@@ -229,3 +252,49 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{ $this->contracts->links() }}
     </div>
 </div> 
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+                
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 60) {
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+    });
+</script> 

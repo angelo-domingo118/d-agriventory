@@ -164,7 +164,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                 <thead class="bg-stone-50 dark:bg-stone-800">
-                    <tr>
+                    <tr class="divide-x divide-stone-200 dark:divide-stone-700">
                         <th scope="col" class="w-full px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
                                 Name
@@ -186,7 +186,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </thead>
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($positions as $position)
-                        <tr wire:key="position-{{ $position->id }}">
+                        <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <flux:button :href="route('admin.data.employees-and-divisions.positions.edit', $position)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>

@@ -144,7 +144,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{ showFilters: @entangle('showFilters') }">
+<div x-data="tableResizer('items_catalog_widths', { name: 300, code: 150, unit: 100, secondary_category: 200, primary_category: 200, actions: 100 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Items Catalog
@@ -164,6 +164,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </flux:select>
+                    </div>
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
+                        <flux:button
+                            variant="ghost"
+                            x-on:click="$dispatch('reset-column-widths')"
+                            class="w-full justify-center"
+                        >
+                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                            Reset Column Widths
+                        </flux:button>
                     </div>
                 </div>
             </div>
@@ -242,10 +253,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="mt-4 flow-root">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                 <thead class="bg-stone-50 dark:bg-stone-800">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    <tr class="divide-x divide-stone-200 dark:divide-stone-700">
+                        <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
                                 Name
                                 @if($sortColumn === 'name')
@@ -254,18 +265,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('secondary_category_id')" class="flex cursor-pointer items-center">
-                                Category
-                                @if($sortColumn === 'secondary_category_id')
+                        <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
+                                Code
+                                @if($sortColumn === 'code')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.unit}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                              <div wire:click="sortBy('unit')" class="flex cursor-pointer items-center">
                                 Unit
                                 @if($sortColumn === 'unit')
@@ -274,31 +287,45 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'unit')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="relative px-6 py-3">
+                        <th scope="col" :style="`width: ${columnWidths.secondary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('secondary_category_id')" class="flex cursor-pointer items-center">
+                                Category
+                                @if($sortColumn === 'secondary_category_id')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'secondary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div class="flex items-center">
+                                Primary Category
+                            </div>
+                            <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3">
                             <span class="sr-only">Edit</span>
                         </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($items as $item)
-                        <tr wire:key="item-{{ $item->id }}">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">
-                                <div class="font-semibold">{{ $item->name }}</div>
-                                <div class="text-xs text-stone-500 dark:text-stone-400">{{ $item->code }}</div>
-                            </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
-                                {{ $item->secondaryCategory->name }}
-                                <div class="text-xs text-stone-400">{{ $item->secondaryCategory->primaryCategory->name }}</div>
-                            </td>
+                        <tr wire:key="item-{{ $item->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $item->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->unit }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->primaryCategory?->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <flux:button :href="route('admin.data.items-and-categories.items-catalog.edit', $item)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
+                                 <flux:button :href="route('admin.data.items-and-categories.items-catalog.edit', $item)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                            <td colspan="6" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
                                 No items found.
                             </td>
                         </tr>
@@ -347,3 +374,49 @@ new #[Layout('components.layouts.app')] class extends Component {
         </flux:modal>
     @endif
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+                
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 60) {
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+    });
+</script>

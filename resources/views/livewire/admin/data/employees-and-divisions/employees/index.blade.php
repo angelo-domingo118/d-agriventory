@@ -183,7 +183,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{ showFilters: @entangle('showFilters') }">
+<div x-data="tableResizer('employees_widths', { name: 350, position: 250, division: 250, user_account: 150, actions: 100 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Employees
@@ -204,13 +204,24 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <option value="50">50</option>
                         </flux:select>
                     </div>
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
+                        <flux:button
+                            variant="ghost"
+                            x-on:click="$dispatch('reset-column-widths')"
+                            class="w-full justify-center"
+                        >
+                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                            Reset Column Widths
+                        </flux:button>
+                    </div>
                 </div>
             </div>
             <flux:button variant="outline" wire:click="$refresh" class="!p-2">
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
                 <span class="sr-only">Refresh</span>
             </flux:button>
-            <flux:button variant="outline" x-on:click="showFilters = !showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+            <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
@@ -218,7 +229,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
     
-    <div x-show="showFilters" x-collapse class="mt-4">
+    <div x-show="$wire.showFilters" x-collapse class="mt-4">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
              <div class="border-b border-stone-200 p-4 dark:border-stone-700">
                 <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
@@ -275,11 +286,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="mt-4 flow-root">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                 <thead class="bg-stone-50 dark:bg-stone-800">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                    <tr class="divide-x divide-stone-200 dark:divide-stone-700">
+                        <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
                                 Name
                                 @if($sortColumn === 'name')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
@@ -287,59 +298,64 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.position}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                              <div wire:click="sortBy('position_id')" class="flex cursor-pointer items-center">
                                 Position
                                 @if($sortColumn === 'position_id')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'position')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('division_id')" class="flex cursor-pointer items-center">
-                                Division/Office
+                        <th scope="col" :style="`width: ${columnWidths.division}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('division_id')" class="flex cursor-pointer items-center">
+                                Division
                                 @if($sortColumn === 'division_id')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'division')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            User Account
+                        <th scope="col" :style="`width: ${columnWidths.user_account}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div class="flex items-center">
+                                Has User Account
+                            </div>
+                            <div @mousedown="startResize($event, 'user_account')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="relative px-6 py-3">
+                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3">
                             <span class="sr-only">Edit</span>
                         </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($employees as $employee)
-                        <tr wire:key="employee-{{ $employee->id }}">
+                        <tr wire:key="employee-{{ $employee->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">
-                                <div class="flex items-center">
-                                    <div>
-                                        <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee->name }}</div>
-                                        <div class="text-stone-500 dark:text-stone-400">{{ $employee->employee_number }}</div>
-                                    </div>
-                                </div>
+                                <div class="font-semibold">{{ $employee->name }}</div>
+                                <div class="text-xs text-stone-500 dark:text-stone-400">{{ $employee->employee_number }}</div>
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->position?->title ?? 'No Position' }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->division?->name ?? 'No Division' }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                {{ $employee->position?->title }}
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                {{ $employee->division?->name }}
+                            </td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
                                 @if($employee->user)
-                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20">
-                                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
-                                            <circle cx="4" cy="4" r="3" />
-                                        </svg>
-                                        Active
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                                        <x-flux::icon.check-circle class="-ml-0.5 mr-1.5 h-4 w-4" />
+                                        Yes
                                     </span>
                                 @else
                                     <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-800 dark:bg-stone-700 dark:text-stone-200">
-                                        Inactive
+                                        <x-flux::icon.x-circle class="-ml-0.5 mr-1.5 h-4 w-4" />
+                                        No
                                     </span>
                                 @endif
                             </td>
@@ -420,3 +436,49 @@ new #[Layout('components.layouts.app')] class extends Component {
         </flux:modal>
     @endif
 </div> 
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+                
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 60) {
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+    });
+</script> 
