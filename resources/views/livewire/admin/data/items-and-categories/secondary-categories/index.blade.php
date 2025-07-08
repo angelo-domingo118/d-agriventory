@@ -57,16 +57,29 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function categories()
     {
-        return SecondaryCategory::with('primaryCategory')
-            ->when($this->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhereHas('primaryCategory', fn($q) => $q->where('name', 'like', "%{$search}%"));
+        $query = SecondaryCategory::query()
+            ->with('primaryCategory')
+            ->select('secondary_categories.*', 'primary_categories.name as primary_category_name')
+            ->join('primary_categories', 'secondary_categories.primary_category_id', '=', 'primary_categories.id');
+
+        $query->when($this->search, function ($query, $search) {
+                $query->where('secondary_categories.name', 'like', "%{$search}%")
+                    ->orWhere('secondary_categories.code', 'like', "%{$search}%")
+                    ->orWhere('primary_categories.name', 'like', "%{$search}%");
             })
             ->when($this->filterPrimaryCategory, function(Builder $q) {
-                $q->where('primary_category_id', $this->filterPrimaryCategory);
-            })
-            ->orderBy($this->sortColumn, $this->sortDirection)
+                $q->where('secondary_categories.primary_category_id', $this->filterPrimaryCategory);
+            });
+
+        $sortColumn = match ($this->sortColumn) {
+            'name' => 'secondary_categories.name',
+            'code' => 'secondary_categories.code',
+            'primary_category' => 'primary_category_name',
+            default => 'secondary_categories.name',
+        };
+
+        return $query->orderBy($sortColumn, $this->sortDirection)
+            ->orderBy('secondary_categories.id', 'asc')
             ->paginate($this->perPage);
     }
 
@@ -239,9 +252,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
                         <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('primary_category_id')" class="flex cursor-pointer items-center">
+                             <div wire:click="sortBy('primary_category')" class="flex cursor-pointer items-center">
                                 Primary Category
-                                @if($sortColumn === 'primary_category_id')
+                                @if($sortColumn === 'primary_category')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />

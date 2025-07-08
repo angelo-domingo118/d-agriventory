@@ -58,33 +58,47 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->reset('filterSecondaryCategory', 'filterPrimaryCategory', 'filterUnit');
     }
-    
-    public function updatedPerPage(): void
-    {
-        $this->resetPage();
-    }
 
-    #[Computed(cache: true, seconds: 120)]
+    public function updated($property): void
+    {
+        if (in_array($property, ['search', 'filterPrimaryCategory', 'filterSecondaryCategory', 'filterUnit', 'perPage'])) {
+            $this->resetPage();
+        }
+    }
+    
+    #[Computed]
     public function items()
     {
-        return ItemsCatalog::with('secondaryCategory.primaryCategory')
-            ->when($this->search, function (Builder $query, $search) {
+        $query = ItemsCatalog::query()
+            ->with('secondaryCategory.primaryCategory')
+            ->select('items_catalog.*', 'secondary_categories.name as secondary_category_name', 'primary_categories.name as primary_category_name')
+            ->join('secondary_categories', 'items_catalog.secondary_category_id', '=', 'secondary_categories.id')
+            ->join('primary_categories', 'secondary_categories.primary_category_id', '=', 'primary_categories.id');
+
+        $query->when($this->search, function (Builder $query, $search) {
                 $query->where(function (Builder $q) use ($search) {
-                    $q->whereFullText('name', $search)
-                        ->orWhere('code', 'like', "%{$search}%")
-                        ->orWhere('unit', 'like', "%{$search}%")
-                        ->orWhereHas('secondaryCategory', function ($sq) use ($search) {
-                            $sq->where('name', 'like', "%{$search}%")
-                                ->orWhereHas('primaryCategory', fn($pq) => $pq->where('name', 'like', "%{$search}%"));
-                        });
+                    $q->where('items_catalog.name', 'like', "%{$search}%")
+                        ->orWhere('items_catalog.code', 'like', "%{$search}%")
+                        ->orWhere('items_catalog.unit', 'like', "%{$search}%")
+                        ->orWhere('secondary_categories.name', 'like', "%{$search}%")
+                        ->orWhere('primary_categories.name', 'like', "%{$search}%");
                 });
             })
-            ->when($this->filterUnit, fn(Builder $q) => $q->where('unit', 'like', '%' . $this->filterUnit . '%'))
-            ->when($this->filterSecondaryCategory, fn(Builder $q) => $q->where('secondary_category_id', $this->filterSecondaryCategory))
-            ->when($this->filterPrimaryCategory, function (Builder $q) {
-                $q->whereHas('secondaryCategory', fn(Builder $sq) => $sq->where('primary_category_id', $this->filterPrimaryCategory));
-            })
-            ->orderBy($this->sortColumn, $this->sortDirection)
+            ->when($this->filterUnit, fn(Builder $q) => $q->where('items_catalog.unit', 'like', '%' . $this->filterUnit . '%'))
+            ->when($this->filterSecondaryCategory, fn(Builder $q) => $q->where('items_catalog.secondary_category_id', $this->filterSecondaryCategory))
+            ->when($this->filterPrimaryCategory, fn(Builder $q, $id) => $q->where('primary_categories.id', $id));
+
+        $sortColumn = match ($this->sortColumn) {
+            'name' => 'items_catalog.name',
+            'code' => 'items_catalog.code',
+            'unit' => 'items_catalog.unit',
+            'category' => 'secondary_category_name',
+            'primary_category' => 'primary_category_name',
+            default => 'items_catalog.name',
+        };
+
+        return $query->orderBy($sortColumn, $this->sortDirection)
+            ->orderBy('items_catalog.id', 'asc')
             ->paginate($this->perPage);
     }
     
@@ -290,9 +304,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div @mousedown="startResize($event, 'unit')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
                         <th scope="col" :style="`width: ${columnWidths.secondary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('secondary_category_id')" class="flex cursor-pointer items-center">
+                            <div wire:click="sortBy('category')" class="flex cursor-pointer items-center">
                                 Category
-                                @if($sortColumn === 'secondary_category_id')
+                                @if($sortColumn === 'category')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
@@ -301,8 +315,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div @mousedown="startResize($event, 'secondary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
                         <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div class="flex items-center">
+                            <div wire:click="sortBy('primary_category')" class="flex cursor-pointer items-center">
                                 Primary Category
+                                @if($sortColumn === 'primary_category')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
                             </div>
                             <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
