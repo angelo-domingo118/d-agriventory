@@ -13,7 +13,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
-        $this->par = $par->load('assignedEmployee', 'itemBatches.contractItem.itemSpecification.catalogItem');
+        $this->par = $par->load('assignedEmployee', 'itemBatches.contractItem.itemSpecification.itemCatalog');
     }
 
     #[Computed]
@@ -138,8 +138,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                         @forelse($par->itemBatches as $batch)
                             <tr>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->catalogItem?->name ?? 'Item not found' }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">{{ $batch->quantity }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->contractItem?->itemSpecification?->itemCatalog?->name ?? 'Item not found' }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->serial_number }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->quantity }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->contractItem?->unit_price ?? 0, 2) }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->quantity * ($batch->contractItem?->unit_price ?? 0), 2) }}</td>
                             </tr>

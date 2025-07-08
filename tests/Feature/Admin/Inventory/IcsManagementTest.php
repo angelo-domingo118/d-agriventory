@@ -134,7 +134,7 @@ class IcsManagementTest extends TestCase
             ->assertSee('John Doe');
 
         $this->assertCount(1, $component->get('icsNumbers'));
-        $this->assertEquals('Laptop', $component->get('icsNumbers')->first()->contractItem->itemSpecification->catalogItem->name);
+        $this->assertEquals('Laptop', $component->get('icsNumbers')->first()->contractItem->itemSpecification->itemCatalog->name);
     }
 
     #[Test]

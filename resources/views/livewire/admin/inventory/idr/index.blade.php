@@ -143,7 +143,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'approvingEmployee',
             'receivedBy',
             'receivedFrom',
-            'contractItem.itemSpecification.catalogItem',
+            'contractItem.itemSpecification.itemCatalog',
             'itemBatches',
         ])
             ->select('idr_number.*');
@@ -563,7 +563,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
                                             <div class="space-y-2">
                                                 <div>
-                                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->catalogItem->name, [$this->search, $this->filterArticle]) !!}</div>
+                                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
                                                     @if ($this->columns['brand_model'] && $densityClasses['show_secondary'])
                                                         <div class="{{ $densityClasses['text_meta'] }} text-stone-500">{!! \App\Helpers\TextHelper::highlight(collect([$idrNumber->contractItem->itemSpecification->brand, $idrNumber->contractItem->itemSpecification->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}</div>
                                                     @endif
@@ -591,7 +591,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->number, $this->search) !!}</div>
                                             @if($densityClasses['show_secondary'])
                                             <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                               @if($this->columns['quantity'])<div><span class="font-medium">Qty:</span> {{ $idrNumber->quantity }} {{ $idrNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</div>@endif
+                                               @if($this->columns['quantity'])<div><span class="font-medium">Qty:</span> {{ $idrNumber->quantity }} {{ $idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>@endif
                                                @if($this->columns['unit_cost'])<div><span class="font-medium">Cost:</span> ₱{{ number_format($idrNumber->contractItem?->unit_price ?? 0, 2) }}</div>@endif
                                                @if($this->columns['inventory_code'])<div><span class="font-medium">Inv. Code:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->inventory_code, [$this->search, $this->filterInventoryNumber]) !!}</div>@endif
                                                @if($this->columns['ors'])<div><span class="font-medium">ORS:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->ors, [$this->search, $this->filterOrs]) !!}</div>@endif

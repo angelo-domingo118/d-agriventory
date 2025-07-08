@@ -52,7 +52,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->batches[] = [
                 'id' => $batch->id,
                 'contract_item_id' => $batch->contract_item_id,
-                'item_name' => $batch->contractItem->itemSpecification->catalogItem->name,
+                'item_name' => $batch->contractItem->itemSpecification->itemCatalog->name,
                 'quantity' => $batch->quantity,
                 'unit_cost' => $batch->contractItem->unit_price,
                 'total_cost' => $batch->quantity * $batch->contractItem->unit_price,
@@ -61,7 +61,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         // Pre-load data for select dropdowns
         $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
-        $this->allContractItems = ContractItem::with('itemSpecification.catalogItem', 'contract.supplier')
+        $this->allContractItems = ContractItem::with('itemSpecification.itemCatalog', 'contract.supplier')
             ->where('unit_price', '>=', 50000)
             ->get();
     }
@@ -85,10 +85,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
     
     #[Computed]
-    public function getSelectedContractItem()
+    public function selectedContractItem()
     {
-        if($this->selected_contract_item_id) {
-            return ContractItem::with('itemSpecification.catalogItem', 'contract.supplier')->find($this->selected_contract_item_id);
+        if ($this->selected_contract_item_id) {
+            return ContractItem::with('itemSpecification.itemCatalog', 'contract.supplier')->find($this->selected_contract_item_id);
         }
         return null;
     }
@@ -106,12 +106,12 @@ new #[Layout('components.layouts.app')] class extends Component {
              return;
         }
 
-        $selectedItem = $this->getSelectedContractItem();
+        $selectedItem = $this->selectedContractItem();
 
         $this->batches[] = [
             'id' => null, // new item
             'contract_item_id' => $this->selected_contract_item_id,
-            'item_name' => $selectedItem->itemSpecification->catalogItem->name,
+            'item_name' => $selectedItem->itemSpecification->itemCatalog->name,
             'quantity' => $this->quantity,
             'unit_cost' => $this->unit_cost,
             'total_cost' => $this->quantity * $this->unit_cost,
@@ -295,10 +295,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <label for="selected_contract_item_id" class="flux-label">Item</label>
                             <div class="mt-2">
                                 <select id="selected_contract_item_id" wire:model.live="selected_contract_item_id" class="flux-input-select">
-                                    <option value="">Select item...</option>
-                                    @foreach($allContractItems as $item)
+                                    <option value="">Select an item</option>
+                                    @foreach ($allContractItems as $item)
                                         <option value="{{ $item->id }}">
-                                            {{ $item->itemSpecification->catalogItem->name }} ({{ $item->contract->contract_po_ib_number }})
+                                            {{ $item->itemSpecification->itemCatalog->name }} ({{ $item->contract->contract_po_ib_number }})
                                         </option>
                                     @endforeach
                                 </select>

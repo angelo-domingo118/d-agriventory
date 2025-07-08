@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\ItemsCatalog;
 
 class ItemSpecification extends Model
 {
@@ -26,7 +27,7 @@ class ItemSpecification extends Model
     /**
      * Get the catalog item that this specification belongs to.
      */
-    public function catalogItem(): BelongsTo
+    public function itemCatalog(): BelongsTo
     {
         return $this->belongsTo(ItemsCatalog::class, 'item_catalog_id');
     }

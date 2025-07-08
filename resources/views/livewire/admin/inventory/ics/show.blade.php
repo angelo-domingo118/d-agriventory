@@ -18,11 +18,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->icsNumber = $icsNumber->load([
-            'contractItem.itemSpecification.catalogItem.secondaryCategory.primaryCategory',
+            'assignedEmployee.user',
+            'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
             'contractItem.contract.supplier',
             'assignedEmployee.position',
             'assignedEmployee.division',
-            'itemBatches.components',
+            'itemBatches.components.item.itemSpecification',
+            'itemBatches.contractItem.itemSpecification',
             'transfers.fromEmployee',
             'transfers.toEmployee',
         ]);
@@ -63,17 +65,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="grid grid-cols-1 gap-y-4 p-6 md:grid-cols-2">
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Name</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->name ?? '—' }}</p>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->itemCatalog?->name ?? '—' }}</p>
                         </div>
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Code</span>
-                             <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->code ?? '—' }}</p>
+                             <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->itemCatalog?->code ?? '—' }}</p>
                         </div>
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Category</span>
                             <p class="mt-1 text-stone-900 dark:text-stone-100">
                                 @php
-                                    $secondary = $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->secondaryCategory;
+                                    $secondary = $this->icsNumber->contractItem?->itemSpecification?->itemCatalog?->secondaryCategory;
                                     $primary = $secondary?->primaryCategory;
                                 @endphp
                                 {{ $primary?->name ?? 'N/A' }} / {{ $secondary?->name ?? 'N/A' }}
@@ -81,7 +83,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}</p>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}</p>
                         </div>
                         <div class="md:col-span-2">
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Detailed Specifications</span>
@@ -181,7 +183,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div>
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Total Quantity</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->quantity }} {{ $this->icsNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</p>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->icsNumber->quantity }} {{ $this->icsNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</p>
                         </div>
                         <div>
                             <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Batches</span>

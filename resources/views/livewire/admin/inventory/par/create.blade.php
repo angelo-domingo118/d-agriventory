@@ -47,8 +47,8 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         // Pre-load data for select dropdowns
         $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
-        $this->allContractItems = ContractItem::with('itemSpecification.catalogItem', 'contract.supplier')
-            ->where('unit_price', '>=', 50000)
+        $this->allContractItems = ContractItem::with('itemSpecification.itemCatalog', 'contract.supplier')
+            ->where('quantity', '>', 0)
             ->get();
     }
 
@@ -91,7 +91,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function getSelectedContractItem()
     {
         if($this->selected_contract_item_id) {
-            return ContractItem::with('itemSpecification.catalogItem', 'contract.supplier')->find($this->selected_contract_item_id);
+            return ContractItem::with('itemSpecification.itemCatalog', 'contract.supplier')->find($this->selected_contract_item_id);
         }
         return null;
     }
@@ -113,7 +113,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->batches[] = [
             'contract_item_id' => $this->selected_contract_item_id,
-            'item_name' => $selectedItem->itemSpecification->catalogItem->name,
+            'item_name' => $selectedItem->itemSpecification->itemCatalog->name,
             'quantity' => $this->quantity,
             'unit_cost' => $this->unit_cost,
             'total_cost' => $this->quantity * $this->unit_cost,
@@ -222,7 +222,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <option value="">Select item...</option>
                                         @foreach($allContractItems as $item)
                                             <option value="{{ $item->id }}">
-                                                {{ $item->itemSpecification->catalogItem->name }} ({{ $item->contract->contract_po_ib_number }})
+                                                {{ $item->itemSpecification->itemCatalog->name }} ({{ $item->contract->contract_po_ib_number }})
                                             </option>
                                         @endforeach
                                     </flux:select>

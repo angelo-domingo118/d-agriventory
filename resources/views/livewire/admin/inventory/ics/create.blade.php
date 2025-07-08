@@ -85,7 +85,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         return ContractItem::where('contract_id', $this->contract_id)
-            ->with('itemSpecification.catalogItem:id,name')
+            ->with('itemSpecification.itemCatalog:id,name')
             ->get();
     }
 
@@ -306,7 +306,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id" required tabindex="2">
                                         <option value="">Select an item</option>
                                         @foreach($this->contractItems as $item)
-                                            <option value="{{ $item->id }}">{{ $item->itemSpecification->catalogItem->name }}</option>
+                                            <option value="{{ $item->id }}">{{ $item->itemSpecification->itemCatalog->name }}</option>
                                         @endforeach
                                     </flux:select>
                                     <x-input-error for="contract_item_id" class="mt-2" />

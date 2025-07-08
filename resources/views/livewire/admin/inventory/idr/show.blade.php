@@ -21,12 +21,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->idrNumber = $idrNumber->load([
-            'contractItem.itemSpecification.catalogItem.secondaryCategory.primaryCategory',
-            'contractItem.contract.supplier',
-            'assignedEmployee',
-            'approvingEmployee',
-            'receivedBy',
-            'receivedFrom',
+            'receivedBy.user',
+            'receivedFrom.user',
+            'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
+            'itemBatches',
         ])->loadCount('itemBatches');
     }
 
@@ -67,38 +65,54 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
                     </div>
                     <div class="grid grid-cols-1 gap-y-4 p-6 md:grid-cols-2">
-                        <div>
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Name</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->catalogItem?->name ?? '—' }}</p>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Name</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->itemCatalog?->name ?? '—' }}</p>
                         </div>
-                        <div>
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Code</span>
-                             <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->catalogItem?->code ?? '—' }}</p>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Code</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->itemCatalog?->code ?? '—' }}</p>
                         </div>
-                        <div>
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Category</span>
+                        <div class="sm:col-span-1">
+                            @php
+                                $secondary = $this->idrNumber->contractItem?->itemSpecification?->itemCatalog?->secondaryCategory;
+                            @endphp
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Category</dt>
                             <p class="mt-1 text-stone-900 dark:text-stone-100">
-                                @php
-                                    $secondary = $this->idrNumber->contractItem?->itemSpecification?->catalogItem?->secondaryCategory;
-                                    $primary = $secondary?->primaryCategory;
-                                @endphp
-                                {{ $primary?->name ?? 'N/A' }} / {{ $secondary?->name ?? 'N/A' }}
+                                {{ $secondary?->primaryCategory?->name ?? 'N/A' }} / {{ $secondary?->name ?? 'N/A' }}
                             </p>
                         </div>
-                        <div>
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}</p>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Detailed Specifications</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->contractItem?->itemSpecification?->detailed_specifications ?: 'No specifications provided.' }}</p>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit Price</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">₱{{ number_format($this->idrNumber->contractItem?->unit_price ?? 0, 2) }}</p>
                         </div>
-                         <div class="md:col-span-2 border-t border-stone-200 dark:border-stone-700 pt-4">
-                            <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Contract</span>
-                            <p class="mt-1 text-stone-900 dark:text-stone-100">
-                                {{ $this->idrNumber->contractItem?->contract?->contract_po_ib_number ?? '—' }}
-                                <span class="text-stone-500 dark:text-stone-400"> (Supplier: {{ $this->idrNumber->contractItem?->contract?->supplier?->name ?? '—' }})</span>
-                            </p>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->inventory_code }}</p>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">ORS Number</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->ors }}</p>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Prepared</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->date_prepared->format('F d, Y') }}</p>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Accepted</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->date_accepted->format('F d, Y') }}</p>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">IDR Date</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->date->format('F d, Y') }}</p>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Remarks</dt>
+                            <p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->remarks ?: 'No remarks provided.' }}</p>
                         </div>
                     </div>
                 </div>
@@ -140,7 +154,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3></div>
                     <div class="space-y-4 p-6">
-                        <div><span class="text-sm font-medium text-stone-500 dark:text-stone-400">Total Quantity</span><p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->quantity }} {{ Str::plural($this->idrNumber->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit', $this->idrNumber->quantity) }}</p></div>
+                        <div><span class="text-sm font-medium text-stone-500 dark:text-stone-400">Total Quantity</span><p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->quantity }} {{ Str::plural($this->idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit', $this->idrNumber->quantity) }}</p></div>
                         <div><span class="text-sm font-medium text-stone-500 dark:text-stone-400">Batches</span><p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->item_batches_count }}</p></div>
                         <div><span class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit Cost</span><p class="mt-1 text-stone-900 dark:text-stone-100">₱{{ number_format($this->idrNumber->contractItem?->unit_price ?? 0, 2) }}</p></div>
                         <div><span class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</span><p class="mt-1 text-stone-900 dark:text-stone-100">{{ $this->idrNumber->inventory_code }}</p></div>

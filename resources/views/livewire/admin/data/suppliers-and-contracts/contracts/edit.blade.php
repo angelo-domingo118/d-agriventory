@@ -27,7 +27,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->items = $contract->contractItems->map(function ($item) {
             return [
                 'id' => $item->id,
-                'item_catalog_id' => $item->itemSpecification?->catalogItem?->id,
+                'item_catalog_id' => $item->itemSpecification?->itemCatalog?->id,
                 'quantity' => $item->quantity,
                 'unit_price' => $item->unit_price,
                 'detailed_specifications' => $item->itemSpecification?->detailed_specifications,

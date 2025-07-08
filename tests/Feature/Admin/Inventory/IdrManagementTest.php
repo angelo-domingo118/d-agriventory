@@ -159,7 +159,7 @@ class IdrManagementTest extends TestCase
         $this->get(route('admin.inventory.idr.show', $idr))
             ->assertSuccessful()
             ->assertSee($idr->number)
-            ->assertSee($idr->contractItem->itemSpecification->catalogItem->name);
+            ->assertSee($idr->contractItem->itemSpecification->itemCatalog->name);
     }
     
     #[Test]

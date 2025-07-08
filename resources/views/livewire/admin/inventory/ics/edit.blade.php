@@ -220,7 +220,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         return ContractItem::where('contract_id', $this->contract_id)
-            ->with('itemSpecification.catalogItem:id,name') // Eager load only necessary columns
+            ->with('itemSpecification.itemCatalog:id,name') // Eager load only necessary columns
             ->get();
     }
 
@@ -371,9 +371,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <div class="sm:col-span-1">
                                         <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id">
                                             <option value="">Select an item</option>
-                                            @foreach($this->contractItems as $item)
-                                                <option value="{{ $item->id }}">{{ $item->itemSpecification->catalogItem->name }}</option>
-                                            @endforeach
+                                            @if ($this->contractItems)
+                                                @foreach ($this->contractItems as $item)
+                                                    <option value="{{ $item->id }}">{{ $item->itemSpecification->itemCatalog->name }}</option>
+                                                @endforeach
+                                            @endif
                                         </flux:select>
                                         <x-input-error for="contract_item_id" class="mt-2" />
                                     </div>

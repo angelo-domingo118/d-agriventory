@@ -138,7 +138,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $query = ParNumber::with([
             'assignedEmployee.division',
-            'contractItem.itemSpecification.catalogItem',
+            'contractItem.itemSpecification.itemCatalog',
             'latestTransfer.toEmployee',
             'itemBatches',
         ])
@@ -673,8 +673,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
                                             <div class="space-y-2">
                                                 <div>
-                                                    @if ($par->contractItem?->itemSpecification?->catalogItem?->name)
-                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->catalogItem->name, [$this->search, $this->filterArticle]) !!}</div>
+                                                    @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
+                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
                                                     @else
                                                         <div class="font-semibold text-stone-900 dark:text-stone-100 italic">Item name not available</div>
                                                     @endif
@@ -751,7 +751,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     @endif
                                                  </div>
                                                @if($this->columns['quantity'])
-                                                    <div><span class="font-medium">Quantity:</span> {{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</div>
+                                                    <div><span class="font-medium">Quantity:</span> {{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
                                                @endif
                                                @if($this->columns['unit_cost'])<div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</div>@endif
                                                @if($this->columns['codes'] && $densityClasses['show_tertiary'])
@@ -847,8 +847,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="flex items-start justify-between">
                                 <div class="max-w-xs">
                                     <p class="truncate {{ $densityClasses['text_base'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                        @if ($par->contractItem?->itemSpecification?->catalogItem?->name)
-                                            {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->catalogItem->name, [$this->search, $this->filterArticle]) !!}
+                                        @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
+                                            {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
                                         @else
                                             <span class="italic">Item name not available</span>
                                         @endif
@@ -903,7 +903,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 {{ $densityClasses['text_base'] }}">
                                 <div>
                                     <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Quantity</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</dd>
+                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</dd>
                                 </div>
                                 <div>
                                     <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Batches</dt>
@@ -949,8 +949,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="flex min-w-0 gap-x-4">
                                 <div class="min-w-0 flex-auto">
                                     <p class="truncate text-sm font-semibold leading-6 text-stone-900 dark:text-stone-100">
-                                        @if ($par->contractItem?->itemSpecification?->catalogItem?->name)
-                                            {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->catalogItem->name, [$this->search, $this->filterArticle]) !!}
+                                        @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
+                                            {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
                                         @else
                                             <span class="italic">Item name not available</span>
                                         @endif
@@ -963,7 +963,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <span class="truncate">Inv No: {!! \App\Helpers\TextHelper::highlight($inventoryNumber, [$this->search, $this->filterInventoryNumber]) !!}</span>
                                          @endif
                                         <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                        <span>{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->catalogItem?->unit ?? 'unit' }}(s)</span>
+                                        <span>{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</span>
                                         @if ($par->contractItem?->unit_price > 0)
                                             <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
                                             <span>@ ₱{{ number_format($par->contractItem->unit_price, 2) }}</span>
