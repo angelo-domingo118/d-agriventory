@@ -10,6 +10,10 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public SecondaryCategory $category;
+    public string $name;
+    public string $code;
+    public ?int $primary_category_id;
+    public string $description;
 
     public function mount(SecondaryCategory $category): void
     {
@@ -17,17 +21,22 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
         $this->category = $category;
+        $this->name = $category->name;
+        $this->code = $category->code;
+        $this->primary_category_id = $category->primary_category_id;
+        $this->description = $category->description ?? '';
     }
 
     public function save(): void
     {
-        $this->validate([
-            'category.name' => ['required', 'string', 'max:255', Rule::unique('secondary_categories', 'name')->ignore($this->category->id)],
-            'category.code' => ['required', 'string', 'max:50', Rule::unique('secondary_categories', 'code')->ignore($this->category->id)],
-            'category.primary_category_id' => ['required', 'integer', Rule::exists('primary_categories', 'id')],
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('secondary_categories', 'name')->ignore($this->category->id)],
+            'code' => ['required', 'string', 'max:50', Rule::unique('secondary_categories', 'code')->ignore($this->category->id)],
+            'primary_category_id' => ['required', 'integer', Rule::exists('primary_categories', 'id')],
+            'description' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $this->category->save();
+        $this->category->update($validated);
 
         session()->flash('success', 'Secondary category updated successfully.');
         $this->redirectRoute('admin.data.items-and-categories', ['currentTab' => 'secondary-categories']);
@@ -77,16 +86,16 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800">
                 <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Category Details</h3>
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="category.name" label="Category Name" required />
-                    <flux:input wire:model="category.code" label="Category Code" required />
-                    <flux:select wire:model="category.primary_category_id" label="Primary Category" required>
+                    <flux:input wire:model="name" label="Category Name" required />
+                    <flux:input wire:model="code" label="Category Code" required />
+                    <flux:select wire:model="primary_category_id" label="Primary Category" required>
                         <option value="">Select a primary category</option>
                         @foreach($this->primaryCategories as $pCat)
                             <option value="{{ $pCat->id }}">{{ $pCat->name }}</option>
                         @endforeach
                     </flux:select>
                     <div class="sm:col-span-2">
-                        <flux:textarea wire:model="category.description" label="Description" />
+                        <flux:textarea wire:model="description" label="Description" />
                     </div>
                 </div>
             </div>

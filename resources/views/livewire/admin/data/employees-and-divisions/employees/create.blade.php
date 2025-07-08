@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public Employee $employee;
+    public string $name = '';
+    public string $employee_number = '';
+    public ?int $position_id = null;
+    public ?int $division_id = null;
     public string $username = '';
     public string $email = '';
     public string $password = '';
@@ -24,16 +27,15 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-        $this->employee = new Employee();
     }
 
     public function save(): void
     {
         $rules = [
-            'employee.name' => ['required', 'string', 'max:255'],
-            'employee.employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')],
-            'employee.position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
-            'employee.division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')],
+            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
+            'division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
             'create_user_account' => ['boolean'],
         ];
 
@@ -45,23 +47,30 @@ new #[Layout('components.layouts.app')] class extends Component {
             ]);
         }
 
-        $this->validate($rules);
+        $validated = $this->validate($rules);
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($validated) {
+            $employeeData = [
+                'name' => $validated['name'],
+                'employee_number' => $validated['employee_number'],
+                'position_id' => $validated['position_id'],
+                'division_id' => $validated['division_id'],
+            ];
+
             if ($this->create_user_account) {
                 $user = User::create([
-                    'name' => $this->employee->name,
+                    'name' => $validated['name'],
                     'username' => $this->username,
                     'email' => $this->email,
                     'password' => Hash::make($this->password),
                 ]);
-                $this->employee->user_id = $user->id;
+                $employeeData['user_id'] = $user->id;
             }
-            $this->employee->save();
+            Employee::create($employeeData);
         });
 
         session()->flash('success', 'Employee created successfully.');
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'employees']);
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
     }
 
     #[Computed]
@@ -110,20 +119,20 @@ new #[Layout('components.layouts.app')] class extends Component {
             </x-slot:description>
             <div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div class="sm:col-span-4">
-                    <flux:input wire:model="employee.name" label="Full Name" required />
+                    <flux:input wire:model="name" label="Full Name" required />
                 </div>
 
                 <div class="sm:col-span-4">
-                    <flux:input wire:model="employee.employee_number" label="Employee Number" required />
+                    <flux:input wire:model="employee_number" label="Employee Number" required />
                 </div>
 
                 <div class="sm:col-span-3">
-                    <flux:select wire:model="employee.position_id" label="Position" :options="$this->positions"
+                    <flux:select wire:model="position_id" label="Position" :options="$this->positions"
                         placeholder="Select a position" option-value="id" option-label="title" required />
                 </div>
 
                 <div class="sm:col-span-3">
-                    <flux:select wire:model="employee.division_id" label="Division" :options="$this->divisions"
+                    <flux:select wire:model="division_id" label="Division" :options="$this->divisions"
                         placeholder="Select a division" option-value="id" option-label="name" required />
                 </div>
             </div>

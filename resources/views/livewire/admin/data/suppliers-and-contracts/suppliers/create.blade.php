@@ -6,30 +6,37 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public Supplier $supplier;
+    public string $name = '';
+    public string $address = '';
+    public string $contact_person = '';
+    public string $email = '';
+    public string $phone = '';
 
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-        $this->supplier = new Supplier();
     }
 
     public function save(): void
     {
-        $this->validate([
-            'supplier.name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->where(fn ($query) => $query->whereNull('deleted_at'))],
-            'supplier.address' => ['nullable', 'string', 'max:255'],
-            'supplier.contact_person' => ['nullable', 'string', 'max:255'],
-            'supplier.email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->where(fn ($query) => $query->whereNull('deleted_at'))],
-            'supplier.phone' => ['nullable', 'string', 'max:50'],
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->where(fn ($query) => $query->whereNull('deleted_at'))],
+            'address' => ['nullable', 'string', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->where(fn ($query) => $query->whereNull('deleted_at'))],
+            'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $this->supplier->save();
+        try {
+            Supplier::create($validated);
 
-        session()->flash('success', 'Supplier created successfully.');
-        $this->redirectRoute('admin.data.suppliers-and-contracts.index', ['currentTab' => 'suppliers']);
+            session()->flash('success', 'Supplier created successfully.');
+            $this->redirectRoute('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']);
+        } catch (\Exception $e) {
+            session()->flash('error', 'There was an error creating the supplier. Please try again.');
+        }
     }
 }; ?>
 
@@ -54,11 +61,11 @@ new #[Layout('components.layouts.app')] class extends Component {
     <form wire:submit.prevent="save" class="mt-8">
         <div class="max-w-2xl">
             <div class="space-y-6">
-                <flux:input wire:model="supplier.name" label="Supplier Name" required />
-                <flux:input wire:model="supplier.address" label="Address" />
-                <flux:input wire:model="supplier.contact_person" label="Contact Person" />
-                <flux:input wire:model="supplier.email" label="Email Address" type="email" />
-                <flux:input wire:model="supplier.phone" label="Phone Number" />
+                <flux:input wire:model="name" label="Supplier Name" required />
+                <flux:input wire:model="address" label="Address" />
+                <flux:input wire:model="contact_person" label="Contact Person" />
+                <flux:input wire:model="email" label="Email Address" type="email" />
+                <flux:input wire:model="phone" label="Phone Number" />
             </div>
 
             <div class="mt-8 flex justify-end gap-x-4">

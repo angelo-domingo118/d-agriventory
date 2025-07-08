@@ -8,6 +8,9 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.app')] class extends Component {
     public Position $position;
 
+    public string $title;
+    public string $position_type;
+
     public function mount(Position $position): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
@@ -15,19 +18,22 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->position = $position;
+        $this->title = $position->title;
+        $this->position_type = $position->position_type;
     }
 
     public function save(): void
     {
-        $this->validate([
-            'position.name' => ['required', 'string', 'max:255', Rule::unique('positions', 'name')->ignore($this->position->id)],
+        $validated = $this->validate([
+            'title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->ignore($this->position->id)],
+            'position_type' => ['required', 'string', Rule::in(['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])],
         ]);
 
-        $this->position->save();
+        $this->position->update($validated);
 
         session()->flash('success', 'Position updated successfully.');
-        
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'positions']);
+
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'positions']);
     }
 
     public function delete(): void
@@ -41,7 +47,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         session()->flash('success', 'Position deleted successfully.');
 
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'positions']);
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'positions']);
     }
 }; ?>
 
@@ -58,7 +64,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     <form wire:submit.prevent="save" class="mt-8">
         <div class="max-w-2xl">
              <div class="space-y-6">
-                <flux:input wire:model="position.name" label="Position Name" required />
+                <flux:input wire:model="title" label="Position Title" required />
+                <flux:select wire:model="position_type" label="Position Type" required>
+                    <option value="DIVISION_CHIEF">Division Chief</option>
+                    <option value="COORDINATOR">Coordinator</option>
+                    <option value="FOCAL_PERSON">Focal Person</option>
+                    <option value="OFFICER">Officer</option>
+                    <option value="SPECIALIST">Specialist</option>
+                    <option value="OTHER">Other</option>
+                </flux:select>
             </div>
 
             <div class="mt-8 flex items-center justify-between">
@@ -71,7 +85,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     Delete Position
                 </flux:button>
                 <div class="flex justify-end gap-x-4">
-                    <flux:button :href="route('admin.data.employees-and-divisions.index', ['currentTab' => 'positions'])" variant="ghost">Cancel</flux:button>
+                    <flux:button :href="route('admin.data.employees-and-divisions', ['currentTab' => 'positions'])" variant="ghost">Cancel</flux:button>
                     <flux:button type="submit" variant="primary">Save Changes</flux:button>
                 </div>
             </div>

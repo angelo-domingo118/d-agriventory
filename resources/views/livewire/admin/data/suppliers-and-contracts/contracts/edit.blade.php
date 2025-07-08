@@ -11,6 +11,8 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public Contract $contract;
+    public ?int $supplier_id = null;
+    public string $contract_po_ib_number = '';
     public array $items = [];
 
     public function mount(Contract $contract): void
@@ -20,6 +22,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->contract = $contract;
+        $this->supplier_id = $contract->supplier_id;
+        $this->contract_po_ib_number = $contract->contract_po_ib_number;
         $this->items = $contract->contractItems->map(function ($item) {
             return [
                 'id' => $item->id,
@@ -56,18 +60,21 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function save(): void
     {
         $rules = [
-            'contract.supplier_id' => ['required', 'exists:suppliers,id'],
-            'contract.contract_po_ib_number' => ['required', 'string', 'max:255', Rule::unique('contracts')->ignore($this->contract->id)],
+            'supplier_id' => ['required', 'exists:suppliers,id'],
+            'contract_po_ib_number' => ['required', 'string', 'max:255', Rule::unique('contracts')->ignore($this->contract->id)],
             'items.*.item_catalog_id' => ['required', 'integer', Rule::exists('items_catalog', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'numeric', 'min:0'],
             'items.*.detailed_specifications' => ['nullable', 'string'],
         ];
         
-        $this->validate($rules);
+        $validated = $this->validate($rules);
 
-        \Illuminate\Support\Facades\DB::transaction(function() {
-            $this->contract->save();
+        \Illuminate\Support\Facades\DB::transaction(function() use ($validated) {
+            $this->contract->update([
+                'supplier_id' => $validated['supplier_id'],
+                'contract_po_ib_number' => $validated['contract_po_ib_number'],
+            ]);
             
             $contractItemIds = [];
 
@@ -128,14 +135,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="p-6">
             <form wire:submit.prevent="save" class="space-y-6">
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <flux:select wire:model="contract.supplier_id" label="Supplier" required>
+                    <flux:select wire:model="supplier_id" label="Supplier" required>
                         <option value="">Select a supplier</option>
                         @foreach($this->suppliers as $supplier)
                             <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                         @endforeach
                     </flux:select>
                     
-                    <flux:input wire:model="contract.contract_po_ib_number" label="Contract/PO/IB Number" required />
+                    <flux:input wire:model="contract_po_ib_number" label="Contract/PO/IB Number" required />
                 </div>
 
                 <div class="space-y-4">

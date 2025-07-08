@@ -8,6 +8,12 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public Supplier $supplier;
+    public string $name;
+    public string $address;
+    public string $contact_person;
+    public string $email;
+    public string $phone;
+
 
     public function mount(Supplier $supplier): void
     {
@@ -15,22 +21,27 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
         $this->supplier = $supplier;
+        $this->name = $supplier->name;
+        $this->address = $supplier->address ?? '';
+        $this->contact_person = $supplier->contact_person ?? '';
+        $this->email = $supplier->email ?? '';
+        $this->phone = $supplier->phone ?? '';
     }
 
     public function save(): void
     {
-        $this->validate([
-            'supplier.name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($this->supplier->id)],
-            'supplier.address' => ['nullable', 'string', 'max:255'],
-            'supplier.contact_person' => ['nullable', 'string', 'max:255'],
-            'supplier.email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->ignore($this->supplier->id)],
-            'supplier.phone' => ['nullable', 'string', 'max:50'],
+        $validated = $this->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($this->supplier->id)],
+            'address' => ['nullable', 'string', 'max:255'],
+            'contact_person' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->ignore($this->supplier->id)],
+            'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $this->supplier->save();
+        $this->supplier->update($validated);
 
         session()->flash('success', 'Supplier updated successfully.');
-        $this->redirectRoute('admin.data.suppliers-and-contracts.index', ['currentTab' => 'suppliers']);
+        $this->redirectRoute('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']);
     }
 
     public function delete(): void
@@ -44,7 +55,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->supplier->delete();
 
             session()->flash('success', 'Supplier deleted successfully.');
-            $this->redirectRoute('admin.data.suppliers-and-contracts.index', ['currentTab' => 'suppliers']);
+            $this->redirectRoute('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']);
         });
     }
 }; ?>
@@ -73,15 +84,15 @@ new #[Layout('components.layouts.app')] class extends Component {
             <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Supplier Details</h3>
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                    <flux:input wire:model="supplier.name" label="Supplier Name" required />
+                    <flux:input wire:model="name" label="Supplier Name" required />
                 </div>
                 <div class="sm:col-span-2">
-                    <flux:input wire:model="supplier.contact_person" label="Contact Person" />
+                    <flux:input wire:model="contact_person" label="Contact Person" />
                 </div>
-                <flux:input wire:model="supplier.email" label="Email" type="email" />
-                <flux:input wire:model="supplier.phone" label="Phone" />
+                <flux:input wire:model="email" label="Email" type="email" />
+                <flux:input wire:model="phone" label="Phone" />
                 <div class="sm:col-span-2">
-                    <flux:textarea wire:model="supplier.address" label="Address" />
+                    <flux:textarea wire:model="address" label="Address" />
                 </div>
             </div>
         </div>

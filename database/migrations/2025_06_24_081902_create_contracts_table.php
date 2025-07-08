@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
             $table->string('contract_po_ib_number')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

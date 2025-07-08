@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->string('name');
+            $table->string('employee_number')->unique();
             $table->foreignId('division_id')->nullable()->comment('The division this employee belongs to.')->constrained()->onDelete('set null');
             $table->foreignId('position_id')->nullable()->comment('The specific position/role.')->constrained()->onDelete('set null');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

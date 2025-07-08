@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('code')->unique()->comment('Unique code identifier for the primary category.');
             $table->text('description')->nullable()->comment('Optional detailed description of the primary category.');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

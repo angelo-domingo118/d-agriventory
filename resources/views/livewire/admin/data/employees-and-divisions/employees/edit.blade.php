@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Hash;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public Employee $employee;
+    public string $name;
+    public string $employee_number;
+    public ?int $position_id;
+    public ?int $division_id;
     public string $username = '';
     public string $email = '';
     public string $password = '';
@@ -25,6 +29,10 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
         $this->employee = $employee;
+        $this->name = $employee->name;
+        $this->employee_number = $employee->employee_number;
+        $this->position_id = $employee->position_id;
+        $this->division_id = $employee->division_id;
         $this->username = $employee->user?->username ?? '';
         $this->email = $employee->user?->email ?? '';
         $this->create_user_account = $employee->user_id !== null;
@@ -33,10 +41,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function save(): void
     {
         $rules = [
-            'employee.name' => ['required', 'string', 'max:255'],
-            'employee.employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->employee->id)],
-            'employee.position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
-            'employee.division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->employee->id)],
+            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
+            'division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
             'create_user_account' => ['boolean'],
         ];
 
@@ -49,12 +57,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             ]);
         }
 
-        $this->validate($rules);
+        $validated = $this->validate($rules);
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($validated) {
+            $employeeData = [
+                'name' => $validated['name'],
+                'employee_number' => $validated['employee_number'],
+                'position_id' => $validated['position_id'],
+                'division_id' => $validated['division_id'],
+            ];
+
             if ($this->create_user_account) {
                 $userData = [
-                    'name' => $this->employee->name,
+                    'name' => $validated['name'],
                     'username' => $this->username,
                     'email' => $this->email,
                 ];
@@ -62,18 +77,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                     $userData['password'] = Hash::make($this->password);
                 }
                 $user = User::updateOrCreate(['id' => $this->employee->user_id], $userData);
-                $this->employee->user_id = $user->id;
+                $employeeData['user_id'] = $user->id;
             } elseif ($this->employee->user_id) {
                 // If checkbox is unchecked, disassociate user but don't delete for now
                 // A better approach might be to decide on a policy for orphaned users
-                $this->employee->user_id = null;
+                $employeeData['user_id'] = null;
             }
 
-            $this->employee->save();
+            $this->employee->update($employeeData);
         });
 
         session()->flash('success', 'Employee updated successfully.');
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'employees']);
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
     }
     
     public function delete(): void
@@ -95,7 +110,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->employee->delete();
 
         session()->flash('success', 'Employee deleted successfully.');
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'employees']);
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
+    }
+
+    public function cancel(): void
+    {
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
     }
 
     #[Computed]
@@ -134,15 +154,15 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800">
                 <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Employee Details</h3>
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="employee.name" label="Full Name" required />
-                    <flux:input wire:model="employee.employee_number" label="Employee Number" required />
-                    <flux:select wire:model="employee.position_id" label="Position" required>
+                    <flux:input wire:model="name" label="Full Name" required />
+                    <flux:input wire:model="employee_number" label="Employee Number" required />
+                    <flux:select wire:model="position_id" label="Position" required>
                         <option value="">Select a position</option>
                         @foreach($this->positions as $position)
                             <option value="{{ $position->id }}">{{ $position->title }}</option>
                         @endforeach
-                    </flux:select>                    <flux:select wire:model="employee.division_id" label="Division/Office" required>
-                        <option value="">Select a division</option>
+                    </flux:select>
+                    <flux:select wire:model="division_id" label="Division/Office" required>                        <option value="">Select a division</option>
                         @foreach($this->divisions as $division)
                             <option value="{{ $division->id }}">{{ $division->name }}</option>
                         @endforeach
@@ -178,7 +198,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                     Delete Employee
                 </flux:button>
                 <div class="flex justify-end gap-x-4">
-                    <flux:button :href="route('admin.data.employees-and-divisions.index')" variant="ghost">Cancel</flux:button>
+                    <flux:button
+                        type="button"
+                        wire:click="cancel"
+                    >
+                        Cancel
+                    </flux:button>
                     <flux:button type="submit" variant="primary">Save Changes</flux:button>
                 </div>
             </div>

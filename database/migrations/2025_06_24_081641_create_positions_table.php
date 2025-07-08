@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('position_type', ['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])->comment('DIVISION_CHIEF, COORDINATOR, FOCAL_PERSON, OFFICER, SPECIALIST, OTHER.');
             $table->text('description')->nullable()->comment('Position description and responsibilities.');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SecondaryCategory extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -34,7 +35,7 @@ class SecondaryCategory extends Model
     /**
      * Get the items catalog entries for this secondary category.
      */
-    public function itemsCatalog(): HasMany
+    public function items(): HasMany
     {
         return $this->hasMany(ItemsCatalog::class);
     }

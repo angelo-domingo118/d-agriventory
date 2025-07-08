@@ -6,28 +6,27 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public Position $position;
-
+    public string $title = '';
+    public string $position_type = 'OTHER';
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-
-        $this->position = new Position();
     }
 
     public function save(): void
     {
-        $this->validate([
-            'position.title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->whereNull('deleted_at')],
+        $validated = $this->validate([
+            'title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->whereNull('deleted_at')],
+            'position_type' => ['required', 'string', Rule::in(['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])],
         ]);
 
-        $this->position->save();
+        Position::create($validated);
 
         session()->flash('success', 'Position created successfully.');
 
-        $this->redirectRoute('admin.data.employees-and-divisions.index', ['currentTab' => 'positions']);
+        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'positions']);
     }
 }; ?>
 
@@ -52,7 +51,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     <form wire:submit.prevent="save" class="mt-8">
         <div class="max-w-2xl">
             <div class="space-y-6">
-                <flux:input wire:model="position.title" label="Position Title" required />
+                <flux:input wire:model="title" label="Position Title" required />
+                <flux:select wire:model="position_type" label="Position Type" required>
+                    <option value="DIVISION_CHIEF">Division Chief</option>
+                    <option value="COORDINATOR">Coordinator</option>
+                    <option value="FOCAL_PERSON">Focal Person</option>
+                    <option value="OFFICER">Officer</option>
+                    <option value="SPECIALIST">Specialist</option>
+                    <option value="OTHER">Other</option>
+                </flux:select>
             </div>
 
             <div class="mt-8 flex justify-end gap-x-4">
