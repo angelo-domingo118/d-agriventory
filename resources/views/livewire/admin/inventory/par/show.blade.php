@@ -130,6 +130,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <thead class="bg-stone-50 dark:bg-stone-700/50">
                         <tr>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Item Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Serial Number</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Quantity</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Unit Cost</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Total Cost</th>
@@ -141,19 +142,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->contractItem?->itemSpecification?->itemCatalog?->name ?? 'Item not found' }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->serial_number }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->quantity }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->contractItem?->unit_price ?? 0, 2) }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->quantity * ($batch->contractItem?->unit_price ?? 0), 2) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-sm text-stone-500 dark:text-stone-400">No items found for this PAR.</td>
+                                <td colspan="5" class="px-6 py-4 text-center text-sm text-stone-500 dark:text-stone-400">No items found for this PAR.</td>
                             </tr>
                         @endforelse
                     </tbody>
                      <tfoot class="bg-stone-50 dark:bg-stone-700/50">
                         <tr>
-                            <td class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">Total</td>
+                            <td colspan="2" class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">Total</td>
                             <td class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">{{ $par->itemBatches->sum('quantity') }}</td>
                             <td class="px-6 py-3"></td>
                             <td class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">₱{{ number_format($this->totalValue, 2) }}</td>
