@@ -9,8 +9,7 @@
     <flux:navlist.item icon="box" :href="route('admin.inventory.ics.index')" :current="request()->routeIs('admin.inventory.ics.*')" wire:navigate class="py-6 text-lg">{{ __('ICS Management') }}</flux:navlist.item>
     <flux:navlist.item icon="boxes" :href="route('admin.inventory.par.index')" :current="request()->routeIs('admin.inventory.par.*')" wire:navigate class="py-6 text-lg">{{ __('PAR Management') }}</flux:navlist.item>
     <flux:navlist.item icon="package" :href="route('admin.inventory.idr.index')" :current="request()->routeIs('admin.inventory.idr.*')" wire:navigate class="py-6 text-lg">{{ __('IDR Management') }}</flux:navlist.item>
-    <flux:navlist.item icon="package-check" :href="route('admin.inventory.transfers.index')" :current="request()->routeIs('admin.inventory.transfers.*')" wire:navigate class="py-6 text-lg">{{ __('Transfers') }}</flux:navlist.item>
-    <flux:navlist.item icon="clipboard-list" :href="route('admin.inventory.consumables.index')" :current="request()->routeIs('admin.inventory.consumables.*')" wire:navigate class="py-6 text-lg">{{ __('Consumables') }}</flux:navlist.item>
+    <flux:navlist.item icon="package-check" :href="route('admin.inventory.consumables.index')" :current="request()->routeIs('admin.inventory.consumables.*')" wire:navigate class="py-6 text-lg">{{ __('Consumables') }}</flux:navlist.item>
 </flux:navlist.group>
 
 <!-- DATA -->

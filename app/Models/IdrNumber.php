@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IdrNumber extends Model
 {
+    use HasFactory;
+
     /**
      * The table associated with the model.
      *
@@ -31,6 +34,9 @@ class IdrNumber extends Model
         'date_prepared',
         'date_accepted',
         'remarks',
+        'received_by_id',
+        'received_from_id',
+        'date',
     ];
 
     /**
@@ -41,6 +47,7 @@ class IdrNumber extends Model
     protected $casts = [
         'date_prepared' => 'date',
         'date_accepted' => 'date',
+        'date' => 'date',
     ];
 
     /**
@@ -57,6 +64,22 @@ class IdrNumber extends Model
     public function approvingEmployee(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'approving_employee_id');
+    }
+
+    /**
+     * Get the employee who received the items.
+     */
+    public function receivedBy(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'received_by_id');
+    }
+
+    /**
+     * Get the employee who issued the items.
+     */
+    public function receivedFrom(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'received_from_id');
     }
 
     /**

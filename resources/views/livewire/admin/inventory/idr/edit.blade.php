@@ -1,0 +1,304 @@
+<?php
+
+use App\Models\Contract;
+use App\Models\ContractItem;
+use App\Models\Employee;
+use App\Models\IdrNumber;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    public IdrNumber $idrNumber;
+    public bool $showDeleteModal = false;
+
+    // Form state
+    public string $number = '';
+    public ?int $contract_id = null;
+    public ?int $contract_item_id = null;
+    public ?int $assigned_employee_id = null;
+    public ?int $approving_employee_id = null;
+    public ?int $received_by_id = null;
+    public ?int $received_from_id = null;
+    public int $quantity = 1;
+    public string $inventory_code = '';
+    public string $ors = '';
+    public string $date_prepared = '';
+    public string $date_accepted = '';
+    public string $date = '';
+    public string $remarks = '';
+
+    // Display only property
+    public ?float $unit_price = 0.0;
+    
+    public array $batches = [];
+
+    public Collection $allContracts;
+    public Collection $allEmployees;
+
+    public function mount(IdrNumber $idrNumber): void
+    {
+        if (!auth()->user()->hasAdminPermission('edit_inventory')) {
+            abort(403);
+        }
+
+        $this->idrNumber = $idrNumber->load('itemBatches');
+        $this->fill($this->idrNumber->toArray());
+        $this->date_prepared = $this->idrNumber->date_prepared->format('Y-m-d');
+        $this->date_accepted = $this->idrNumber->date_accepted->format('Y-m-d');
+        $this->date = $this->idrNumber->date->format('Y-m-d');
+        $this->quantity = $this->idrNumber->itemBatches->count();
+
+        if ($this->idrNumber->contractItem) {
+            $this->contract_id = $this->idrNumber->contractItem->contract_id;
+        }
+
+        $this->allContracts = Contract::with('supplier:id,name')->orderBy('contract_po_ib_number')->get(['id', 'contract_po_ib_number', 'supplier_id']);
+        $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
+        
+        foreach ($this->idrNumber->itemBatches as $batch) {
+            $this->batches[] = ['id' => $batch->id, 'identification_data' => $batch->identification_data, '_destroy' => false];
+        }
+        
+        if ($this->idrNumber->itemBatches->isEmpty()) {
+            $this->updatedQuantity($this->idrNumber->quantity);
+        }
+    }
+
+    #[Computed]
+    public function selectedContractItem()
+    {
+        if ($this->contract_item_id) {
+            return ContractItem::find($this->contract_item_id);
+        }
+        return null;
+    }
+
+    public function updatedContractItemId($value): void
+    {
+        $this->unit_price = $this->selectedContractItem?->unit_price ?? 0.0;
+    }
+
+    public function updatedQuantity($value): void
+    {
+        $value = (int) $value;
+        if ($value < 1) {
+            $this->quantity = 1;
+            $value = 1;
+        }
+        $currentCount = count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false)));
+        if ($value > $currentCount) {
+            for ($i = 0; $i < $value - $currentCount; $i++) {
+                $this->addBatch();
+            }
+        } elseif ($value < $currentCount) {
+            $toRemove = $currentCount - $value;
+            $removedCount = 0;
+            for ($i = count($this->batches) - 1; $i >= 0 && $removedCount < $toRemove; $i--) {
+                if (!($this->batches[$i]['_destroy'] ?? false)) {
+                    $this->removeBatch($i);
+                    $removedCount++;
+                }
+            }
+        }
+    }
+
+    public function addBatch(): void
+    {
+        $this->batches[] = ['id' => null, 'identification_data' => null, '_destroy' => false];
+    }
+
+    public function removeBatch(int $index): void
+    {
+        if (isset($this->batches[$index])) {
+            if (!empty($this->batches[$index]['id'])) {
+                $this->batches[$index]['_destroy'] = true;
+            } else {
+                array_splice($this->batches, $index, 1);
+            }
+        }
+        $this->quantity = count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false)));
+    }
+    
+    #[Computed]
+    public function contractItems()
+    {
+        if (!$this->contract_id) {
+            return collect();
+        }
+        return ContractItem::where('contract_id', $this->contract_id)->with('itemSpecification.catalogItem:id,name')->get();
+    }
+
+    public function update(): void
+    {
+        $validated = $this->validate([
+            'number' => ['required', 'string', 'max:255', Rule::unique('idr_number', 'number')->ignore($this->idrNumber->id)],
+            'contract_id' => ['required', 'integer', Rule::exists('contracts', 'id')],
+            'contract_item_id' => ['required', 'integer', Rule::exists('contract_items', 'id')],
+            'assigned_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
+            'approving_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
+            'received_by_id' => ['required', 'integer', Rule::exists('employees', 'id')],
+            'received_from_id' => ['required', 'integer', Rule::exists('employees', 'id')],
+            'quantity' => ['required', 'integer', 'min:1', fn ($attribute, $value, $fail) => $value != count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false))) && $fail("The quantity must match the number of active batches.")],
+            'inventory_code' => ['required', 'string', 'max:255'],
+            'ors' => ['required', 'string', 'max:255'],
+            'date_prepared' => ['required', 'date'],
+            'date_accepted' => ['required', 'date'],
+            'date' => ['required', 'date'],
+            'remarks' => ['nullable', 'string'],
+            'batches.*.identification_data' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $this->idrNumber->update($validated);
+            $activeBatchIds = [];
+            foreach ($this->batches as $batchData) {
+                if (!($batchData['_destroy'] ?? false)) {
+                    $batch = $this->idrNumber->itemBatches()->updateOrCreate(
+                        ['id' => $batchData['id'] ?? null],
+                        ['identification_data' => $batchData['identification_data'] ?? null]
+                    );
+                    $activeBatchIds[] = $batch->id;
+                }
+            }
+            $this->idrNumber->itemBatches()->whereNotIn('id', $activeBatchIds)->delete();
+        });
+
+        session()->flash('success', "IDR record {$this->idrNumber->number} updated successfully.");
+        $this->redirect(route('admin.inventory.idr.show', $this->idrNumber), navigate: true);
+    }
+
+    public function destroy(): void
+    {
+        if (!auth()->user()->hasAdminPermission('delete_inventory')) {
+            abort(403);
+        }
+        $this->idrNumber->delete();
+        session()->flash('success', 'IDR record deleted successfully.');
+        $this->redirect(route('admin.inventory.idr.index'), navigate: true);
+    }
+}; ?>
+
+<div x-data="{ showDeleteModal: @entangle('showDeleteModal') }">
+    <form wire:submit="update">
+        <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
+            <div class="flex items-center justify-between">
+                 <div>
+                    <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit IDR: {{ $idrNumber->number }}</h1>
+                    <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">Update the details for this IDR.</p>
+                </div>
+                <div class="flex items-center gap-x-4">
+                    <flux:button variant="ghost" :href="route('admin.inventory.idr.show', $idrNumber)" wire:navigate>Cancel</flux:button>
+                    <flux:button type="submit" variant="primary">Save Changes</flux:button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div class="lg:col-span-2">
+                <div class="space-y-8">
+                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3></div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                <div class="sm:col-span-1">
+                                    <flux:select wire:model.live="contract_id" label="Contract" required>
+                                        <option value="">Select a contract</option>
+                                        @foreach($this->allContracts as $contract)
+                                            <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} ({{ $contract->supplier->name }})</option>
+                                        @endforeach
+                                    </flux:select>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <flux:select wire:model.live="contract_item_id" label="Item" :disabled="!$this->contract_id" required>
+                                        <option value="">Select an item</option>
+                                        @foreach($this->contractItems as $item)
+                                            <option value="{{ $item->id }}">{{ $item->itemSpecification->catalogItem->name }}</option>
+                                        @endforeach
+                                    </flux:select>
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <flux:input wire:model="unit_price" label="Unit Cost" type="text" :disabled="true">
+                                        <x-slot:leading><span class="text-stone-500">₱</span></x-slot:leading>
+                                    </flux:input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches / Serial Numbers</h3></div>
+                        <div class="p-6">
+                            <div class="space-y-6">
+                                <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
+                                <div class="space-y-4">
+                                    @foreach ($batches as $batchIndex => $batch)
+                                        @if (!($batch['_destroy'] ?? false))
+                                        <div wire:key="batch-{{ $batchIndex }}" class="relative rounded-md border border-stone-300 bg-stone-50 p-4 dark:border-stone-600 dark:bg-stone-800/50">
+                                            <div class="flex items-center justify-between">
+                                                <label class="text-sm font-medium text-stone-700 dark:text-stone-300">Batch #{{ $loop->iteration }} Serial/Identification</label>
+                                                @if ($quantity > 1)
+                                                    <button type="button" wire:click.prevent="removeBatch({{ $batchIndex }})" class="text-red-500 hover:text-red-700">&times; Remove</button>
+                                                @endif
+                                            </div>
+                                            <flux:input wire:model="batches.{{ $batchIndex }}.identification_data" placeholder="e.g. SN: 12345, Asset Tag: 67890" />
+                                        </div>
+                                        @endif
+                                    @endforeach
+                                    <flux:button type="button" variant="ghost" wire:click.prevent="addBatch">Add Batch</flux:button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @can('delete_inventory')
+                    <div class="overflow-hidden rounded-lg border border-red-500 bg-red-50 shadow-sm dark:border-red-600/50 dark:bg-red-900/10">
+                         <div class="border-b border-red-200 p-4 dark:border-red-600/20"><h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3></div>
+                        <div class="p-6">
+                            <p class="text-sm text-red-700 dark:text-red-300">Deleting this IDR record is a permanent action and cannot be undone.</p>
+                             <flux:button type="button" variant="danger" class="mt-4" @click="showDeleteModal = true">Delete this IDR Record</flux:button>
+                        </div>
+                    </div>
+                    @endcan
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="space-y-8">
+                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3></div>
+                        <div class="space-y-6 p-6">
+                            <flux:select wire:model="assigned_employee_id" label="Assigned To (Stock Officer)" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
+                            <flux:select wire:model="approving_employee_id" label="Approving Official" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
+                            <flux:select wire:model="received_by_id" label="Received By" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
+                            <flux:select wire:model="received_from_id" label="Issued By" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3></div>
+                        <div class="space-y-6 p-6">
+                             <flux:input wire:model="number" label="IDR Number" required />
+                             <flux:input wire:model="inventory_code" label="Inventory Code" required />
+                             <flux:input wire:model="ors" label="ORS Number" required />
+                             <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                             <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
+                             <flux:input wire:model="date" type="date" label="IDR Date" required />
+                             <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <flux:modal title="Delete IDR Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
+        <x-slot:content><p class="p-4 text-sm text-stone-600 dark:text-stone-400">Are you sure you want to delete this record? This action cannot be undone.</p></x-slot:content>
+        <x-slot:footer>
+            <div class="flex justify-end gap-x-4">
+                <flux:button variant="ghost" @click="$set('showDeleteModal', false)">Cancel</flux:button>
+                <flux:button variant="danger" wire:click="destroy">Delete</flux:button>
+            </div>
+        </x-slot:footer>
+    </flux:modal>
+</div> 
