@@ -1,5 +1,6 @@
 <?php
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
@@ -55,6 +56,25 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         // This is for demonstration to show loading state
         sleep(1);
+    }
+
+    public function downloadPdf()
+    {
+        $viewPath = 'livewire.admin.main.reports.formats.' . $this->reportType . '.';
+        if ($this->reportType === 'idr') {
+            $viewPath .= 'batch';
+        } else {
+            $viewPath .= $this->reportFormat;
+        }
+
+        $pdf = Pdf::loadView($viewPath, [
+            // We can pass data to the view if needed.
+            // For now, the included views do not require specific data props.
+        ])->setPaper('a4', 'portrait');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'report.pdf');
     }
 
     #[Computed]
@@ -284,17 +304,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="w-12 text-center text-sm text-stone-600 dark:text-stone-400">
                             {{ (int) ($this->zoom * 100) }}%</div>
                         <flux:button wire:click="zoomIn" variant="ghost" icon="plus" :disabled="$this->zoom >= 2.0" />
-                        <flux:button wire:click="resetZoom" variant="ghost" icon="computer-desktop" />
+                        <flux:button wire:click="resetZoom" variant="ghost" icon="arrows-pointing-in" />
 
                         <div class="mx-2 h-6 w-px bg-stone-200 dark:bg-stone-700"></div>
 
-                        <flux:button x-on:click.prevent="window.print()" variant="ghost" :disabled="!$this->isPreviewAvailable">
-                            <x-flux::icon.arrow-down-tray class="-ml-1 h-5 w-5" />
-                            Download to PDF
+                        <flux:button wire:click="downloadPdf" variant="ghost" :disabled="!$this->isPreviewAvailable" wire:loading.attr="disabled"
+                            wire:target="downloadPdf">
+                            <div class="flex items-center">
+                                <x-flux::icon.arrow-down-tray wire:loading.remove wire:target="downloadPdf"
+                                    class="h-5 w-5" />
+                                <x-flux::icon.arrow-path wire:loading wire:target="downloadPdf"
+                                    class="h-5 w-5 animate-spin" />
+                                <span class="ml-2">
+                                    <span wire:loading.remove wire:target="downloadPdf">Download to PDF</span>
+                                    <span wire:loading wire:target="downloadPdf">Downloading...</span>
+                                </span>
+                            </div>
                         </flux:button>
-                        <flux:button x-on:click.prevent="window.print()" variant="ghost" :disabled="!$this->isPreviewAvailable">
-                            <x-flux::icon.printer class="-ml-1 h-5 w-5" />
-                            Print
+                        <flux:button x-on:click.prevent="window.print()" variant="ghost"
+                            :disabled="!$this->isPreviewAvailable">
+                            <div class="flex items-center">
+                                <x-flux::icon.printer class="h-5 w-5" />
+                                <span class="ml-2">Print</span>
+                            </div>
                         </flux:button>
                     </div>
                 </div>
