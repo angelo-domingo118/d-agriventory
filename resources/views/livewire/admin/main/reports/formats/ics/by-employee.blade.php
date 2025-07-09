@@ -27,7 +27,7 @@
 @endphp
 
 {{-- Page 1 --}}
-<div class="mx-auto w-[1024px] aspect-[1.414/1] bg-white p-6 text-stone-900 shadow-lg dark:bg-white">
+<div class="report-page mx-auto w-[1024px] aspect-[1.414/1] bg-white p-6 text-stone-900 shadow-lg dark:bg-white">
     <div class="text-center">
         <h4 class="text-lg font-bold">LIST OF "I.C.S." ISSUED TO EMPLOYEE</h4>
     </div>
@@ -75,7 +75,7 @@
 </div>
 
 {{-- Page 4 --}}
-<div class="mx-auto w-[1024px] aspect-[1.414/1] bg-white p-6 text-stone-900 shadow-lg dark:bg-white">
+<div class="report-page mx-auto w-[1024px] aspect-[1.414/1] bg-white p-6 text-stone-900 shadow-lg dark:bg-white">
     <div class="text-center">
         <h4 class="text-lg font-bold">LIST OF "I.C.S." ISSUED TO EMPLOYEE</h4>
     </div>

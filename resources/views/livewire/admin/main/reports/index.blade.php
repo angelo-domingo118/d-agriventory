@@ -8,7 +8,9 @@ use Livewire\Attributes\Computed;
 new #[Layout('components.layouts.app')] class extends Component {
     public string $reportType = 'idr';
     public string $reportFormat = 'batch';
+    public string $idrSignatoryStyle = 'default';
     public float $zoom = 1.0;
+    public bool $previewGenerated = false;
 
     public function updatedReportType(string $value): void
     {
@@ -19,11 +21,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             default => '',
         };
         $this->resetZoom();
+        $this->previewGenerated = false;
     }
 
     public function updatedReportFormat(): void
     {
         $this->resetZoom();
+        $this->previewGenerated = false;
+    }
+
+    public function updatedIdrSignatoryStyle(): void
+    {
+        $this->previewGenerated = false;
     }
 
     public function zoomIn(): void
@@ -56,6 +65,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         // This is for demonstration to show loading state
         sleep(1);
+        $this->previewGenerated = true;
     }
 
     public function downloadPdf()
@@ -83,7 +93,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $availableCombos = [
             'ics' => ['by_number', 'by_employee'],
             'par' => ['by_number', 'by_employee'],
-            'idr' => ['batch'],
+            'idr' => ['batch', 'by_employee', 'by_rsmi_number'],
         ];
 
         return isset($availableCombos[$this->reportType]) && in_array($this->reportFormat, $availableCombos[$this->reportType]);
@@ -119,8 +129,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                 print-color-adjust: exact;
             }
         }
+        #report-preview-content .report-page + .report-page {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px dashed #d6d3d1;
+        }
+        .dark #report-preview-content .report-page + .report-page {
+            border-top-color: #44403c;
+        }
     </style>
-    <div class="mt-8 grid grid-cols-1 gap-12 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="col-span-1 space-y-8 print-hide">
             {{-- Report Types --}}
             <div class="space-y-4">
@@ -143,7 +161,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <x-flux::icon.document-magnifying-glass
                                     class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">By ICS Number</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">INVENTORY CUSTODIAN SLIP</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for a
                                         specific ICS batch</p>
                                 </div>
@@ -152,7 +170,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'by_employee' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
                                 <x-flux::icon.user-circle class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">By Employee</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">LIST OF "I.C.S." ISSUED TO EMPLOYEE</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate a summary for an
                                         employee</p>
                                 </div>
@@ -179,7 +197,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <x-flux::icon.document-magnifying-glass
                                     class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">By PAR Number</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">PROPERTY ACKNOWLEDGEMENT RECEIPT</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for a
                                         specific PAR batch</p>
                                 </div>
@@ -188,7 +206,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'by_employee' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
                                 <x-flux::icon.user-circle class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">By Employee</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">LIST OF "P.A.R." ISSUED TO EMPLOYEE</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate a summary for an
                                         employee</p>
                                 </div>
@@ -214,18 +232,27 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'batch' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
                                 <x-flux::icon.document-check class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">IDR Batch</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">INVENTORIES FOR DISTRIBUTION RECEIPT</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for IDR
                                         batch</p>
                                 </div>
                             </button>
-                            <button wire:click="$set('reportFormat', 'summary')" type="button"
-                                class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'summary' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
+                            <button wire:click="$set('reportFormat', 'by_employee')" type="button"
+                                class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'by_employee' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
+                                <x-flux::icon.user-circle class="h-5 w-5 text-stone-600 dark:text-stone-400" />
+                                <div>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">LIST OF "I.D.R." ISSUED TO EMPLOYEE</h3>
+                                    <p class="text-sm text-stone-600 dark:text-stone-400">Generate a summary for an
+                                        employee</p>
+                                </div>
+                            </button>
+                            <button wire:click="$set('reportFormat', 'by_rsmi_number')" type="button"
+                                class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'by_rsmi_number' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
                                 <x-flux::icon.document-text class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">IDR Summary</h3>
-                                    <p class="text-sm text-stone-600 dark:text-stone-400">Comprehensive IDR summary
-                                        report</p>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">REPORT OF SUPPLIES AND MATERIALS ISSUED</h3>
+                                    <p class="text-sm text-stone-600 dark:text-stone-400">Report of Supplies and
+                                        Materials Issued</p>
                                 </div>
                             </button>
                         </div>
@@ -270,13 +297,55 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <flux:label for="idr_batch" required>IDR Batch #</flux:label>
                                 <flux:input id="idr_batch" type="text" placeholder="Search batch..." />
                             </flux:field>
+                            <div class="mt-4 space-y-2 border-t border-stone-200 pt-4 dark:border-stone-700">
+                                <flux:label>Signatory Style</flux:label>
+                                <fieldset class="mt-2">
+                                    <legend class="sr-only">Signatory style</legend>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center">
+                                            <input id="idr_signatory_default" name="idr_signatory_style" type="radio"
+                                                wire:model.live="idrSignatoryStyle" value="default"
+                                                class="h-4 w-4 border-stone-300 text-primary-600 focus:ring-primary-600 dark:border-stone-600 dark:bg-stone-800 dark:checked:bg-primary-600">
+                                            <label for="idr_signatory_default"
+                                                class="ml-3 block text-sm font-medium leading-6 text-stone-900 dark:text-stone-100">
+                                                IDR (Combined)
+                                                <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">
+                                                    Single "Received & Approved by" signatory.
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input id="idr_signatory_detailed" name="idr_signatory_style" type="radio"
+                                                wire:model.live="idrSignatoryStyle" value="detailed"
+                                                class="h-4 w-4 border-stone-300 text-primary-600 focus:ring-primary-600 dark:border-stone-600 dark:bg-stone-800 dark:checked:bg-primary-600">
+                                            <label for="idr_signatory_detailed"
+                                                class="ml-3 block text-sm font-medium leading-6 text-stone-900 dark:text-stone-100">
+                                                IDR (Detailed)
+                                                <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">
+                                                    Separate "Received by" and "Approved by" signatories.
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        @elseif ($reportFormat === 'by_employee')
+                            <flux:field>
+                                <flux:label for="idr_employee" required>Employee</flux:label>
+                                <flux:input id="idr_employee" type="text" placeholder="Search employee..." />
+                            </flux:field>
+                        @elseif($reportFormat === 'by_rsmi_number')
+                            <flux:field>
+                                <flux:label for="rsmi_number" required>RSMI Number</flux:label>
+                                <flux:input id="rsmi_number" type="text" placeholder="Enter RSMI number" />
+                            </flux:field>
                         @endif
-                    @endif
 
-                    @if ($reportType === 'idr' && in_array($reportFormat, ['summary']))
-                        <div class="text-sm text-stone-600 dark:text-stone-400">
-                            No additional parameters required for this report format.
-                        </div>
+                        @if ($reportFormat === 'summary')
+                            <div class="text-sm text-stone-600 dark:text-stone-400">
+                                No additional parameters required for this report format.
+                            </div>
+                        @endif
                     @endif
 
                     <div class="mt-4 border-t pt-4 dark:border-stone-700">
@@ -289,11 +358,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
 
         <div class="relative lg:col-span-2 print-area">
-            <div wire:loading wire:target="generatePreview"
-                class="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-stone-100/80 dark:bg-stone-900/80 print-hide">
-                <x-flux::icon.arrow-path class="h-8 w-8 animate-spin text-stone-500" />
-            </div>
-
             <div class="sticky top-8 h-fit">
                 <div class="flex items-center justify-between print-hide">
                     <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">
@@ -364,35 +428,123 @@ new #[Layout('components.layouts.app')] class extends Component {
                     "
                     class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
                     style="cursor: grab;">
-                    <div id="report-preview-content" class="origin-top space-y-8"
+                    <div id="report-preview-content" class="origin-top"
                         style="transform: scale({{ $this->zoom }});">
-                        @if ($this->isPreviewAvailable)
-                            @switch($reportType)
-                                @case('ics')
-                                    @if ($reportFormat === 'by_number')
-                                        @include('livewire.admin.main.reports.formats.ics.by-number')
-                                    @elseif($reportFormat === 'by_employee')
-                                        @include('livewire.admin.main.reports.formats.ics.by-employee')
-                                    @endif
-                                @break
+                        <div wire:loading.block wire:target="generatePreview">
+                            @if ($reportFormat === 'by_employee')
+                                {{-- Landscape Skeleton --}}
+                                <div
+                                    class="w-[1024px] aspect-[1.414/1] animate-pulse rounded-lg bg-stone-200 p-8 dark:bg-stone-800/50">
+                                    <div class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-1/3 mx-auto"></div>
+                                    <div class="mt-8 flex justify-between">
+                                        <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/3"></div>
+                                        <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/4"></div>
+                                    </div>
+                                    <div
+                                        class="mt-6 p-4 border-2 border-stone-300 dark:border-stone-700 rounded-md">
+                                        <div class="h-8 rounded bg-stone-300/50 dark:bg-stone-700/50"></div>
+                                        <div class="space-y-4 mt-4">
+                                            @for ($i = 0; $i < 5; $i++)
+                                                <div
+                                                    class="h-10 rounded bg-stone-300/50 dark:bg-stone-700/50">
+                                                </div>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    <div class="absolute bottom-8 left-8 right-8 flex justify-between">
+                                        <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/6"></div>
+                                        <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/6"></div>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Portrait Skeleton --}}
+                                <div
+                                    class="w-[724px] aspect-[1/1.414] animate-pulse rounded-lg bg-stone-200 p-8 dark:bg-stone-800/50">
+                                    <div class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-1/3 mx-auto"></div>
+                                    <div class="mt-8 flex justify-between">
+                                        <div class="space-y-2 w-1/2">
+                                            <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-3/4">
+                                            </div>
+                                            <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-full">
+                                            </div>
+                                            <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/2">
+                                            </div>
+                                        </div>
+                                        <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/4"></div>
+                                    </div>
+                                    <div
+                                        class="mt-6 border-2 border-stone-300 dark:border-stone-700 rounded-md">
+                                        <div class="h-64"></div>
+                                    </div>
+                                    <div class="mt-8 grid grid-cols-2 gap-16">
+                                        <div>
+                                            <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/4">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-10">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-6">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-6">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="h-4 rounded bg-stone-300 dark:bg-stone-700 w-1/4">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-10">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-6">
+                                            </div>
+                                            <div
+                                                class="h-6 rounded bg-stone-300 dark:bg-stone-700 w-full mt-6">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
 
-                                @case('par')
-                                    @if ($reportFormat === 'by_number')
-                                        @include('livewire.admin.main.reports.formats.par.by-number')
-                                    @elseif($reportFormat === 'by_employee')
-                                        @include('livewire.admin.main.reports.formats.par.by-employee')
-                                    @endif
-                                @break
+                        <div wire:loading.remove.block wire:target="generatePreview">
+                            @if ($previewGenerated && $this->isPreviewAvailable)
+                                @switch($reportType)
+                                    @case('ics')
+                                        @if ($reportFormat === 'by_number')
+                                            @include('livewire.admin.main.reports.formats.ics.by-number')
+                                        @elseif($reportFormat === 'by_employee')
+                                            @include('livewire.admin.main.reports.formats.ics.by-employee')
+                                        @endif
+                                    @break
 
-                                @case('idr')
-                                    @if ($reportFormat === 'batch')
-                                        @include('livewire.admin.main.reports.formats.idr.batch')
-                                    @endif
-                                @break
-                            @endswitch
-                        @else
-                            @include('livewire.admin.main.reports.formats.unavailable')
-                        @endif
+                                    @case('par')
+                                        @if ($reportFormat === 'by_number')
+                                            @include('livewire.admin.main.reports.formats.par.by-number')
+                                        @elseif($reportFormat === 'by_employee')
+                                            @include('livewire.admin.main.reports.formats.par.by-employee')
+                                        @endif
+                                    @break
+
+                                    @case('idr')
+                                        @if ($reportFormat === 'batch')
+                                            @if ($idrSignatoryStyle === 'default')
+                                                @include('livewire.admin.main.reports.formats.idr.batch-combined')
+                                            @else
+                                                @include('livewire.admin.main.reports.formats.idr.batch-detailed')
+                                            @endif
+                                        @elseif($reportFormat === 'by_employee')
+                                            @include('livewire.admin.main.reports.formats.idr.by-employee')
+                                        @elseif($reportFormat === 'by_rsmi_number')
+                                            @include('livewire.admin.main.reports.formats.idr.by-rsmi-number')
+                                        @endif
+                                        @break
+                                @endswitch
+                            @else
+                                @include('livewire.admin.main.reports.formats.unavailable')
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
