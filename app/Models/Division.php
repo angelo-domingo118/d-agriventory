@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Traits\ClearsDashboardCache;
 
 class Division extends Model
 {
-    use HasFactory;
+    use HasFactory, ClearsDashboardCache;
 
     /**
      * The attributes that are mass assignable.
@@ -22,11 +23,11 @@ class Division extends Model
     ];
 
     /**
-     * Get the inventory manager for this division.
+     * Get the inventory managers for this division.
      */
-    public function inventoryManager(): HasOne
+    public function inventoryManagers(): HasMany
     {
-        return $this->hasOne(DivisionInventoryManager::class);
+        return $this->hasMany(DivisionInventoryManager::class);
     }
 
     /**

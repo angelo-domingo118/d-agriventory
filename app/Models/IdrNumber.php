@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+use App\Models\Traits\ClearsDashboardCache;
 
 class IdrNumber extends Model
 {
-    use HasFactory;
+    use HasFactory, ClearsDashboardCache;
 
     /**
      * The table associated with the model.
@@ -96,5 +98,16 @@ class IdrNumber extends Model
     public function itemBatches(): HasMany
     {
         return $this->hasMany(IdrItemBatch::class);
+    }
+
+    /**
+     * Calculate the total value of all IDR items.
+     *
+     * @return float
+     */
+    public static function calculateTotalValue(): float
+    {
+        return (float) static::join('contract_items', 'idr_number.contract_item_id', '=', 'contract_items.id')
+            ->sum(DB::raw('idr_number.quantity * contract_items.unit_price'));
     }
 }

@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
+use App\Models\Traits\ClearsDashboardCache;
 
 class ParNumber extends Model
 {
-    use HasFactory;
+    use HasFactory, ClearsDashboardCache;
 
     /**
      * The table associated with the model.
@@ -85,5 +87,16 @@ class ParNumber extends Model
     public function latestTransfer(): HasOne
     {
         return $this->hasOne(ParTransfer::class, 'par_number_id')->latestOfMany();
+    }
+
+    /**
+     * Calculate the total value of all PAR items.
+     *
+     * @return float
+     */
+    public static function calculateTotalValue(): float
+    {
+        return (float) static::join('contract_items', 'par_number.contract_item_id', '=', 'contract_items.id')
+            ->sum(DB::raw('par_number.quantity * contract_items.unit_price'));
     }
 }

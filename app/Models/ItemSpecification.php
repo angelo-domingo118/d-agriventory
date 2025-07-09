@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ItemsCatalog;
+use App\Models\Traits\ClearsDashboardCache;
 
 class ItemSpecification extends Model
 {
-    use HasFactory;
+    use HasFactory, ClearsDashboardCache;
 
     /**
      * The attributes that are mass assignable.

@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
+use App\Models\Traits\ClearsDashboardCache;
 
 class IcsNumber extends Model
 {
-    use HasFactory;
+    use HasFactory, ClearsDashboardCache;
 
     /**
      * The table associated with the model.
@@ -90,5 +92,16 @@ class IcsNumber extends Model
     public function latestTransfer(): HasOne
     {
         return $this->hasOne(IcsTransfer::class)->latest('transfer_date');
+    }
+
+    /**
+     * Calculate the total value of all ICS items.
+     *
+     * @return float
+     */
+    public static function calculateTotalValue(): float
+    {
+        return (float) static::join('contract_items', 'ics_number.contract_item_id', '=', 'contract_items.id')
+            ->sum(DB::raw('ics_number.quantity * contract_items.unit_price'));
     }
 }
