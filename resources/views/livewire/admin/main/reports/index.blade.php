@@ -71,8 +71,37 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
+    <style>
+        @media print {
+            .print-hide {
+                display: none !important;
+            }
+
+            .print-area {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .print-area .print-scroll-container {
+                overflow: visible !important;
+                max-height: none !important;
+                border: none !important;
+                padding: 0 !important;
+                background: none !important;
+            }
+
+            .print-area #report-preview-content {
+                transform: scale(1.0) !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
     <div class="mt-8 grid grid-cols-1 gap-12 lg:grid-cols-3">
-        <div class="col-span-1 space-y-8">
+        <div class="col-span-1 space-y-8 print-hide">
             {{-- Report Types --}}
             <div class="space-y-4">
                 <h2 class="text-base font-semibold text-stone-900 dark:text-stone-100">Report Types</h2>
@@ -239,14 +268,14 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </div>
 
-        <div class="relative lg:col-span-2">
+        <div class="relative lg:col-span-2 print-area">
             <div wire:loading wire:target="generatePreview"
-                class="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-stone-100/80 dark:bg-stone-900/80">
+                class="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-stone-100/80 dark:bg-stone-900/80 print-hide">
                 <x-flux::icon.arrow-path class="h-8 w-8 animate-spin text-stone-500" />
             </div>
 
             <div class="sticky top-8 h-fit">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between print-hide">
                     <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">
                         Report Preview
                     </h2>
@@ -259,11 +288,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                         <div class="mx-2 h-6 w-px bg-stone-200 dark:bg-stone-700"></div>
 
-                        <flux:button variant="ghost" :disabled="!$this->isPreviewAvailable">
+                        <flux:button x-on:click.prevent="window.print()" variant="ghost" :disabled="!$this->isPreviewAvailable">
                             <x-flux::icon.arrow-down-tray class="-ml-1 h-5 w-5" />
                             Download to PDF
                         </flux:button>
-                        <flux:button variant="ghost" :disabled="!$this->isPreviewAvailable">
+                        <flux:button x-on:click.prevent="window.print()" variant="ghost" :disabled="!$this->isPreviewAvailable">
                             <x-flux::icon.printer class="-ml-1 h-5 w-5" />
                             Print
                         </flux:button>
@@ -301,7 +330,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             }
                         }
                     "
-                    class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50"
+                    class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
                     style="cursor: grab;">
                     <div id="report-preview-content" class="origin-top space-y-8"
                         style="transform: scale({{ $this->zoom }});">
