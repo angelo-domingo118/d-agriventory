@@ -1,3 +1,6 @@
+{{-- Placeholder for ICS Report Format (By Number) --}}
+{{-- This is not the proper format. Edit this file to implement the actual report layout. --}}
+
 @php
     $items_page1 = [
         ['inv_no' => 'SPHV - 0002 - 01 - 2025', 'serial' => '0750100024490016'],

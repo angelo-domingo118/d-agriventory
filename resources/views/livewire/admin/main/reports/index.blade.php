@@ -17,7 +17,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             'idr' => 'batch',
             default => '',
         };
-        $this->zoom = 1.0;
+        $this->resetZoom();
+    }
+
+    public function updatedReportFormat(): void
+    {
+        $this->resetZoom();
     }
 
     public function zoomIn(): void
@@ -36,7 +41,14 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function resetZoom(): void
     {
-        $this->zoom = 1.0;
+        if (
+            ($this->reportType === 'ics' && $this->reportFormat === 'by_employee') ||
+            ($this->reportType === 'par' && $this->reportFormat === 'by_employee')
+        ) {
+            $this->zoom = 0.7;
+        } else {
+            $this->zoom = 1.0;
+        }
     }
 
     public function generatePreview(): void
@@ -49,8 +61,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function isPreviewAvailable(): bool
     {
         $availableCombos = [
-            'ics' => ['by_number'],
-            'par' => ['by_number'],
+            'ics' => ['by_number', 'by_employee'],
+            'par' => ['by_number', 'by_employee'],
             'idr' => ['batch'],
         ];
 
@@ -288,12 +300,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @case('ics')
                                     @if ($reportFormat === 'by_number')
                                         @include('livewire.admin.main.reports.formats.ics.by-number')
+                                    @elseif($reportFormat === 'by_employee')
+                                        @include('livewire.admin.main.reports.formats.ics.by-employee')
                                     @endif
                                 @break
 
                                 @case('par')
                                     @if ($reportFormat === 'by_number')
                                         @include('livewire.admin.main.reports.formats.par.by-number')
+                                    @elseif($reportFormat === 'by_employee')
+                                        @include('livewire.admin.main.reports.formats.par.by-employee')
                                     @endif
                                 @break
 

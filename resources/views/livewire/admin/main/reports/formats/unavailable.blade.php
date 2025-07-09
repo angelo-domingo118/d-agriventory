@@ -1,3 +1,5 @@
+{{-- This partial is displayed when no report preview is available. --}}
+
 <div
     class="mx-auto w-[724px] aspect-[1/1.414] flex items-center justify-center rounded-lg border-2 border-dashed border-stone-300 dark:border-stone-700">
     <div class="text-center">
