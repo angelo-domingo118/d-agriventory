@@ -291,6 +291,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                         $el.scrollLeft = initialScrollLeft - dx;
                         $el.scrollTop = initialScrollTop - dy;
                     "
+                    @wheel="
+                        if ($event.ctrlKey) {
+                            $event.preventDefault();
+                            if ($event.deltaY < 0) {
+                                $wire.zoomIn();
+                            } else if ($event.deltaY > 0) {
+                                $wire.zoomOut();
+                            }
+                        }
+                    "
                     class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50"
                     style="cursor: grab;">
                     <div id="report-preview-content" class="origin-top space-y-8"
