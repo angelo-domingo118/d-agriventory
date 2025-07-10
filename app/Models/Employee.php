@@ -14,6 +14,13 @@ class Employee extends Model
     use HasFactory, SoftDeletes, ClearsDashboardCache;
 
     /**
+     * The Employee model represents a person in the organization.
+     *
+     * Note: This table is not for authentication. It represents a list of all
+     * personnel, regardless of whether they have an account to access the system.
+     */
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -23,16 +30,7 @@ class Employee extends Model
         'employee_number',
         'division_id',
         'position_id',
-        'user_id',
     ];
-
-    /**
-     * Get the user account associated with this employee.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     /**
      * Get the division that employs this employee.

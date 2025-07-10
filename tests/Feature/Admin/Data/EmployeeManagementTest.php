@@ -10,14 +10,12 @@ use App\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Hash;
 
 class EmployeeManagementTest extends TestCase
 {
     use RefreshDatabase;
 
     protected User $admin;
-    protected User $regularUser;
     protected Division $division;
     protected Position $position;
 
@@ -27,7 +25,6 @@ class EmployeeManagementTest extends TestCase
 
         $this->admin = User::factory()->create();
         AdminUser::factory()->admin()->create(['user_id' => $this->admin->id]);
-        $this->regularUser = User::factory()->create();
         $this->division = Division::factory()->create();
         $this->position = Position::factory()->create();
     }
@@ -39,7 +36,7 @@ class EmployeeManagementTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_admin_can_create_an_employee_without_user_account(): void
+    public function test_admin_can_create_an_employee(): void
     {
         $this->actingAs($this->admin);
 
@@ -48,35 +45,13 @@ class EmployeeManagementTest extends TestCase
             ->set('employee_number', '12345')
             ->set('position_id', $this->position->id)
             ->set('division_id', $this->division->id)
-            ->set('create_user_account', false)
             ->call('save')
             ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees']));
 
         $this->assertDatabaseHas('employees', [
             'name' => 'John Doe',
-            'user_id' => null,
+            'employee_number' => '12345',
         ]);
-    }
-
-    public function test_admin_can_create_an_employee_with_user_account(): void
-    {
-        $this->actingAs($this->admin);
-
-        Livewire::test('admin.data.employees-and-divisions.employees.create')
-            ->set('name', 'Jane Doe')
-            ->set('employee_number', '54321')
-            ->set('position_id', $this->position->id)
-            ->set('division_id', $this->division->id)
-            ->set('create_user_account', true)
-            ->set('username', 'janedoe')
-            ->set('email', 'jane@example.com')
-            ->set('password', 'password')
-            ->set('password_confirmation', 'password')
-            ->call('save')
-            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees']));
-
-        $this->assertDatabaseHas('employees', ['name' => 'Jane Doe']);
-        $this->assertDatabaseHas('users', ['email' => 'jane@example.com']);
     }
 
     public function test_admin_can_update_an_employee(): void

@@ -3,27 +3,24 @@
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Position;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
     public ?Employee $editing = null;
     public bool $showCreateModal = false;
-    
+
     // View and filter state
     public string $search = '';
     public bool $showFilters = false;
     public int $perPage = 10;
-    
+
     // Filter properties
     public ?int $filterPosition = null;
     public ?int $filterDivision = null;
@@ -32,20 +29,13 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
 
-    // For creating/editing user credentials
-    public string $username = '';
-    public string $email = '';
-    public string $password = '';
-    public string $password_confirmation = '';
-    public bool $create_user_account = false;
-
     public function mount()
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
     }
-    
+
     public function sortBy(string $column): void
     {
         if ($this->sortColumn === $column) {
@@ -60,7 +50,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->reset('filterPosition', 'filterDivision');
     }
-    
+
     public function updatedPerPage(): void
     {
         $this->resetPage();
@@ -75,7 +65,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function employees()
     {
-        return Employee::with(['user', 'position', 'division'])
+        return Employee::with(['position', 'division'])
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('employee_number', 'like', "%{$search}%")
@@ -103,70 +93,25 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function newEmployee(): void
     {
         $this->editing = new Employee();
-        $this->username = '';
-        $this->email = '';
-        $this->password = '';
-        $this->password_confirmation = '';
-        $this->create_user_account = false;
         $this->showCreateModal = true;
     }
 
     public function edit(Employee $employee): void
     {
         $this->editing = $employee;
-        $this->username = $employee->user?->username ?? '';
-        $this->email = $employee->user?->email ?? '';
-        $this->password = '';
-        $this->password_confirmation = '';
-        $this->create_user_account = $employee->user_id !== null;
         $this->showCreateModal = true;
     }
 
     public function save(): void
     {
-        $rules = [
+        $this->validate([
             'editing.name' => ['required', 'string', 'max:255'],
-            'editing.employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->editing->id)],
+            'editing.employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->editing?->id)],
             'editing.position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
             'editing.division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
-            'create_user_account' => ['boolean'],
-        ];
+        ]);
 
-        if ($this->create_user_account) {
-            $userId = $this->editing->user_id;
-            $rules = array_merge($rules, [
-                'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($userId)],
-                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-                'password' => [$userId ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
-            ]);
-        }
-
-        $this->validate($rules);
-
-        DB::transaction(function () {
-            $user = null;
-            if ($this->create_user_account) {
-                $userData = [
-                    'name' => $this->editing->name,
-                    'username' => $this->username,
-                    'email' => $this->email,
-                ];
-                if ($this->password) {
-                    $userData['password'] = Hash::make($this->password);
-                }
-
-                $user = User::updateOrCreate(
-                    ['id' => $this->editing->user_id],
-                    $userData
-                );
-                $this->editing->user_id = $user->id;
-            } elseif ($this->editing->user_id) {
-                // If checkbox is unchecked, disassociate user but don't delete
-                $this->editing->user_id = null;
-            }
-
-            $this->editing->save();
-        });
+        $this->editing->save();
 
         $this->showCreateModal = false;
         $this->dispatch('employee-saved');
@@ -183,7 +128,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="tableResizer('employees_widths', { name: 350, position: 250, division: 250, user_account: 150, actions: 100 })">
+<div x-data="tableResizer('employees_widths', { name: 350, position: 250, division: 250, actions: 100 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Employees
@@ -228,7 +173,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             <flux:button :href="route('admin.data.employees-and-divisions.employees.create')" variant="primary">New Employee</flux:button>
         </div>
     </div>
-    
+
     <div x-show="$wire.showFilters" x-collapse class="mt-4">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
              <div class="border-b border-stone-200 p-4 dark:border-stone-700">
@@ -263,7 +208,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @endif
         </div>
     </div>
-    
+
      <div class="mt-4 flex items-center justify-between">
         <div class="text-sm text-stone-600 dark:text-stone-400">
             @if ($this->employees->total() > 0)
@@ -322,12 +267,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'division')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.user_account}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div class="flex items-center">
-                                Has User Account
-                            </div>
-                            <div @mousedown="startResize($event, 'user_account')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
                         <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3">
                             <span class="sr-only">Edit</span>
                         </th>
@@ -346,26 +285,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
                                 {{ $employee->division?->name }}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
-                                @if($employee->user)
-                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/50 dark:text-green-300">
-                                        <x-flux::icon.check-circle class="-ml-0.5 mr-1.5 h-4 w-4" />
-                                        Yes
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-800 dark:bg-stone-700 dark:text-stone-200">
-                                        <x-flux::icon.x-circle class="-ml-0.5 mr-1.5 h-4 w-4" />
-                                        No
-                                    </span>
-                                @endif
-                            </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <flux:button :href="route('admin.data.employees-and-divisions.employees.edit', $employee)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                            <td colspan="4" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
                                 No employees found.
                             </td>
                         </tr>
@@ -384,48 +310,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         <flux:modal :show="$showCreateModal" max-width="2xl" @close="$set('showCreateModal', false)">
             <form wire:submit.prevent="save">
                 <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Employee
+                    {{ $editing->exists ? 'Edit Employee' : 'Create Employee' }}
                 </x-slot:title>
-
-                <div class="space-y-6 p-6">
-                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <flux:input wire:model="editing.name" label="Full Name" required />
-                        <flux:input wire:model="editing.employee_number" label="Employee Number" required />
-                        <flux:select wire:model="editing.position_id" label="Position" required>
-                            <option value="">Select a position</option>
-                            @foreach($this->positions as $position)
-                                <option value="{{ $position->id }}">{{ $position->title }}</option>
-                            @endforeach
-                        </flux:select>
-                        <flux:select wire:model="editing.division_id" label="Division/Office" required>
-                            <option value="">Select a division</option>
-                            @foreach($this->divisions as $division)
-                                <option value="{{ $division->id }}">{{ $division->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="relative">
-                      <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div class="w-full border-t border-stone-300 dark:border-stone-600"></div>
-                      </div>
-                      <div class="relative flex justify-center">
-                        <span class="bg-white px-3 text-base font-semibold leading-6 text-stone-900 dark:bg-stone-800 dark:text-stone-100">User Account</span>
-                      </div>
-                    </div>
-                    <div x-data="{ showCredentials: @entangle('create_user_account').live }" class="space-y-4">
-                        <flux:checkbox x-model="showCredentials" label="Create or link a user account for this employee" />
-
-                        <div x-show="showCredentials" x-collapse.duration.300ms>
-                            <div class="grid grid-cols-1 gap-6 rounded-md border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800/50 sm:grid-cols-2">
-                                <flux:input wire:model="username" label="Username" />
-                                <flux:input wire:model="email" label="Email Address" type="email" />
-                                <flux:input wire:model="password" label="Password" type="password" hint="{{ $editing->exists && $editing->user_id ? 'Leave blank to keep current password' : '' }}" />
-                                <flux:input wire:model="password_confirmation" label="Confirm Password" type="password" />
-                            </div>
-                        </div>
-                    </div>
+                <x-slot:description>
+                    {{ $editing->exists ? 'Update the details of the existing employee.' : 'Add a new employee to the records.' }}
+                </x-slot:description>
+                <div class="space-y-6">
+                    <flux:input wire:model="editing.name" label="Full Name" required />
+                    <flux:input wire:model="editing.employee_number" label="Employee Number" required />
+                    <flux:select wire:model="editing.position_id" label="Position" :options="$this->positions" placeholder="Select a position" option-value="id" option-label="title" required />
+                    <flux:select wire:model="editing.division_id" label="Division" :options="$this->divisions" placeholder="Select a division" option-value="id" option-label="name" required />
                 </div>
-
                 <x-slot:footer>
                     <div class="flex justify-end gap-x-4">
                         <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
@@ -435,7 +330,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </form>
         </flux:modal>
     @endif
-</div> 
+</div>
 
 <script>
     document.addEventListener('alpine:init', () => {
@@ -447,7 +342,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             init() {
                 const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 this.columnWidths = { ...defaultWidths, ...storedWidths };
-                
+
                 this.$root.addEventListener('reset-column-widths', () => {
                     this.columnWidths = { ...defaultWidths };
                     localStorage.removeItem(storageKey);

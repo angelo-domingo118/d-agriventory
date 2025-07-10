@@ -21,8 +21,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->idrNumber = $idrNumber->load([
-            'receivedBy.user',
-            'receivedFrom.user',
+            'receivedBy',
+            'receivedFrom',
             'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
             'itemBatches',
         ])->loadCount('itemBatches');
