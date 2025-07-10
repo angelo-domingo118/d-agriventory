@@ -134,6 +134,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'ics_number.date_prepared';
+        $this->sortDirection = 'desc';
+    }
+
     public function updatedPerPage(): void
     {
         $this->resetPage();
@@ -276,53 +282,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{
-    showFilters: @entangle('showFilters'),
-    defaultWidths: {
-        article: 400,
-        ics_details: 220,
-        doc_source: 300,
-        issued_to: 200,
-        actions: 120
-    },
-    columnWidths: {},
-    resetColumnWidths() {
-        this.columnWidths = { ...this.defaultWidths };
-        localStorage.removeItem('ics_column_widths');
-    },
-    resizingColumn: null,
-    startX: 0,
-    startWidth: 0,
-    startResize(event, column) {
-        this.resizingColumn = column;
-        this.startX = event.clientX;
-        this.startWidth = this.columnWidths[column];
-        event.preventDefault();
-
-        const mouseMoveHandler = (e) => {
-            if (!this.resizingColumn) return;
-            const diffX = e.clientX - this.startX;
-            const newWidth = this.startWidth + diffX;
-            if (newWidth > 40) { // min width 40px
-                this.columnWidths[this.resizingColumn] = newWidth;
-            }
-        };
-
-        const mouseUpHandler = () => {
-            if (!this.resizingColumn) return;
-            this.resizingColumn = null;
-            localStorage.setItem('ics_column_widths', JSON.stringify(this.columnWidths));
-            window.removeEventListener('mousemove', mouseMoveHandler);
-            window.removeEventListener('mouseup', mouseUpHandler);
-        };
-
-        window.addEventListener('mousemove', mouseMoveHandler);
-        window.addEventListener('mouseup', mouseUpHandler);
-    }
-}" x-init="
-    const storedWidths = JSON.parse(localStorage.getItem('ics_column_widths') || '{}');
-    columnWidths = { ...defaultWidths, ...storedWidths };
-">
+<div x-data="tableResizer('ics_column_widths', { article: 400, ics_details: 220, doc_source: 300, issued_to: 200, actions: 120 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             ICS Management
@@ -414,15 +374,27 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                     </div>
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button
-                            variant="ghost"
-                            x-on:click="resetColumnWidths()"
-                            class="w-full justify-center"
-                        >
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="mt-2 space-y-2">
+                            <flux:button
+                                variant="ghost"
+                                x-on:click="$dispatch('reset-column-widths')"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="ghost"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <span class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    <span>Reset Sort Order</span>
+                                </span>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -436,7 +408,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </flux:button>
             <flux:button
                 variant="outline"
-                x-on:click="showFilters = !showFilters"
+                x-on:click="$wire.showFilters = !$wire.showFilters"
                 class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif"
             >
                 <x-flux::icon.filter class="h-5 w-5"/>
@@ -450,7 +422,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div x-show="showFilters" x-collapse class="mt-4">
+    <div x-show="$wire.showFilters" x-collapse class="mt-4">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <div class="border-b border-stone-200 p-4 dark:border-stone-700">
                 <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
@@ -458,19 +430,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="p-4">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-6">
                     <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." />
+                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
                     </div>
                     <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / Component" placeholder="Search serial numbers..." />
+                        <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / Component" placeholder="Search serial numbers..." clearable />
                     </div>
                     <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. SPLV-123-07-2024" />
+                        <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. SPLV-123-07-2024" clearable />
                     </div>
                     <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO Number" placeholder="Search contract number..." />
+                        <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO Number" placeholder="Search contract number..." clearable />
                     </div>
                     <div class="sm:col-span-6">
-                        <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." />
+                        <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." clearable />
                     </div>
 
                     <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
@@ -546,11 +518,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search anything..."
-            >
-                <x-slot:leading>
-                    <x-flux::icon.search class="size-5 text-stone-400" />
-                </x-slot:leading>
-            </flux:input>
+                clearable
+                icon="magnifying-glass"
+            ></flux:input>
         </div>
     </div>
 
@@ -1087,3 +1057,49 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{ $this->icsNumbers->links() }}
     </div>
 </div> 
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 40) { // min width 40px
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+    });
+</script> 

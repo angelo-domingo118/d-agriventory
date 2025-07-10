@@ -216,11 +216,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search anything..."
-            >
-                <x-slot:leading>
-                    <x-flux::icon.search class="size-5 text-stone-400" />
-                </x-slot:leading>
-            </flux:input>
+                icon="magnifying-glass"
+                clearable
+            />
         </div>
     </div>
 
@@ -262,8 +260,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3">
-                            <span class="sr-only">Edit</span>
+                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            Actions
                         </th>
                     </tr>
                 </thead>
@@ -274,7 +272,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->primaryCategory?->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <flux:button :href="route('admin.data.items-and-categories.secondary-categories.edit', $category)" variant="ghost" class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">Edit</flux:button>
+                                <a href="{{ route('admin.data.items-and-categories.secondary-categories.edit', $category) }}" wire:navigate
+                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                   Edit
+                                </a>
                             </td>
                         </tr>
                     @empty

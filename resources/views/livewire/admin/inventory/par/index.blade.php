@@ -528,11 +528,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             <flux:input
                 wire:model.live.debounce.300ms="search"
                 placeholder="Search anything..."
-            >
-                <x-slot:leading>
-                    <x-flux::icon.search class="size-5 text-stone-400" />
-                </x-slot:leading>
-            </flux:input>
+                icon="magnifying-glass"
+                clearable
+            />
         </div>
     </div>
 
