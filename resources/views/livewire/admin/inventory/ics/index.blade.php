@@ -52,6 +52,32 @@ new #[Layout('components.layouts.app')] class extends Component {
         return $this->filterIcsType || $this->filterDateFrom || $this->filterDateTo || $this->filterEmployeeId || $this->filterSupplierId || $this->filterLifeMin || $this->filterLifeMax || $this->filterPriceMin || $this->filterPriceMax || $this->filterDateType !== 'prepared' || $this->filterArticle || $this->filterSerialNumber || $this->filterContract || $this->filterRemarks || $this->filterInventoryNumber;
     }
 
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        $filters = [
+            $this->filterIcsType,
+            $this->filterDateFrom,
+            $this->filterDateTo,
+            $this->filterEmployeeId,
+            $this->filterSupplierId,
+            $this->filterLifeMin,
+            $this->filterLifeMax,
+            $this->filterPriceMin,
+            $this->filterPriceMax,
+            $this->filterArticle,
+            $this->filterSerialNumber,
+            $this->filterContract,
+            $this->filterRemarks,
+            $this->filterInventoryNumber,
+        ];
+
+        // Special case for date type, as 'prepared' is the default
+        $count = $this->filterDateType !== 'prepared' ? 1 : 0;
+
+        return $count + collect($filters)->filter()->count();
+    }
+
     public array $headers = [
         'Article & Description',
         'ICS Details',
@@ -421,205 +447,222 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div x-show="$wire.showFilters" x-collapse class="mt-4">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <div class="border-b border-stone-200 p-4 dark:border-stone-700">
-                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
-            </div>
-            <div class="p-4">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-6">
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / Component" placeholder="Search serial numbers..." clearable />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. SPLV-123-07-2024" clearable />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO Number" placeholder="Search contract number..." clearable />
-                    </div>
-                    <div class="sm:col-span-6">
-                        <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." clearable />
-                    </div>
-
-                    <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
-
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterIcsType" label="ICS Type">
-                            <option value="">Any Type</option>
-                            <option value="SPLV">SPLV</option>
-                            <option value="SPHV">SPHV</option>
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterEmployeeId" label="Issued To">
-                            <option value="">Any Employee</option>
-                            @foreach($this->employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterSupplierId" label="Supplier">
-                            <option value="">Any Supplier</option>
-                            @foreach($this->suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterDateType" label="Date Type">
-                            <option value="prepared">Prepared Date</option>
-                            <option value="accepted">Accepted Date</option>
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live="filterDateFrom" type="date" label="Date From" />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live="filterDateTo" type="date" label="Date To" />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Useful Life (Years)</label>
-                        <div class="mt-1 grid grid-cols-2 gap-x-2">
-                            <flux:input wire:model.live="filterLifeMin" type="number" placeholder="Min" />
-                            <flux:input wire:model.live="filterLifeMax" type="number" placeholder="Max" />
-                        </div>
-                    </div>
-                    <div class="sm:col-span-3">
-                        <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost (₱)</label>
-                        <div class="mt-1 grid grid-cols-2 gap-x-2">
-                            <flux:input wire:model.live.debounce.500ms="filterPriceMin" type="number" placeholder="Min" />
-                            <flux:input wire:model.live.debounce.500ms="filterPriceMax" type="number" placeholder="Max" />
-                        </div>
-                    </div>
+    <div class="mt-4 flex items-start gap-x-6">
+        <div class="min-w-0 flex-1 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-stone-600 dark:text-stone-400">
+                    @if ($this->groupBy === 'employee')
+                        @if ($this->icsNumbers->total() > 0)
+                            <span>Showing employee groups {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong>.</span>
+                        @else
+                            <span>No results found.</span>
+                        @endif
+                    @elseif ($this->icsNumbers->total() > 0)
+                        <span>Showing {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong> results.</span>
+                    @else
+                        <span>No results found.</span>
+                    @endif
+                </div>
+                <div class="w-full max-w-xs">
+                    <flux:input
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="Search anything..."
+                        clearable
+                        icon="magnifying-glass"
+                    ></flux:input>
                 </div>
             </div>
-            <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
-                <flux:button variant="ghost" wire:click="resetFilters">
-                    Reset Filters
-                </flux:button>
-            </div>
-        </div>
-    </div>
 
-    <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-stone-600 dark:text-stone-400">
-            @if ($this->groupBy === 'employee')
-                @if ($this->icsNumbers->total() > 0)
-                    <span>Showing employee groups {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong>.</span>
+            <div class="flow-root">
+                @php
+                    $densityClasses = [
+                        'table_header' => match($density) {
+                            'compact' => 'py-2 pl-4 pr-3 sm:pl-6',
+                            'comfortable' => 'py-2.5 pl-4 pr-3 sm:pl-6',
+                            default => 'py-3.5 pl-4 pr-3 sm:pl-6',
+                        },
+                        'table_cell' => match($density) {
+                            'compact' => 'py-2 pl-4 pr-3 sm:pl-6',
+                            'comfortable' => 'py-3 pl-4 pr-3 sm:pl-6',
+                            default => 'py-4 pl-4 pr-3 sm:pl-6',
+                        },
+                        'table_cell_px' => match($density) {
+                            'compact' => 'px-2 py-2',
+                            'comfortable' => 'px-3 py-3',
+                            default => 'px-3 py-4',
+                        },
+                        'card_container' => match($density) {
+                            'compact' => 'gap-4',
+                            'comfortable' => 'gap-6',
+                            default => 'gap-6',
+                        },
+                        'card_padding' => match($density) {
+                            'compact' => 'p-4',
+                            'comfortable' => 'p-5',
+                            default => 'p-6',
+                        },
+                         'card_footer_padding' => match($density) {
+                            'compact' => 'p-3',
+                            'comfortable' => 'p-4',
+                            default => 'p-4',
+                        },
+                        // Font sizes
+                        'text_header' => match($density) {
+                            'compact' => 'text-xs',
+                            default => 'text-sm',
+                        },
+                        'text_base' => match($density) {
+                            'compact' => 'text-xs',
+                            default => 'text-sm',
+                        },
+                        'text_meta' => match($density) {
+                            'compact' => 'text-xs',
+                            default => 'text-xs',
+                        },
+                        // Visibility
+                        'show_secondary' => match($density) {
+                            'compact' => false,
+                            default => true,
+                        },
+                        'show_tertiary' => match($density) {
+                            'compact' => false,
+                            'comfortable' => false,
+                            default => true,
+                        },
+                    ];
+                @endphp
+
+                @if($this->groupBy === 'employee')
+                    <div class="space-y-4" wire:key="search-{{ $this->search }}">
+                        @forelse ($this->icsNumbers as $employeeId => $items)
+                            @php
+                                $employee = $items->first()->assignedEmployee;
+                                $employeeName = $employeeId === 'unassigned' ? 'Unassigned Items' : ($employee->name ?? 'Unknown Employee');
+
+                                // When a search is active, a group is open if it contains results.
+                                // Otherwise, fall back to the default state (first few are open).
+                                $isOpen = !empty($this->search)
+                                    ? in_array($employeeId, $this->openGroups)
+                                    : ($this->icsNumbers->count() <= 3 || $employeeId === 'unassigned');
+                            @endphp
+                            <div x-data="{ open: {{ $isOpen ? 'true' : 'false' }} }" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+                                <div @click="open = !open" class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                    <div>
+                                        <h3 class="font-semibold text-stone-900 dark:text-stone-100 lg:text-lg">{!! \App\Helpers\TextHelper::highlight($employeeName, $this->search) !!}</h3>
+                                        @if($employee)
+                                        <p class="text-sm text-stone-500">{{ $employee->division->name ?? 'No division' }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex items-center gap-x-4">
+                                        <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
+                                        <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
+                                    </div>
+                                </div>
+                                <div x-show="open" x-collapse style="display: none;">
+                                     @if ($this->viewMode === 'table')
+                                        <div class="overflow-x-auto">
+                                            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                                                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                                                    @foreach($items as $ics)
+                                                        <x-admin.inventory.ics.table-row
+                                                            :ics="$ics"
+                                                            :densityClasses="$densityClasses"
+                                                            :search="$this->search"
+                                                            :filterArticle="$this->filterArticle"
+                                                            :filterSerialNumber="$this->filterSerialNumber"
+                                                            :filterContract="$this->filterContract"
+                                                            :filterRemarks="$this->filterRemarks"
+                                                            :filterInventoryNumber="$this->filterInventoryNumber"
+                                                            :show-issued-to="true"
+                                                        />
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @elseif ($this->viewMode === 'card')
+                                        <div class="border-t border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800/50">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 {{ $densityClasses['card_container'] }}">
+                                                @foreach($items as $ics)
+                                                    <x-admin.inventory.ics.card
+                                                        :ics="$ics"
+                                                        :densityClasses="$densityClasses"
+                                                        :search="$this->search"
+                                                        :filterArticle="$this->filterArticle"
+                                                        :filterSerialNumber="$this->filterSerialNumber"
+                                                    />
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
+                                 <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
+                                <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No ICS records found matching your criteria.</p>
+                            </div>
+                        @endforelse
+                    </div>
                 @else
-                    <span>No results found.</span>
-                @endif
-            @elseif ($this->icsNumbers->total() > 0)
-                <span>Showing {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong> results.</span>
-            @else
-                <span>No results found.</span>
-            @endif
-        </div>
-        <div class="w-full max-w-xs">
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                placeholder="Search anything..."
-                clearable
-                icon="magnifying-glass"
-            ></flux:input>
-        </div>
-    </div>
-
-    <div class="mt-6 flow-root">
-        @php
-            $densityClasses = [
-                'table_header' => match($density) {
-                    'compact' => 'py-2 pl-4 pr-3 sm:pl-6',
-                    'comfortable' => 'py-2.5 pl-4 pr-3 sm:pl-6',
-                    default => 'py-3.5 pl-4 pr-3 sm:pl-6',
-                },
-                'table_cell' => match($density) {
-                    'compact' => 'py-2 pl-4 pr-3 sm:pl-6',
-                    'comfortable' => 'py-3 pl-4 pr-3 sm:pl-6',
-                    default => 'py-4 pl-4 pr-3 sm:pl-6',
-                },
-                'table_cell_px' => match($density) {
-                    'compact' => 'px-2 py-2',
-                    'comfortable' => 'px-3 py-3',
-                    default => 'px-3 py-4',
-                },
-                'card_container' => match($density) {
-                    'compact' => 'gap-4',
-                    'comfortable' => 'gap-6',
-                    default => 'gap-6',
-                },
-                'card_padding' => match($density) {
-                    'compact' => 'p-4',
-                    'comfortable' => 'p-5',
-                    default => 'p-6',
-                },
-                 'card_footer_padding' => match($density) {
-                    'compact' => 'p-3',
-                    'comfortable' => 'p-4',
-                    default => 'p-4',
-                },
-                // Font sizes
-                'text_header' => match($density) {
-                    'compact' => 'text-xs',
-                    default => 'text-sm',
-                },
-                'text_base' => match($density) {
-                    'compact' => 'text-xs',
-                    default => 'text-sm',
-                },
-                'text_meta' => match($density) {
-                    'compact' => 'text-xs',
-                    default => 'text-xs',
-                },
-                // Visibility
-                'show_secondary' => match($density) {
-                    'compact' => false,
-                    default => true,
-                },
-                'show_tertiary' => match($density) {
-                    'compact' => false,
-                    'comfortable' => false,
-                    default => true,
-                },
-            ];
-        @endphp
-
-        @if($this->groupBy === 'employee')
-            <div class="space-y-4" wire:key="search-{{ $this->search }}">
-                @forelse ($this->icsNumbers as $employeeId => $items)
-                    @php
-                        $employee = $items->first()->assignedEmployee;
-                        $employeeName = $employeeId === 'unassigned' ? 'Unassigned Items' : ($employee->name ?? 'Unknown Employee');
-
-                        // When a search is active, a group is open if it contains results.
-                        // Otherwise, fall back to the default state (first few are open).
-                        $isOpen = !empty($this->search)
-                            ? in_array($employeeId, $this->openGroups)
-                            : ($this->icsNumbers->count() <= 3 || $employeeId === 'unassigned');
-                    @endphp
-                    <div x-data="{ open: {{ $isOpen ? 'true' : 'false' }} }" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-                        <div @click="open = !open" class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <div>
-                                <h3 class="font-semibold text-stone-900 dark:text-stone-100 lg:text-lg">{!! \App\Helpers\TextHelper::highlight($employeeName, $this->search) !!}</h3>
-                                @if($employee)
-                                <p class="text-sm text-stone-500">{{ $employee->division->name ?? 'No division' }}</p>
-                                @endif
-                            </div>
-                            <div class="flex items-center gap-x-4">
-                                <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
-                                <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
-                            </div>
-                        </div>
-                        <div x-show="open" x-collapse style="display: none;">
-                             @if ($this->viewMode === 'table')
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-                                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                                            @foreach($items as $ics)
+                    @if ($this->viewMode === 'table')
+                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                            <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
+                                <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
+                                    <thead class="bg-stone-50 dark:bg-stone-800">
+                                        <tr>
+                                            <th scope="col" :style="`width: ${columnWidths.article}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                                <div wire:click="sortBy('items_catalog.name')" class="flex items-center cursor-pointer">
+                                                    Article & Description
+                                                    @if($sortColumn === 'items_catalog.name')
+                                                        @if($sortDirection === 'asc')
+                                                            <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                                        @else
+                                                            <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                                        @endif
+                                                    @else
+                                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                                    @endif
+                                                </div>
+                                                <div @mousedown="startResize($event, 'article')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                            </th>
+                                            <th scope="col" :style="`width: ${columnWidths.ics_details}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                                <div wire:click="sortBy('ics_number.ics_number')" class="flex items-center cursor-pointer">
+                                                    ICS Details
+                                                    @if($sortColumn === 'ics_number.ics_number')
+                                                        @if($sortDirection === 'asc')
+                                                            <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                                        @else
+                                                            <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                                        @endif
+                                                    @else
+                                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                                    @endif
+                                                </div>
+                                                <div @mousedown="startResize($event, 'ics_details')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                            </th>
+                                            <th scope="col" :style="`width: ${columnWidths.doc_source}px`" class="relative hidden {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100 lg:table-cell">
+                                                <div wire:click="sortBy('suppliers.name')" class="flex items-center cursor-pointer">
+                                                    Document Source
+                                                    @if($sortColumn === 'suppliers.name')
+                                                        @if($sortDirection === 'asc')
+                                                            <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                                        @else
+                                                            <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                                        @endif
+                                                    @else
+                                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                                    @endif
+                                                </div>
+                                                <div @mousedown="startResize($event, 'doc_source')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                            </th>
+                                            <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} pl-3 pr-4 sm:pr-6 text-right {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                                         @forelse ($this->icsNumbers as $ics)
                                                 <x-admin.inventory.ics.table-row
                                                     :ics="$ics"
                                                     :densityClasses="$densityClasses"
@@ -629,145 +672,147 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     :filterContract="$this->filterContract"
                                                     :filterRemarks="$this->filterRemarks"
                                                     :filterInventoryNumber="$this->filterInventoryNumber"
-                                                    :show-issued-to="true"
+                                                    :show-issued-to="false"
                                                 />
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @elseif ($this->viewMode === 'card')
-                                <div class="border-t border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800/50">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 {{ $densityClasses['card_container'] }}">
-                                        @foreach($items as $ics)
-                                            <x-admin.inventory.ics.card
-                                                :ics="$ics"
-                                                :densityClasses="$densityClasses"
-                                                :search="$this->search"
-                                                :filterArticle="$this->filterArticle"
-                                                :filterSerialNumber="$this->filterSerialNumber"
-                                            />
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                                    No ICS records found matching your criteria.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                @empty
-                    <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
-                         <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
-                        <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No ICS records found matching your criteria.</p>
+                    @elseif ($this->viewMode === 'card')
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $densityClasses['card_container'] }}">
+                        @forelse ($this->icsNumbers as $ics)
+                                <x-admin.inventory.ics.card
+                                    :ics="$ics"
+                                    :densityClasses="$densityClasses"
+                                    :search="$this->search"
+                                    :filterArticle="$this->filterArticle"
+                                    :filterSerialNumber="$this->filterSerialNumber"
+                                />
+                        @empty
+                            <div class="sm:col-span-2 lg:col-span-3">
+                                <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
+                                     <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
+                                    <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No ICS records found matching your criteria.</p>
+                                </div>
+                            </div>
+                        @endforelse
                     </div>
-                @endforelse
+                                                @endif
+                @endif
             </div>
-        @else
-            @if ($this->viewMode === 'table')
-            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
-                        <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
-                            <thead class="bg-stone-50 dark:bg-stone-800">
-                                <tr>
-                                    <th scope="col" :style="`width: ${columnWidths.article}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                        <div wire:click="sortBy('items_catalog.name')" class="flex items-center cursor-pointer">
-                                            Article & Description
-                                            @if($sortColumn === 'items_catalog.name')
-                                                @if($sortDirection === 'asc')
-                                                    <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
-                                                @else
-                                                    <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
-                                                @endif
-                                            @else
-                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                            @endif
-                                        </div>
-                                        <div @mousedown="startResize($event, 'article')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                    </th>
-                                    <th scope="col" :style="`width: ${columnWidths.ics_details}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                        <div wire:click="sortBy('ics_number.ics_number')" class="flex items-center cursor-pointer">
-                                            ICS Details
-                                            @if($sortColumn === 'ics_number.ics_number')
-                                                @if($sortDirection === 'asc')
-                                                    <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
-                                                @else
-                                                    <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
-                                                @endif
-                                            @else
-                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                            @endif
-                                        </div>
-                                        <div @mousedown="startResize($event, 'ics_details')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                    </th>
-                                    <th scope="col" :style="`width: ${columnWidths.doc_source}px`" class="relative hidden {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100 lg:table-cell">
-                                        <div wire:click="sortBy('suppliers.name')" class="flex items-center cursor-pointer">
-                                            Document Source
-                                            @if($sortColumn === 'suppliers.name')
-                                                @if($sortDirection === 'asc')
-                                                    <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
-                                                @else
-                                                    <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
-                                                @endif
-                                            @else
-                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                            @endif
-                                        </div>
-                                        <div @mousedown="startResize($event, 'doc_source')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                    </th>
-                                    <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} pl-3 pr-4 sm:pr-6 text-right {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                                 @forelse ($this->icsNumbers as $ics)
-                                        <x-admin.inventory.ics.table-row
-                                            :ics="$ics"
-                                            :densityClasses="$densityClasses"
-                                            :search="$this->search"
-                                            :filterArticle="$this->filterArticle"
-                                            :filterSerialNumber="$this->filterSerialNumber"
-                                            :filterContract="$this->filterContract"
-                                            :filterRemarks="$this->filterRemarks"
-                                            :filterInventoryNumber="$this->filterInventoryNumber"
-                                            :show-issued-to="false"
-                                        />
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
-                                            No ICS records found matching your criteria.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+
+            <div class="mt-4">
+                {{ $this->icsNumbers->links() }}
+            </div>
+        </div>
+
+        <aside
+            x-show="$wire.showFilters"
+            x-transition
+            x-cloak
+            class="w-96 flex-shrink-0"
+        >
+            <div class="space-y-4 rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="flex items-center justify-between border-b border-stone-200 p-4 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
+                    @if ($this->activeFiltersCount() > 0)
+                        <flux:button
+                            variant="ghost"
+                            wire:click="resetFilters"
+                        >
+                            Reset ({{ $this->activeFiltersCount() }})
+                        </flux:button>
+                    @endif
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / Component" placeholder="Search serial numbers..." clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. SPLV-123" clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO" placeholder="Search contract..." clearable />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." clearable />
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-1">
+                            <flux:select wire:model.live="filterIcsType" label="ICS Type">
+                                <option value="">Any Type</option>
+                                <option value="SPLV">SPLV</option>
+                                <option value="SPHV">SPHV</option>
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-1">
+                             <flux:select wire:model.live="filterSupplierId" label="Supplier">
+                                <option value="">Any Supplier</option>
+                                @foreach($this->suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                         <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterEmployeeId" label="Issued To">
+                                <option value="">Any Employee</option>
+                                @foreach($this->employees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterDateType" label="Date Type">
+                                <option value="prepared">Prepared Date</option>
+                                <option value="accepted">Accepted Date</option>
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live="filterDateFrom" type="date" label="Date From" />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live="filterDateTo" type="date" label="Date To" />
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Useful Life</label>
+                            <div class="mt-1 grid grid-cols-2 gap-x-2">
+                                <flux:input wire:model.live="filterLifeMin" type="number" placeholder="Min" />
+                                <flux:input wire:model.live="filterLifeMax" type="number" placeholder="Max" />
+                            </div>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost (₱)</label>
+                            <div class="mt-1 grid grid-cols-2 gap-x-2">
+                                <flux:input wire:model.live.debounce.500ms="filterPriceMin" type="number" placeholder="Min" />
+                                <flux:input wire:model.live.debounce.500ms="filterPriceMax" type="number" placeholder="Max" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            @elseif ($this->viewMode === 'card')
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $densityClasses['card_container'] }}">
-                @forelse ($this->icsNumbers as $ics)
-                        <x-admin.inventory.ics.card
-                            :ics="$ics"
-                            :densityClasses="$densityClasses"
-                            :search="$this->search"
-                            :filterArticle="$this->filterArticle"
-                            :filterSerialNumber="$this->filterSerialNumber"
-                        />
-                @empty
-                    <div class="sm:col-span-2 lg:col-span-3">
-                        <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
-                             <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
-                            <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No ICS records found matching your criteria.</p>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
-                                        @endif
-        @endif
+        </aside>
     </div>
-    <div class="mt-4">
-        {{ $this->icsNumbers->links() }}
-    </div>
-</div> 
+</div>
 
 <script>
     document.addEventListener('alpine:init', () => {
