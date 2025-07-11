@@ -221,9 +221,9 @@ class EmployeeSeeder extends Seeder
             if (count($parts) >= 2) {
                 $lastName = array_shift($parts); // Get the last name
                 $firstNameAndSuffix = implode(', ', $parts); // Re-join the first name and any suffixes
-                $formattedName = trim($firstNameAndSuffix) . ' ' . trim($lastName);
+                $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
 
-                $employeeNumber = 'EMP-' . str_pad((string)$employeeNumberCounter++, 4, '0', STR_PAD_LEFT);
+                $employeeNumber = 'EMP-'.str_pad((string) $employeeNumberCounter++, 4, '0', STR_PAD_LEFT);
 
                 Employee::firstOrCreate(
                     ['name' => $formattedName],

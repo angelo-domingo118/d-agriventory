@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::table('par_number', function (Blueprint $table) {
             $table->index(['assigned_employee_id', 'date_prepared']);
-            if (!App::environment('testing')) {
+            if (! App::environment('testing')) {
                 $table->fullText('remarks');
             }
         });
@@ -39,7 +39,7 @@ return new class extends Migration
     {
         Schema::table('par_number', function (Blueprint $table) {
             $table->dropIndex(['assigned_employee_id', 'date_prepared']);
-            if (!App::environment('testing')) {
+            if (! App::environment('testing')) {
                 $table->dropFullText('remarks');
             }
         });

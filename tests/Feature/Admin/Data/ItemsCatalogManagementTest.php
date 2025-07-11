@@ -3,9 +3,9 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
 use App\Models\ItemsCatalog;
 use App\Models\SecondaryCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,6 +15,7 @@ class ItemsCatalogManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected SecondaryCategory $category;
 
     protected function setUp(): void

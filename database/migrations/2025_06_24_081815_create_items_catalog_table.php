@@ -22,8 +22,8 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index('unit');
-            
-            if (!App::environment('testing')) {
+
+            if (! App::environment('testing')) {
                 $table->fullText('name');
             }
         });

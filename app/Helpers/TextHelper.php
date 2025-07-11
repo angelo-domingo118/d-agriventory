@@ -36,7 +36,7 @@ class TextHelper
 
         foreach ($terms as $term) {
             $escapedTerm = htmlspecialchars($term, ENT_QUOTES, 'UTF-8');
-            $replacement = '<mark class="rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-700/50">' . $escapedTerm . '</mark>';
+            $replacement = '<mark class="rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-700/50">'.$escapedTerm.'</mark>';
             $escapedText = str_ireplace(
                 $escapedTerm,
                 $replacement,

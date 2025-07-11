@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
-use App\Models\Traits\ClearsDashboardCache;
 
 class IcsNumber extends Model
 {
-    use HasFactory, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory;
 
     /**
      * The table associated with the model.
@@ -96,8 +96,6 @@ class IcsNumber extends Model
 
     /**
      * Calculate the total value of all ICS items.
-     *
-     * @return float
      */
     public static function calculateTotalValue(): float
     {

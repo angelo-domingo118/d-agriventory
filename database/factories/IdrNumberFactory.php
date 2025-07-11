@@ -4,9 +4,9 @@ namespace Database\Factories;
 
 use App\Models\ContractItem;
 use App\Models\Employee;
+use App\Models\IdrItemBatch;
 use App\Models\IdrNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\IdrItemBatch;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\IdrNumber>
@@ -57,4 +57,4 @@ class IdrNumberFactory extends Factory
             ]);
         });
     }
-} 
+}

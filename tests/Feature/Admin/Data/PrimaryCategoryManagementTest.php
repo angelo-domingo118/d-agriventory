@@ -3,9 +3,9 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
 use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -70,7 +70,7 @@ class PrimaryCategoryManagementTest extends TestCase
 
         Livewire::test('admin.data.items-and-categories.primary-categories.edit', ['category' => $category])
             ->call('delete');
-        
+
         $this->assertDatabaseHas('primary_categories', ['id' => $category->id]);
     }
-} 
+}

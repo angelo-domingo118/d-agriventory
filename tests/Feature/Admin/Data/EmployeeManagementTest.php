@@ -3,10 +3,10 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
-use App\Models\Employee;
 use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Position;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,7 +16,9 @@ class EmployeeManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected Division $division;
+
     protected Position $position;
 
     protected function setUp(): void
@@ -84,4 +86,4 @@ class EmployeeManagementTest extends TestCase
 
         $this->assertSoftDeleted('employees', ['id' => $employee->id]);
     }
-} 
+}

@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Traits\ClearsDashboardCache;
 
 class ContractItem extends Model
 {
-    use HasFactory, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory;
 
     /**
      * The attributes that are mass assignable.

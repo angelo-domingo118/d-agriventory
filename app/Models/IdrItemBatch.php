@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class IdrItemBatch extends Model
 {
     use HasFactory;
-    
+
     /**
      * The table associated with the model.
      *

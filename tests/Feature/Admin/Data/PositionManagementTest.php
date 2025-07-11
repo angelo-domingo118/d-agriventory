@@ -3,9 +3,9 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
-use App\Models\Position;
 use App\Models\Employee;
+use App\Models\Position;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,6 +15,7 @@ class PositionManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $regularUser;
 
     protected function setUp(): void
@@ -103,4 +104,4 @@ class PositionManagementTest extends TestCase
 
         $this->assertDatabaseHas('positions', ['id' => $position->id]);
     }
-} 
+}

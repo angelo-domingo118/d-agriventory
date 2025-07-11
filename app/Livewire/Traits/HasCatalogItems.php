@@ -28,4 +28,4 @@ trait HasCatalogItems
                 });
         });
     }
-} 
+}

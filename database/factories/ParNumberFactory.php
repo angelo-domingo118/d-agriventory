@@ -41,4 +41,4 @@ class ParNumberFactory extends Factory
             'date_acquired' => now(),
         ];
     }
-} 
+}

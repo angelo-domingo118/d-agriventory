@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Traits\ClearsDashboardCache;
 
 class PrimaryCategory extends Model
 {
-    use HasFactory, SoftDeletes, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.

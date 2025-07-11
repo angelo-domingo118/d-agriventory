@@ -8,7 +8,6 @@ use App\Models\ContractItem;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\IdrNumber;
-use App\Models\IdrItemBatch;
 use App\Models\ItemsCatalog;
 use App\Models\ItemSpecification;
 use App\Models\Position;
@@ -26,10 +25,15 @@ class IdrManagementTest extends TestCase
     use RefreshDatabase;
 
     private User $adminUser;
+
     private User $nonAdminUser;
+
     private Employee $employee1;
+
     private Employee $employee2;
+
     private ContractItem $contractItem1;
+
     private ContractItem $contractItem2;
 
     protected function setUp(): void
@@ -66,7 +70,7 @@ class IdrManagementTest extends TestCase
             'contract_item_id' => $this->contractItem1->id,
         ]);
         IdrNumber::factory()->create([
-             'number' => '2024-01-0002',
+            'number' => '2024-01-0002',
             'assigned_employee_id' => $this->employee2->id,
             'approving_employee_id' => $this->employee1->id,
             'received_by_id' => $this->employee2->id,
@@ -138,17 +142,17 @@ class IdrManagementTest extends TestCase
             'date' => now()->format('Y-m-d'),
             'remarks' => 'Test remarks',
             'batches' => [
-                ['identification_data' => 'SN12345']
-            ]
+                ['identification_data' => 'SN12345'],
+            ],
         ];
 
         Livewire::test('admin.inventory.idr.create')
             ->set($newIdrData)
             ->call('store')
             ->assertRedirect(route('admin.inventory.idr.index'));
-        
-        $this->assertDatabaseHas('idr_number', [ 'inventory_code' => 'NEW-CODE-123' ]);
-        $this->assertDatabaseHas('idr_item_batches', [ 'identification_data' => 'SN12345' ]);
+
+        $this->assertDatabaseHas('idr_number', ['inventory_code' => 'NEW-CODE-123']);
+        $this->assertDatabaseHas('idr_item_batches', ['identification_data' => 'SN12345']);
     }
 
     #[Test]
@@ -161,7 +165,7 @@ class IdrManagementTest extends TestCase
             ->assertSee($idr->number)
             ->assertSee($idr->contractItem->itemSpecification->itemCatalog->name);
     }
-    
+
     #[Test]
     public function admin_can_update_an_idr_record()
     {
@@ -185,7 +189,7 @@ class IdrManagementTest extends TestCase
         Livewire::test('admin.inventory.idr.edit', ['idrNumber' => $idr])
             ->call('destroy')
             ->assertRedirect(route('admin.inventory.idr.index'));
-            
+
         $this->assertDatabaseMissing('idr_number', ['id' => $idr->id]);
     }
-} 
+}

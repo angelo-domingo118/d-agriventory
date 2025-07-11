@@ -14,6 +14,7 @@ class ConsumableItemFactory extends Factory
     public function definition(): array
     {
         $initial_quantity = $this->faker->numberBetween(10, 100);
+
         return [
             'consumable_record_id' => ConsumableRecord::factory(),
             'item_specification_id' => ItemSpecification::factory(),
@@ -21,4 +22,4 @@ class ConsumableItemFactory extends Factory
             'current_quantity' => $this->faker->numberBetween(1, $initial_quantity),
         ];
     }
-} 
+}

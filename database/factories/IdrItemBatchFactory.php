@@ -30,4 +30,4 @@ class IdrItemBatchFactory extends Factory
             'identification_data' => $this->faker->optional()->sentence,
         ];
     }
-} 
+}

@@ -3,11 +3,11 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
+use App\Models\Contract;
 use App\Models\ContractItem;
 use App\Models\ItemSpecification;
-use App\Models\User;
-use App\Models\Contract;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -17,7 +17,9 @@ class ContractManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected Supplier $supplier;
+
     protected ItemSpecification $specification;
 
     protected function setUp(): void
@@ -46,7 +48,7 @@ class ContractManagementTest extends TestCase
         $this->assertDatabaseHas('contract_items', [
             'item_specification_id' => $this->specification->id,
             'unit_price' => 100,
-            'item_type' => 'ICS'
+            'item_type' => 'ICS',
         ]);
     }
 

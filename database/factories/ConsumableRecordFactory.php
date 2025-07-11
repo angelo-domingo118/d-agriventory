@@ -19,4 +19,4 @@ class ConsumableRecordFactory extends Factory
             'remarks' => $this->faker->sentence,
         ];
     }
-} 
+}

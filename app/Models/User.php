@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\User\Role;
-use App\Exceptions\InvalidRoleException;
 use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +15,7 @@ use Illuminate\Support\Str;
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.

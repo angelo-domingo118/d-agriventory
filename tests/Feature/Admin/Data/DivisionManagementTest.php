@@ -3,9 +3,9 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
 use App\Models\Division;
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -15,6 +15,7 @@ class DivisionManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $regularUser;
 
     protected function setUp(): void
@@ -113,4 +114,4 @@ class DivisionManagementTest extends TestCase
 
         $this->assertDatabaseHas('divisions', ['id' => $division->id]);
     }
-} 
+}

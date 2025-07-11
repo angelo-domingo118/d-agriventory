@@ -3,10 +3,10 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
+use App\Models\ItemsCatalog;
 use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
-use App\Models\ItemsCatalog;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,6 +16,7 @@ class SecondaryCategoryManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected PrimaryCategory $primaryCategory;
 
     protected function setUp(): void
@@ -75,7 +76,7 @@ class SecondaryCategoryManagementTest extends TestCase
 
         Livewire::test('admin.data.items-and-categories.secondary-categories.edit', ['category' => $category])
             ->call('delete');
-        
+
         $this->assertDatabaseHas('secondary_categories', ['id' => $category->id]);
     }
-} 
+}

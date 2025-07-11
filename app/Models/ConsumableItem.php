@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
-use App\Models\Traits\ClearsDashboardCache;
 
 class ConsumableItem extends Model
 {
-    use HasFactory, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory;
 
     /**
      * The table associated with the model.
@@ -49,8 +49,6 @@ class ConsumableItem extends Model
 
     /**
      * Calculate the total value of all consumable items.
-     *
-     * @return float
      */
     public static function calculateTotalValue(): float
     {

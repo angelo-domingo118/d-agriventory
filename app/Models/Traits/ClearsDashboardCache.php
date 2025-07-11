@@ -8,8 +8,6 @@ trait ClearsDashboardCache
 {
     /**
      * Boot the trait.
-     *
-     * @return void
      */
     protected static function bootClearsDashboardCache(): void
     {
@@ -24,8 +22,6 @@ trait ClearsDashboardCache
 
     /**
      * Clear the dashboard cache.
-     *
-     * @return void
      */
     public static function clearDashboardCache(): void
     {
@@ -35,4 +31,4 @@ trait ClearsDashboardCache
         Cache::forget('admin.dashboard.category_inventory');
         Cache::forget('admin.dashboard.supplier_spending');
     }
-} 
+}

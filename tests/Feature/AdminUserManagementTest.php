@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\AdminUser;
-use App\Models\User;
 use App\Models\Division;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 

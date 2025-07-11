@@ -19,9 +19,13 @@ class ConsumablesPageTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $manager;
+
     private User $regularUser;
+
     private Division $division1;
+
     private Division $division2;
 
     protected function setUp(): void
@@ -51,7 +55,7 @@ class ConsumablesPageTest extends TestCase
             'item_catalog_id' => $catalog1->id,
             'brand' => 'BrandX',
             'model' => 'Model-A1',
-            'detailed_specifications' => 'Specific details for item in Division A'
+            'detailed_specifications' => 'Specific details for item in Division A',
         ]);
         ConsumableItem::factory()->create([
             'consumable_record_id' => $record1->id,
@@ -65,7 +69,7 @@ class ConsumablesPageTest extends TestCase
             'item_catalog_id' => $catalog2->id,
             'brand' => 'BrandY',
             'model' => 'Model-B1',
-            'detailed_specifications' => 'Specific details for item in another division'
+            'detailed_specifications' => 'Specific details for item in another division',
         ]);
         ConsumableItem::factory()->create([
             'consumable_record_id' => $record2->id,
@@ -97,7 +101,7 @@ class ConsumablesPageTest extends TestCase
             ->get(route('admin.inventory.consumables.index'))
             ->assertForbidden();
     }
-    
+
     public function test_admin_can_search_by_division_name(): void
     {
         $this->actingAs($this->admin);
@@ -109,7 +113,8 @@ class ConsumablesPageTest extends TestCase
             ->assertViewHas('consumables', function ($consumables) {
                 $this->assertCount(1, $consumables);
                 $this->assertEquals('Division A', $consumables->first()->division_name);
+
                 return true;
             });
     }
-} 
+}

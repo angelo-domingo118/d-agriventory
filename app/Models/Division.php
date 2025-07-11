@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ClearsDashboardCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Traits\ClearsDashboardCache;
 
 class Division extends Model
 {
-    use HasFactory, ClearsDashboardCache;
+    use ClearsDashboardCache, HasFactory;
 
     /**
      * The attributes that are mass assignable.

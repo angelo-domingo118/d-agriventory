@@ -3,9 +3,9 @@
 namespace Tests\Feature\Admin\Data;
 
 use App\Models\AdminUser;
-use App\Models\User;
-use App\Models\Supplier;
 use App\Models\Contract;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -72,4 +72,4 @@ class SupplierManagementTest extends TestCase
 
         $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
     }
-} 
+}
