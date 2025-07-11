@@ -544,17 +544,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                 },
                 'card_container' => match($density) {
                     'compact' => 'gap-4',
-                    'comfortable' => 'gap-5',
+                    'comfortable' => 'gap-6',
                     default => 'gap-6',
                 },
                 'card_padding' => match($density) {
-                    'compact' => 'p-3',
-                    'comfortable' => 'p-4',
-                    default => 'p-5',
+                    'compact' => 'p-4',
+                    'comfortable' => 'p-5',
+                    default => 'p-6',
                 },
                  'card_footer_padding' => match($density) {
                     'compact' => 'p-3',
-                    'comfortable' => 'p-3',
+                    'comfortable' => 'p-4',
                     default => 'p-4',
                 },
                 // Font sizes
@@ -894,6 +894,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </div>
 
+                            @if($densityClasses['show_tertiary'])
                              <div class="mt-4">
                                 <p class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / Components</p>
                                 @php
@@ -963,6 +964,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </div>
                                 @endif
                             </dl>
+                            @endif
                         </div>
                         <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
                              <div class="flex items-center justify-end gap-x-2">
