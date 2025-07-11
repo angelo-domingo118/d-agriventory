@@ -15,7 +15,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public string $search = '';
     public bool $showFilters = false;
-    public string $view = 'table';
+    
+    // New state properties
+    public string $groupBy = 'none'; // 'none' or 'employee'
+    public string $viewMode = 'table'; // 'table' or 'card'
+    
     public string $density = 'spacious';
     public int $perPage = 10;
 
@@ -75,6 +79,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         ]
     ];
 
+    public array $openGroups = [];
+
     #[Computed]
     public function filtersActive(): bool
     {
@@ -86,7 +92,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
-        $this->view = session('par_view_mode', 'table');
+        $this->groupBy = session('par_group_by', 'none');
+        $this->viewMode = session('par_view_mode', 'table');
         $this->density = session('par_density', 'spacious');
 
         $defaultColumns = [];
@@ -103,10 +110,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         session(['par_column_visibility' => $this->columns]);
     }
 
-    public function setView(string $view): void
+    public function setGroupBy(string $groupBy): void
     {
-        $this->view = $view;
-        session(['par_view_mode' => $view]);
+        $this->groupBy = $groupBy;
+        session(['par_group_by' => $groupBy]);
+        $this->resetPage();
+    }
+
+    public function setViewMode(string $viewMode): void
+    {
+        $this->viewMode = $viewMode;
+        session(['par_view_mode' => $viewMode]);
     }
 
     public function setDensity(string $density): void
@@ -123,6 +137,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->sortColumn = $column;
             $this->sortDirection = 'asc';
         }
+    }
+
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'par_number.date_prepared';
+        $this->sortDirection = 'desc';
     }
 
     public function updatedPerPage(): void
@@ -225,6 +245,43 @@ new #[Layout('components.layouts.app')] class extends Component {
             $query->orderBy($this->sortColumn, $this->sortDirection);
         }
 
+        if ($this->groupBy === 'employee') {
+            $items = $query->get();
+
+            if (!empty($this->search)) {
+                $this->openGroups = $items->pluck('assigned_employee_id')->map(fn($id) => $id ?: 'unassigned')->unique()->all();
+            } else {
+                $this->openGroups = [];
+            }
+
+            // Group by employee, handling unassigned items
+            $grouped = $items->groupBy(function ($item) {
+                return $item->assigned_employee_id ?: 'unassigned';
+            });
+
+            // Sort groups by employee name, 'unassigned' first
+            $sortedGroups = $grouped->sortBy(function ($items, $key) {
+                if ($key === 'unassigned') {
+                    return -1;
+                }
+                // Check if assignedEmployee exists before accessing name
+                return $items->first()->assignedEmployee->name ?? PHP_INT_MAX;
+            }, SORT_REGULAR, $this->sortDirection === 'desc');
+
+            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                items: $sortedGroups->forPage($currentPage, $this->perPage),
+                total: $sortedGroups->count(),
+                perPage: $this->perPage,
+                currentPage: $currentPage,
+                options: [
+                    'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+        }
+
         return $query->paginate($this->perPage);
     }
 
@@ -261,53 +318,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{
-    showFilters: @entangle('showFilters'),
-    defaultWidths: {
-        article: 400,
-        par_details: 220,
-        doc_source: 300,
-        issued_to: 200,
-        actions: 120
-    },
-    columnWidths: {},
-    resetColumnWidths() {
-        this.columnWidths = { ...this.defaultWidths };
-        localStorage.removeItem('par_column_widths');
-    },
-    resizingColumn: null,
-    startX: 0,
-    startWidth: 0,
-    startResize(event, column) {
-        this.resizingColumn = column;
-        this.startX = event.clientX;
-        this.startWidth = this.columnWidths[column];
-        event.preventDefault();
-
-        const mouseMoveHandler = (e) => {
-            if (!this.resizingColumn) return;
-            const diffX = e.clientX - this.startX;
-            const newWidth = this.startWidth + diffX;
-            if (newWidth > 40) { // min width 40px
-                this.columnWidths[this.resizingColumn] = newWidth;
-            }
-        };
-
-        const mouseUpHandler = () => {
-            if (!this.resizingColumn) return;
-            this.resizingColumn = null;
-            localStorage.setItem('par_column_widths', JSON.stringify(this.columnWidths));
-            window.removeEventListener('mousemove', mouseMoveHandler);
-            window.removeEventListener('mouseup', mouseUpHandler);
-        };
-
-        window.addEventListener('mousemove', mouseMoveHandler);
-        window.addEventListener('mouseup', mouseUpHandler);
-    }
-}" x-init="
-    const storedWidths = JSON.parse(localStorage.getItem('par_column_widths') || '{}');
-    columnWidths = { ...defaultWidths, ...storedWidths };
-">
+<div x-data="tableResizer('par_column_widths', { article: 400, par_details: 220, doc_source: 300, issued_to: 200, actions: 120 })">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             PAR Management
@@ -331,25 +342,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                     style="display: none;"
                 >
                     <div class="px-3 py-2">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">View Mode</div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Group By</div>
                         <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
                              <button
-                                 wire:click="setView('table')"
-                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $view === 'table' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                 wire:click="setGroupBy('none')"
+                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $groupBy === 'none' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                             >
+                                 By PAR Number
+                             </button>
+                             <button
+                                 wire:click="setGroupBy('employee')"
+                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $groupBy === 'employee' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                             >
+                                 By Employee
+                             </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">View Style</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                             <button
+                                 wire:click="setViewMode('table')"
+                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $viewMode === 'table' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                              >
                                  Table
                              </button>
                              <button
-                                 wire:click="setView('card')"
-                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $view === 'card' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                 wire:click="setViewMode('card')"
+                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $viewMode === 'card' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                              >
                                  Card
-                             </button>
-                             <button
-                                 wire:click="setView('compact')"
-                                 class="-ml-px flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $view === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
-                             >
-                                 Compact
                              </button>
                         </div>
                     </div>
@@ -399,15 +422,27 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                     </div>
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button
-                            variant="ghost"
-                            x-on:click="resetColumnWidths()"
-                            class="w-full justify-center"
-                        >
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="mt-2 space-y-2">
+                            <flux:button
+                                variant="ghost"
+                                x-on:click="$dispatch('reset-column-widths')"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="ghost"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <span class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    <span>Reset Sort Order</span>
+                                </span>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -421,7 +456,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </flux:button>
             <flux:button
                 variant="outline"
-                x-on:click="showFilters = !showFilters"
+                x-on:click="$wire.showFilters = !$wire.showFilters"
                 class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif"
             >
                 <x-flux::icon.filter class="h-5 w-5"/>
@@ -435,7 +470,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div x-show="showFilters" x-collapse class="mt-4">
+    <div x-show="$wire.showFilters" x-collapse class="mt-4">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <div class="border-b border-stone-200 p-4 dark:border-stone-700">
                 <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
@@ -518,7 +553,13 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="mt-4 flex items-center justify-between">
         <div class="text-sm text-stone-600 dark:text-stone-400">
-            @if ($this->parNumbers->total() > 0)
+            @if ($this->groupBy === 'employee')
+                @if ($this->parNumbers->total() > 0)
+                    <span>Showing employee groups {{ $this->parNumbers->firstItem() }} to {{ $this->parNumbers->lastItem() }} of <strong>{{ $this->parNumbers->total() }}</strong>.</span>
+                @else
+                    <span>No results found.</span>
+                @endif
+            @elseif ($this->parNumbers->total() > 0)
                 <span>Showing {{ $this->parNumbers->firstItem() }} to {{ $this->parNumbers->lastItem() }} of <strong>{{ $this->parNumbers->total() }}</strong> results.</span>
             @else
                 <span>No results found.</span>
@@ -593,7 +634,261 @@ new #[Layout('components.layouts.app')] class extends Component {
             ];
         @endphp
 
-        @if ($view === 'table')
+        @if($this->groupBy === 'employee')
+            <div class="space-y-4" wire:key="search-{{ $this->search }}">
+                @forelse ($this->parNumbers as $employeeId => $items)
+                    @php
+                        $employee = $items->first()->assignedEmployee;
+                        $employeeName = $employeeId === 'unassigned' ? 'Unassigned Items' : ($employee->name ?? 'Unknown Employee');
+
+                        // When a search is active, a group is open if it contains results.
+                        // Otherwise, fall back to the default state (first few are open).
+                        $isOpen = !empty($this->search)
+                            ? in_array($employeeId, $this->openGroups)
+                            : ($this->parNumbers->count() <= 3 || $employeeId === 'unassigned');
+                    @endphp
+                    <div x-data="{ open: {{ $isOpen ? 'true' : 'false' }} }" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+                        <div @click="open = !open" class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                            <div>
+                                <h3 class="font-semibold text-stone-900 dark:text-stone-100 lg:text-lg">{!! \App\Helpers\TextHelper::highlight($employeeName, $this->search) !!}</h3>
+                                @if($employee)
+                                <p class="text-sm text-stone-500">{{ $employee->division->name ?? 'No division' }}</p>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-x-4">
+                                <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
+                                <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
+                            </div>
+                        </div>
+                        <div x-show="open" x-collapse style="display: none;">
+                             @if ($this->viewMode === 'table')
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                                            @foreach($items as $par)
+                                                <tr wire:key="par-{{ $par->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                                    <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="space-y-2">
+                                                            <div>
+                                                                @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
+                                                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
+                                                                @else
+                                                                    <div class="font-semibold text-stone-900 dark:text-stone-100 italic">Item name not available</div>
+                                                                @endif
+                                                                @php $spec = $par->contractItem?->itemSpecification; @endphp
+                                                                @if ($this->columns['brand_model'] && $densityClasses['show_secondary'] && $spec)
+                                                                    @if ($spec->brand || $spec->model)
+                                                                        <div class="{{ $densityClasses['text_meta'] }} text-stone-500">
+                                                                            {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
+                                                                        </div>
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+
+                                                            @if ($this->columns['specifications'] && $densityClasses['show_tertiary'] && $spec?->detailed_specifications)
+                                                                <div class="{{ $densityClasses['text_meta'] }}">
+                                                                    <div class="grid grid-cols-[auto_1fr] gap-x-2">
+                                                                        <span class="font-semibold uppercase text-stone-500 dark:text-stone-400">Description:</span>
+                                                                        <p class="text-stone-600 dark:text-stone-300 break-words">
+                                                                            {!! \App\Helpers\TextHelper::highlight($spec->detailed_specifications, [$this->search, $this->filterArticle]) !!}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+
+                                                            @if($this->columns['serials'])
+                                                                <div class="{{ $densityClasses['text_meta'] }}">
+                                                                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / ID Data:</p>
+                                                                    @if($par->itemBatches->isNotEmpty() && $par->itemBatches->pluck('identification_data')->filter()->isNotEmpty())
+                                                                        <ul class="mt-1 space-y-2">
+                                                                            @foreach($par->itemBatches as $batch)
+                                                                                @if($batch->identification_data)
+                                                                                <li wire:key="batch-{{ $batch->id }}" class="text-stone-600 dark:text-stone-300">
+                                                                                    @if($par->itemBatches->count() > 1) <span class="font-medium">Batch #{{$loop->iteration}}:</span> @endif
+                                                                                    {!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) !!}
+                                                                                </li>
+                                                                                @endif
+                                                                            @endforeach
+                                                                        </ul>
+                                                                    @else
+                                                                        <p class="{{ $densityClasses['text_meta'] }} italic text-stone-500">No identification data recorded.</p>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+
+                                                    <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($par->par_number, $this->search) !!}</div>
+                                                        @if($densityClasses['show_secondary'])
+                                                        <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
+                                                             <div>
+                                                                 <span class="font-medium">Inventory No:</span>
+                                                                @if($par->date_acquired && $par->inventory_code)
+                                                                    @php $inventoryNumber = $par->inventory_code . '-' . $par->par_number . '-' . $par->date_acquired->format('m-Y'); @endphp
+                                                                    {!! \App\Helpers\TextHelper::highlight($inventoryNumber, [$this->search, $this->filterInventoryNumber]) !!}
+                                                                @else
+                                                                    <span class="italic text-stone-500">Awaiting acceptance</span>
+                                                                @endif
+                                                             </div>
+                                                           @if($this->columns['quantity'])
+                                                                <div><span class="font-medium">Quantity:</span> {{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
+                                                           @endif
+                                                           @if($this->columns['unit_cost'])<div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</div>@endif
+                                                           @if($this->columns['codes'] && $densityClasses['show_tertiary'])
+                                                                <div><span class="font-medium">Area Code:</span> {{ $par->area_code ?? 'N/A' }}</div>
+                                                                <div><span class="font-medium">Building Code:</span> {{ $par->building_code ?? 'N/A' }}</div>
+                                                                <div><span class="font-medium">Account Code:</span> {{ $par->account_code ?? 'N/A' }}</div>
+                                                           @endif
+                                                        </div>
+                                                        @endif
+                                                    </td>
+
+                                                    <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} lg:table-cell border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($par->contractItem->contract->supplier->name ?? 'Supplier Not Set', $this->search) !!}</div>
+                                                        @if($densityClasses['show_secondary'])
+                                                        <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
+                                                            @if($this->columns['contract'])
+                                                                <div>
+                                                                    <span class="font-medium">Contract/PO:</span>
+                                                                    @if($par->contractItem?->contract?->contract_po_ib_number)
+                                                                        {!! \App\Helpers\TextHelper::highlight($par->contractItem->contract->contract_po_ib_number, [$this->search, $this->filterContract]) !!}
+                                                                    @else
+                                                                        <span class="italic text-stone-500">Not available</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                            @if($this->columns['dates'] && $densityClasses['show_tertiary'])
+                                                                <div>
+                                                                    <span class="font-medium">Prepared:</span>
+                                                                    @if($par->date_prepared)
+                                                                        {{ $par->date_prepared->format('M d, Y') }}
+                                                                    @else
+                                                                        <span class="italic text-stone-500">Not set</span>
+                                                                    @endif
+                                                                </div>
+                                                                <div>
+                                                                    <span class="font-medium">Accepted:</span>
+                                                                    @if($par->date_accepted)
+                                                                        {{ $par->date_accepted->format('M d, Y') }}
+                                                                    @else
+                                                                        <span class="italic text-stone-500">Not set</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        @endif
+                                                        @if($this->columns['remarks'] && $par->remarks)
+                                                            <div class="mt-2 text-xs text-stone-500 italic">"{!! \App\Helpers\TextHelper::highlight($par->remarks, [$this->search, $this->filterRemarks]) !!}"</div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
+                                                        <div class="flex items-center justify-end gap-x-2">
+                                                            <a href="{{ route('admin.inventory.par.show', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                                View<span class="sr-only">, {{ $par->par_number }}</span>
+                                                            </a>
+                                                            <a href="{{ route('admin.inventory.par.edit', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                                Edit<span class="sr-only">, {{ $par->par_number }}</span>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @elseif ($this->viewMode === 'card')
+                                <div class="border-t border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800/50">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 {{ $densityClasses['card_container'] }}">
+                                        @foreach($items as $par)
+                                            <div wire:key="par-card-{{ $par->id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+                                                <div class="{{ $densityClasses['card_padding'] }}">
+                                                    <div class="flex items-start justify-between">
+                                                        <div class="max-w-xs">
+                                                            <p class="truncate {{ $densityClasses['text_base'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                                                @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
+                                                                    {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
+                                                                @else
+                                                                    <span class="italic">Item name not available</span>
+                                                                @endif
+                                                            </p>
+                                                             @php $spec = $par->contractItem?->itemSpecification; @endphp
+                                                             @if ($densityClasses['show_secondary'] && $spec && ($spec->brand || $spec->model))
+                                                                <p class="{{ $densityClasses['text_meta'] }} text-stone-500">
+                                                                    {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
+                                                                </p>
+                                                            @endif
+                                                        </div>
+                                                        <div class="ml-4 flex-shrink-0">
+                                                            <span class="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-500/10 dark:text-primary-400 dark:ring-primary-500/20">{!! \App\Helpers\TextHelper::highlight($par->par_number, $this->search) !!}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mt-4">
+                                                        <p class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / ID Data</p>
+                                                         @if($par->itemBatches->isNotEmpty() && $par->itemBatches->pluck('identification_data')->filter()->isNotEmpty())
+                                                            <ul class="mt-1 space-y-2 {{ $densityClasses['text_meta'] }}">
+                                                                @foreach($par->itemBatches as $batch)
+                                                                    @if($batch->identification_data)
+                                                                    <li wire:key="card-batch-{{ $batch->id }}" class="text-stone-600 dark:text-stone-300">
+                                                                        @if($par->itemBatches->count() > 1) <span class="font-medium">Batch #{{$loop->iteration}}:</span> @endif
+                                                                        {!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) !!}
+                                                                    </li>
+                                                                    @endif
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            <p class="{{ $densityClasses['text_meta'] }} italic text-stone-500">No identification data recorded.</p>
+                                                        @endif
+                                                    </div>
+
+                                                    <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 {{ $densityClasses['text_base'] }}">
+                                                        <div>
+                                                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Quantity</dt>
+                                                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Batches</dt>
+                                                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $par->itemBatches->count() }}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Unit Cost</dt>
+                                                            <dd class="font-medium text-stone-800 dark:text-stone-200">₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</dd>
+                                                        </div>
+                                                        @if($densityClasses['show_secondary'])
+                                                        <div class="col-span-2">
+                                                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Supplier</dt>
+                                                            <dd class="font-medium text-stone-800 dark:text-stone-200">{!! \App\Helpers\TextHelper::highlight($par->contractItem->contract->supplier->name ?? 'Supplier Not Set', $this->search) !!}</dd>
+                                                        </div>
+                                                        @endif
+                                                    </dl>
+                                                </div>
+                                                <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
+                                                     <div class="flex items-center justify-end gap-x-2">
+                                                        <a href="{{ route('admin.inventory.par.show', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                            View
+                                                        </a>
+                                                        <a href="{{ route('admin.inventory.par.edit', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                            Edit
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
+                         <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
+                        <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No PAR records found matching your criteria.</p>
+                    </div>
+                @endforelse
+            </div>
+        @else
+            @if ($this->viewMode === 'table')
             <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
@@ -837,7 +1132,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
             </div>
-        @elseif($view === 'card')
+            @elseif ($this->viewMode === 'card')
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $densityClasses['card_container'] }}">
                 @forelse ($this->parNumbers as $par)
                     <div wire:key="par-card-{{ $par->id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
@@ -939,76 +1234,56 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 @endforelse
             </div>
-        @elseif($view === 'compact')
-             <div class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-                <ul role="list" class="divide-y divide-stone-200 dark:divide-stone-700">
-                    @forelse ($this->parNumbers as $par)
-                        <li wire:key="par-compact-{{ $par->id }}" class="flex items-center justify-between gap-x-6 px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <div class="flex min-w-0 gap-x-4">
-                                <div class="min-w-0 flex-auto">
-                                    <p class="truncate text-sm font-semibold leading-6 text-stone-900 dark:text-stone-100">
-                                        @if ($par->contractItem?->itemSpecification?->itemCatalog?->name)
-                                            {!! \App\Helpers\TextHelper::highlight($par->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
-                                        @else
-                                            <span class="italic">Item name not available</span>
-                                        @endif
-                                    </p>
-                                    <p class="mt-1 flex flex-wrap items-center text-xs leading-5 text-stone-500">
-                                        <span>{!! \App\Helpers\TextHelper::highlight($par->par_number, $this->search) !!}</span>
-                                         @if($par->date_acquired)
-                                             <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                            @php $inventoryNumber = $par->inventory_code . '-' . $par->par_number . '-' . $par->date_acquired->format('m-Y'); @endphp
-                                            <span class="truncate">Inv No: {!! \App\Helpers\TextHelper::highlight($inventoryNumber, [$this->search, $this->filterInventoryNumber]) !!}</span>
-                                         @endif
-                                        <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                        <span>{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</span>
-                                        @if ($par->contractItem?->unit_price > 0)
-                                            <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                            <span>@ ₱{{ number_format($par->contractItem->unit_price, 2) }}</span>
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                <p class="text-sm leading-6 text-stone-900 dark:text-white">
-                                    {{ $par->assignedEmployee?->name ?? 'Unassigned' }}
-                                </p>
-                                <p class="mt-1 text-xs leading-5 text-stone-500">
-                                    @if($par->assignedEmployee)
-                                        @php $divisionName = $par->assignedEmployee->division?->name; @endphp
-                                        @if($divisionName)
-                                            {!! \App\Helpers\TextHelper::highlight($divisionName, $this->search) !!}
-                                        @else
-                                            <span class="italic text-stone-500">No division assigned</span>
-                                        @endif
-                                    @else
-                                        &nbsp;
-                                   @endif
-                                </p>
-                            </div>
-                            <div class="flex flex-none items-center gap-x-4">
-                               <div class="flex items-center justify-end gap-x-2">
-                                    <a href="{{ route('admin.inventory.par.show', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                        View
-                                    </a>
-                                    <a href="{{ route('admin.inventory.par.edit', $par) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                        Edit
-                                    </a>
-                                </div>
-                            </div>
-                        </li>
-                    @empty
-                         <li>
-                            <div class="p-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                                No PAR records found matching your criteria.
-                            </div>
-                        </li>
-                    @endforelse
-                </ul>
-            </div>
+            @endif
         @endif
     </div>
     <div class="mt-4">
         {{ $this->parNumbers->links() }}
     </div>
 </div> 
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 40) { // min width 40px
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+    });
+</script> 
