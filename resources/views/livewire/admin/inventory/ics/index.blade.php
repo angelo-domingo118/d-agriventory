@@ -664,6 +664,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 </div>
                                                 <div @mousedown="startResize($event, 'doc_source')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                             </th>
+                                            <th scope="col" :style="`width: ${columnWidths.issued_to}px`" class="relative hidden {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100 sm:table-cell">
+                                                <div wire:click="sortBy('employees.name')" class="flex items-center cursor-pointer">
+                                                    Issued To
+                                                    @if($sortColumn === 'employees.name')
+                                                        @if($sortDirection === 'asc')
+                                                            <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                                        @else
+                                                            <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                                        @endif
+                                                    @else
+                                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                                    @endif
+                                                </div>
+                                                <div @mousedown="startResize($event, 'issued_to')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                            </th>
                                             <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} pl-3 pr-4 sm:pr-6 text-right {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
                                                 Actions
                                             </th>
@@ -680,11 +695,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     :filterContract="$this->filterContract"
                                                     :filterRemarks="$this->filterRemarks"
                                                     :filterInventoryNumber="$this->filterInventoryNumber"
-                                                    :show-issued-to="false"
+                                                    :show-issued-to="true"
                                                 />
                                         @empty
                                             <tr>
-                                                <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                                <td colspan="6" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                                     No ICS records found matching your criteria.
                                                 </td>
                                             </tr>
