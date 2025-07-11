@@ -44,42 +44,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'ics_number.date_prepared';
     public string $sortDirection = 'desc';
 
-    // Column visibility properties
-    public array $columns;
-    public array $columnGroups = [
-        'article' => [
-            'label' => 'Article & Description',
-            'columns' => [
-                'brand_model' => 'Brand/Model',
-                'specifications' => 'Specifications',
-                'serials' => 'Serial # / Components'
-            ]
-        ],
-        'ics' => [
-            'label' => 'ICS Details',
-            'columns' => [
-                'ics_type' => 'Type',
-                'quantity' => 'Qty & Batches',
-                'unit_cost' => 'Unit Cost',
-                'useful_life' => 'Useful Life'
-            ]
-        ],
-        'source' => [
-            'label' => 'Document Source',
-            'columns' => [
-                'contract' => 'Contract/PO',
-                'dates' => 'Prepared/Accepted Dates',
-                'remarks' => 'Remarks'
-            ]
-        ],
-        'issued' => [
-            'label' => 'Issued To',
-            'columns' => [
-                'division' => 'Division'
-            ]
-        ]
-    ];
-
     public array $openGroups = [];
 
     #[Computed]
@@ -104,19 +68,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->groupBy = session('ics_group_by', 'none');
         $this->viewMode = session('ics_view_mode', 'table');
         $this->density = session('ics_density', 'spacious');
-
-        $defaultColumns = [];
-        foreach ($this->columnGroups as $group) {
-            foreach (array_keys($group['columns']) as $key) {
-                $defaultColumns[$key] = true;
-            }
-        }
-        $this->columns = session('ics_column_visibility', $defaultColumns);
-    }
-
-    public function updatedColumns($value, $key): void
-    {
-        session(['ics_column_visibility' => $this->columns]);
     }
 
     public function setGroupBy(string $groupBy): void
@@ -408,39 +359,24 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <label for="perPage" class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</label>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
-                    </div>
-
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Visible Columns</div>
-                        <div class="mt-2 space-y-2">
-                             @foreach ($this->columnGroups as $group)
-                                <div class="">
-                                     <div class="mb-1 text-xs font-medium text-stone-600 dark:text-stone-300">{{ $group['label'] }}</div>
-                                     <div class="space-y-1">
-                                        @foreach ($group['columns'] as $key => $label)
-                                            <flux:checkbox
-                                                wire:model.live="columns.{{ $key }}"
-                                                label="{{ $label }}"
-                                                id="column-{{ $key }}"
-                                            />
-                                        @endforeach
-                                     </div>
-                                </div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    wire:click="$set('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
                             @endforeach
                         </div>
                     </div>
+
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
                         <div class="mt-2 space-y-2">
                             <flux:button
-                                variant="ghost"
+                                variant="outline"
                                 x-on:click="$dispatch('reset-column-widths')"
                                 class="w-full justify-center"
                             >
@@ -448,7 +384,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 Reset Column Widths
                             </flux:button>
                             <flux:button
-                                variant="ghost"
+                                variant="outline"
                                 wire:click="resetSorting"
                                 class="w-full justify-center"
                             >
@@ -687,7 +623,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <x-admin.inventory.ics.table-row
                                                     :ics="$ics"
                                                     :densityClasses="$densityClasses"
-                                                    :columns="$this->columns"
                                                     :search="$this->search"
                                                     :filterArticle="$this->filterArticle"
                                                     :filterSerialNumber="$this->filterSerialNumber"
@@ -787,7 +722,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <x-admin.inventory.ics.table-row
                                             :ics="$ics"
                                             :densityClasses="$densityClasses"
-                                            :columns="$this->columns"
                                             :search="$this->search"
                                             :filterArticle="$this->filterArticle"
                                             :filterSerialNumber="$this->filterSerialNumber"

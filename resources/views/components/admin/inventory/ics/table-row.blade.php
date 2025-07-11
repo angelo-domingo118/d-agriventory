@@ -1,7 +1,6 @@
 @props([
     'ics',
     'densityClasses',
-    'columns',
     'search' => '',
     'filterArticle' => '',
     'filterSerialNumber' => '',
@@ -21,7 +20,7 @@
                     <div class="font-semibold text-stone-900 dark:text-stone-100 italic">Item name not available</div>
                 @endif
                 @php $spec = $ics->contractItem?->itemSpecification; @endphp
-                @if ($columns['brand_model'] && $densityClasses['show_secondary'] && $spec)
+                @if ($densityClasses['show_secondary'] && $spec)
                     @if ($spec->brand || $spec->model)
                         <div class="{{ $densityClasses['text_meta'] }} text-stone-500">
                             {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$search, $filterArticle]) !!}
@@ -30,7 +29,7 @@
                 @endif
             </div>
 
-            @if ($columns['specifications'] && $densityClasses['show_tertiary'] && $spec?->detailed_specifications)
+            @if ($densityClasses['show_tertiary'] && $spec?->detailed_specifications)
                 <div class="{{ $densityClasses['text_meta'] }}">
                     <div class="grid grid-cols-[auto_1fr] gap-x-2">
                         <span class="font-semibold uppercase text-stone-500 dark:text-stone-400">Description:</span>
@@ -41,7 +40,7 @@
                 </div>
             @endif
 
-            @if($columns['serials'])
+            @if($densityClasses['show_secondary'])
                 <div class="{{ $densityClasses['text_meta'] }}">
                     <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / Components:</p>
                     @php
@@ -118,13 +117,13 @@
                     <span class="italic text-stone-500">Awaiting acceptance</span>
                 @endif
              </div>
-           @if($columns['ics_type'])<div><span class="font-medium">Type:</span> {{ $ics->ics_type }}</div>@endif
-           @if($columns['quantity'])
-                <div><span class="font-medium">Quantity:</span> {{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
+           <div><span class="font-medium">Type:</span> {{ $ics->ics_type }}</div>
+           <div><span class="font-medium">Quantity:</span> {{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
+           @if($densityClasses['show_secondary'])
                 <div><span class="font-medium">Batches:</span> {{ $ics->itemBatches->count() }}</div>
+                <div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($ics->contractItem?->unit_price ?? 0, 2) }}</div>
+                <div><span class="font-medium">Life:</span> {{ $ics->estimated_useful_life }} yrs</div>
            @endif
-           @if($columns['unit_cost'])<div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($ics->contractItem?->unit_price ?? 0, 2) }}</div>@endif
-           @if($columns['useful_life'])<div><span class="font-medium">Life:</span> {{ $ics->estimated_useful_life }} yrs</div>@endif
         </div>
         @endif
     </td>
@@ -133,17 +132,15 @@
         <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->supplier->name ?? 'Supplier Not Set', $search) !!}</div>
         @if($densityClasses['show_secondary'])
         <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-            @if($columns['contract'])
-                <div>
-                    <span class="font-medium">Contract/PO:</span>
-                    @if($ics->contractItem?->contract?->contract_po_ib_number)
-                        {!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->contract_po_ib_number, [$search, $filterContract]) !!}
-                    @else
-                        <span class="italic text-stone-500">Not available</span>
-                    @endif
-                </div>
-            @endif
-            @if($columns['dates'] && $densityClasses['show_tertiary'])
+            <div>
+                <span class="font-medium">Contract/PO:</span>
+                @if($ics->contractItem?->contract?->contract_po_ib_number)
+                    {!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->contract_po_ib_number, [$search, $filterContract]) !!}
+                @else
+                    <span class="italic text-stone-500">Not available</span>
+                @endif
+            </div>
+            @if($densityClasses['show_tertiary'])
                 <div>
                     <span class="font-medium">Prepared:</span>
                     @if($ics->date_prepared)
@@ -163,7 +160,7 @@
             @endif
         </div>
         @endif
-        @if($columns['remarks'] && $ics->remarks)
+        @if($densityClasses['show_tertiary'] && $ics->remarks)
             <div class="mt-2 text-xs text-stone-500 italic">"{!! \App\Helpers\TextHelper::highlight($ics->remarks, [$search, $filterRemarks]) !!}"</div>
         @endif
     </td>
@@ -171,7 +168,7 @@
     @if($showIssuedTo)
     <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} sm:table-cell border-r border-stone-300 dark:border-stone-700">
         <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->assignedEmployee?->name ?? 'Unassigned', $search) !!}</div>
-         @if($columns['division'] && $ics->assignedEmployee)
+         @if($densityClasses['show_secondary'] && $ics->assignedEmployee)
             @php $divisionName = $ics->assignedEmployee->division?->name; @endphp
             <div class="text-stone-600 dark:text-stone-400">
                 @if($divisionName)
