@@ -25,8 +25,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $date_prepared = null;
     public ?string $date_accepted = null;
     public string $remarks = '';
-    public bool $use_current_date = true;
-    public bool $use_current_date_accepted = true;
 
     // Display only property
     public ?float $unit_price = 0.0;
@@ -45,8 +43,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         
         $this->generateIcsNumber();
-        $this->date_prepared = now()->format('m/d/Y');
-        $this->date_accepted = now()->format('m/d/Y');
         
         // Pre-load data for select dropdowns
         $this->allContracts = Contract::with('supplier:id,name')
@@ -160,24 +156,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         if (isset($this->batches[$batchIndex]['components'][$componentIndex])) {
             array_splice($this->batches[$batchIndex]['components'], $componentIndex, 1);
-        }
-    }
-
-    public function updatedUseCurrentDate(bool $value): void
-    {
-        if ($value) {
-            $this->date_prepared = now()->format('m/d/Y');
-        } else {
-            $this->date_prepared = null;
-        }
-    }
-
-    public function updatedUseCurrentDateAccepted(bool $value): void
-    {
-        if ($value) {
-            $this->date_accepted = now()->format('m/d/Y');
-        } else {
-            $this->date_accepted = null;
         }
     }
 
@@ -418,47 +396,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <option value="SPHV">SPHV - P5,001.00 to P49,999.99</option>
                         </flux:select>
                         <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required :disabled="$isParItem" tabindex="503" />
-                        <div x-data="{ isPar: $wire.get('isParItem') }" x-init="$watch('$wire.isParItem', value => isPar = value)">
+                        <div>
                              <flux:input
-                                x-mask="isPar ? '' : '99/99/9999'"
                                 wire:model.blur="date_prepared"
                                 type="text"
                                 label="Date Prepared"
                                 placeholder="MM/DD/YYYY"
                                 required
                                 :disabled="$isParItem"
-                                :readonly="$use_current_date"
                                 tabindex="504"
                             />
                             <x-input-error for="date_prepared" class="mt-2" />
-                            <div class="mt-2">
-                                <flux:checkbox
-                                    wire:model.live="use_current_date"
-                                    label="Use current date"
-                                    id="use_current_date"
-                                />
-                            </div>
                         </div>
-                        <div x-data="{ isPar: $wire.get('isParItem') }" x-init="$watch('$wire.isParItem', value => isPar = value)">
+                        <div>
                             <flux:input
-                                x-mask="isPar ? '' : '99/99/9999'"
                                 wire:model.blur="date_accepted"
                                 type="text"
                                 label="Date Accepted"
                                 placeholder="MM/DD/YYYY"
                                 required
                                 :disabled="$isParItem"
-                                :readonly="$use_current_date_accepted"
                                 tabindex="505"
                             />
                             <x-input-error for="date_accepted" class="mt-2" />
-                            <div class="mt-2">
-                                <flux:checkbox
-                                    wire:model.live="use_current_date_accepted"
-                                    label="Use current date"
-                                    id="use_current_date_accepted"
-                                />
-                            </div>
                         </div>
                         <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="506" />
                     </div>
