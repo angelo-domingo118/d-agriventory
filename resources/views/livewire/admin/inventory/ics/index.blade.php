@@ -15,7 +15,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public string $search = '';
     public bool $showFilters = false;
-    public string $view = 'table';
+    
+    // New state properties
+    public string $groupBy = 'none'; // 'none' or 'employee'
+    public string $viewMode = 'table'; // 'table' or 'card'
+    
     public string $density = 'spacious';
     public int $perPage = 10;
 
@@ -76,6 +80,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         ]
     ];
 
+    public array $openGroups = [];
+
     #[Computed]
     public function filtersActive(): bool
     {
@@ -95,7 +101,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
-        $this->view = session('ics_view_mode', 'table');
+        $this->groupBy = session('ics_group_by', 'none');
+        $this->viewMode = session('ics_view_mode', 'table');
         $this->density = session('ics_density', 'spacious');
 
         $defaultColumns = [];
@@ -112,10 +119,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         session(['ics_column_visibility' => $this->columns]);
     }
 
-    public function setView(string $view): void
+    public function setGroupBy(string $groupBy): void
     {
-        $this->view = $view;
-        session(['ics_view_mode' => $view]);
+        $this->groupBy = $groupBy;
+        session(['ics_group_by' => $groupBy]);
+        $this->resetPage();
+    }
+
+    public function setViewMode(string $viewMode): void
+    {
+        $this->viewMode = $viewMode;
+        session(['ics_view_mode' => $viewMode]);
     }
 
     public function setDensity(string $density): void
@@ -246,6 +260,43 @@ new #[Layout('components.layouts.app')] class extends Component {
             $query->orderBy($this->sortColumn, $this->sortDirection);
         }
 
+        if ($this->groupBy === 'employee') {
+            $items = $query->get();
+
+            if (!empty($this->search)) {
+                $this->openGroups = $items->pluck('assigned_employee_id')->map(fn($id) => $id ?: 'unassigned')->unique()->all();
+            } else {
+                $this->openGroups = [];
+            }
+
+            // Group by employee, handling unassigned items
+            $grouped = $items->groupBy(function ($item) {
+                return $item->assigned_employee_id ?: 'unassigned';
+            });
+
+            // Sort groups by employee name, 'unassigned' first
+            $sortedGroups = $grouped->sortBy(function ($items, $key) {
+                if ($key === 'unassigned') {
+                    return -1;
+                }
+                // Check if assignedEmployee exists before accessing name
+                return $items->first()->assignedEmployee->name ?? PHP_INT_MAX;
+            }, SORT_REGULAR, $this->sortDirection === 'desc');
+
+            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                items: $sortedGroups->forPage($currentPage, $this->perPage),
+                total: $sortedGroups->count(),
+                perPage: $this->perPage,
+                currentPage: $currentPage,
+                options: [
+                    'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+        }
+
         return $query->paginate($this->perPage);
     }
 
@@ -306,25 +357,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                     style="display: none;"
                 >
                     <div class="px-3 py-2">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">View Mode</div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Group By</div>
                         <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
                              <button
-                                 wire:click="setView('table')"
-                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $view === 'table' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                 wire:click="setGroupBy('none')"
+                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $groupBy === 'none' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                             >
+                                 By ICS Number
+                             </button>
+                             <button
+                                 wire:click="setGroupBy('employee')"
+                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $groupBy === 'employee' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                             >
+                                 By Employee
+                             </button>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">View Style</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                             <button
+                                 wire:click="setViewMode('table')"
+                                 class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $viewMode === 'table' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                              >
                                  Table
                              </button>
                              <button
-                                 wire:click="setView('card')"
-                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $view === 'card' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                 wire:click="setViewMode('card')"
+                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $viewMode === 'card' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                              >
                                  Card
-                             </button>
-                             <button
-                                 wire:click="setView('compact')"
-                                 class="-ml-px flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $view === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
-                             >
-                                 Compact
                              </button>
                         </div>
                     </div>
@@ -508,7 +571,13 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="mt-4 flex items-center justify-between">
         <div class="text-sm text-stone-600 dark:text-stone-400">
-            @if ($this->icsNumbers->total() > 0)
+            @if ($this->groupBy === 'employee')
+                @if ($this->icsNumbers->total() > 0)
+                    <span>Showing employee groups {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong>.</span>
+                @else
+                    <span>No results found.</span>
+                @endif
+            @elseif ($this->icsNumbers->total() > 0)
                 <span>Showing {{ $this->icsNumbers->firstItem() }} to {{ $this->icsNumbers->lastItem() }} of <strong>{{ $this->icsNumbers->total() }}</strong> results.</span>
             @else
                 <span>No results found.</span>
@@ -583,7 +652,80 @@ new #[Layout('components.layouts.app')] class extends Component {
             ];
         @endphp
 
-        @if ($view === 'table')
+        @if($this->groupBy === 'employee')
+            <div class="space-y-4" wire:key="search-{{ $this->search }}">
+                @forelse ($this->icsNumbers as $employeeId => $items)
+                    @php
+                        $employee = $items->first()->assignedEmployee;
+                        $employeeName = $employeeId === 'unassigned' ? 'Unassigned Items' : ($employee->name ?? 'Unknown Employee');
+
+                        // When a search is active, a group is open if it contains results.
+                        // Otherwise, fall back to the default state (first few are open).
+                        $isOpen = !empty($this->search)
+                            ? in_array($employeeId, $this->openGroups)
+                            : ($this->icsNumbers->count() <= 3 || $employeeId === 'unassigned');
+                    @endphp
+                    <div x-data="{ open: {{ $isOpen ? 'true' : 'false' }} }" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+                        <div @click="open = !open" class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                            <div>
+                                <h3 class="font-semibold text-stone-900 dark:text-stone-100 lg:text-lg">{!! \App\Helpers\TextHelper::highlight($employeeName, $this->search) !!}</h3>
+                                @if($employee)
+                                <p class="text-sm text-stone-500">{{ $employee->division->name ?? 'No division' }}</p>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-x-4">
+                                <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
+                                <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
+                            </div>
+                        </div>
+                        <div x-show="open" x-collapse style="display: none;">
+                             @if ($this->viewMode === 'table')
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                                            @foreach($items as $ics)
+                                                <x-admin.inventory.ics.table-row
+                                                    :ics="$ics"
+                                                    :densityClasses="$densityClasses"
+                                                    :columns="$this->columns"
+                                                    :search="$this->search"
+                                                    :filterArticle="$this->filterArticle"
+                                                    :filterSerialNumber="$this->filterSerialNumber"
+                                                    :filterContract="$this->filterContract"
+                                                    :filterRemarks="$this->filterRemarks"
+                                                    :filterInventoryNumber="$this->filterInventoryNumber"
+                                                    :show-issued-to="true"
+                                                />
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @elseif ($this->viewMode === 'card')
+                                <div class="border-t border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800/50">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 {{ $densityClasses['card_container'] }}">
+                                        @foreach($items as $ics)
+                                            <x-admin.inventory.ics.card
+                                                :ics="$ics"
+                                                :densityClasses="$densityClasses"
+                                                :search="$this->search"
+                                                :filterArticle="$this->filterArticle"
+                                                :filterSerialNumber="$this->filterSerialNumber"
+                                            />
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
+                         <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
+                        <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No ICS records found matching your criteria.</p>
+                    </div>
+                @endforelse
+            </div>
+        @else
+            @if ($this->viewMode === 'table')
             <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
@@ -635,21 +777,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'doc_source')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.issued_to}px`" class="relative hidden {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100 sm:table-cell">
-                                        <div wire:click="sortBy('employees.name')" class="flex items-center cursor-pointer">
-                                            Issued To
-                                            @if($sortColumn === 'employees.name')
-                                                @if($sortDirection === 'asc')
-                                                    <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
-                                                @else
-                                                    <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
-                                                @endif
-                                            @else
-                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                            @endif
-                                        </div>
-                                        <div @mousedown="startResize($event, 'issued_to')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                    </th>
                                     <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} pl-3 pr-4 sm:pr-6 text-right {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
                                         Actions
                                     </th>
@@ -657,188 +784,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </thead>
                             <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                                  @forelse ($this->icsNumbers as $ics)
-                                    <tr wire:key="ics-{{ $ics->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                                        <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
-                                            <div class="space-y-2">
-                                                <div>
-                                                    @if ($ics->contractItem?->itemSpecification?->itemCatalog?->name)
-                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
-                                                    @else
-                                                        <div class="font-semibold text-stone-900 dark:text-stone-100 italic">Item name not available</div>
-                                                    @endif
-                                                    @php $spec = $ics->contractItem?->itemSpecification; @endphp
-                                                    @if ($this->columns['brand_model'] && $densityClasses['show_secondary'] && $spec)
-                                                        @if ($spec->brand || $spec->model)
-                                                            <div class="{{ $densityClasses['text_meta'] }} text-stone-500">
-                                                                {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
-                                                            </div>
-                                                        @endif
-                                                    @endif
-                                                </div>
-
-                                                @if ($this->columns['specifications'] && $densityClasses['show_tertiary'] && $spec?->detailed_specifications)
-                                                    <div class="{{ $densityClasses['text_meta'] }}">
-                                                        <div class="grid grid-cols-[auto_1fr] gap-x-2">
-                                                            <span class="font-semibold uppercase text-stone-500 dark:text-stone-400">Description:</span>
-                                                            <p class="text-stone-600 dark:text-stone-300 break-words">
-                                                                {!! \App\Helpers\TextHelper::highlight($spec->detailed_specifications, [$this->search, $this->filterArticle]) !!}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                @endif
-
-                                                @if($this->columns['serials'])
-                                                    <div class="{{ $densityClasses['text_meta'] }}">
-                                                        <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / Components:</p>
-                                                        @php
-                                                            $hasAnyIdentification = $ics->itemBatches->some(fn($batch) => $batch->identification_data || $batch->components->isNotEmpty());
-                                                        @endphp
-                                                        @if($ics->itemBatches->isNotEmpty())
-                                                            @if($hasAnyIdentification)
-                                                                <ul class="mt-1 space-y-2">
-                                                                    @foreach($ics->itemBatches as $batch)
-                                                                        <li wire:key="batch-{{ $batch->id }}">
-                                                                            @if($ics->itemBatches->count() > 1)
-                                                                                <p class="font-medium text-stone-600 dark:text-stone-300">Batch #{{ $loop->iteration }}:</p>
-                                                                            @endif
-                                                                            <div @if($ics->itemBatches->count() > 1) class="pl-4" @endif>
-                                                                                @if($batch->components->isNotEmpty())
-                                                                                    <ul class="list-disc pl-5 text-stone-600 dark:text-stone-400">
-                                                                                        @foreach($batch->components as $component)
-                                                                                            <li>
-                                                                                                <strong>{{ $component->component_type }}:</strong>
-                                                                                                @if($component->serial_number)
-                                                                                                    {!! \App\Helpers\TextHelper::highlight($component->serial_number, [$this->search, $this->filterSerialNumber]) !!}
-                                                                                                @else
-                                                                                                    <span class="italic text-stone-500">Not provided</span>
-                                                                                                @endif
-                                                                                            </li>
-                                                                                        @endforeach
-                                                                                    </ul>
-                                                                                @elseif($batch->identification_data)
-                                                                                    <p class="text-stone-600 dark:text-stone-300">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) !!}</p>
-                                                                                @else
-                                                                                    <p class="italic text-stone-500">No serial number recorded for this batch.</p>
-                                                                                @endif
-                                                                            </div>
-                                                                        </li>
-                                                                    @endforeach
-                                                                </ul>
-                                                            @else
-                                                                <p class="italic text-stone-500">No serial numbers recorded for any batches.</p>
-                                                            @endif
-                                                        @else
-                                                            <p class="italic text-stone-500">No item serials recorded.</p>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            @if(!$densityClasses['show_secondary'])
-                                                <div class="mt-1 text-stone-600 dark:text-stone-400 sm:hidden">
-                                                    <p>{!! \App\Helpers\TextHelper::highlight($ics->assignedEmployee?->name ?? 'Unassigned', $this->search) !!}</p>
-                                                    @if($ics->assignedEmployee)
-                                                        <p>
-                                                            @php $divisionName = $ics->assignedEmployee->division?->name; @endphp
-                                                            @if($divisionName)
-                                                                {!! \App\Helpers\TextHelper::highlight($divisionName, $this->search) !!}
-                                                            @else
-                                                                <span class="italic text-stone-500">No division assigned</span>
-                                                            @endif
-                                                        </p>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        </td>
-
-                                        <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
-                                            <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->ics_number, $this->search) !!}</div>
-                                            @if($densityClasses['show_secondary'])
-                                            <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                                 <div>
-                                                     <span class="font-medium">Inventory No:</span>
-                                                    @if($ics->date_accepted)
-                                                        @php $inventoryNumber = $ics->ics_type . '-' . $ics->ics_number . '-' . $ics->date_accepted->format('m-Y'); @endphp
-                                                        {!! \App\Helpers\TextHelper::highlight($inventoryNumber, [$this->search, $this->filterInventoryNumber]) !!}
-                                                    @else
-                                                        <span class="italic text-stone-500">Awaiting acceptance</span>
-                                                    @endif
-                                                 </div>
-                                               @if($this->columns['ics_type'])<div><span class="font-medium">Type:</span> {{ $ics->ics_type }}</div>@endif
-                                               @if($this->columns['quantity'])
-                                                    <div><span class="font-medium">Quantity:</span> {{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
-                                                    <div><span class="font-medium">Batches:</span> {{ $ics->itemBatches->count() }}</div>
-                                               @endif
-                                               @if($this->columns['unit_cost'])<div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($ics->contractItem?->unit_price ?? 0, 2) }}</div>@endif
-                                               @if($this->columns['useful_life'])<div><span class="font-medium">Life:</span> {{ $ics->estimated_useful_life }} yrs</div>@endif
-                                            </div>
-                                            @endif
-                                        </td>
-
-                                        <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} lg:table-cell border-r border-stone-300 dark:border-stone-700">
-                                            <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->supplier->name ?? 'Supplier Not Set', $this->search) !!}</div>
-                                            @if($densityClasses['show_secondary'])
-                                            <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                                @if($this->columns['contract'])
-                                                    <div>
-                                                        <span class="font-medium">Contract/PO:</span>
-                                                        @if($ics->contractItem?->contract?->contract_po_ib_number)
-                                                            {!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->contract_po_ib_number, [$this->search, $this->filterContract]) !!}
-                                                        @else
-                                                            <span class="italic text-stone-500">Not available</span>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                                @if($this->columns['dates'] && $densityClasses['show_tertiary'])
-                                                    <div>
-                                                        <span class="font-medium">Prepared:</span>
-                                                        @if($ics->date_prepared)
-                                                            {{ $ics->date_prepared->format('M d, Y') }}
-                                                        @else
-                                                            <span class="italic text-stone-500">Not set</span>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <span class="font-medium">Accepted:</span>
-                                                        @if($ics->date_accepted)
-                                                            {{ $ics->date_accepted->format('M d, Y') }}
-                                                        @else
-                                                            <span class="italic text-stone-500">Not set</span>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            @endif
-                                            @if($this->columns['remarks'] && $ics->remarks)
-                                                <div class="mt-2 text-xs text-stone-500 italic">"{!! \App\Helpers\TextHelper::highlight($ics->remarks, [$this->search, $this->filterRemarks]) !!}"</div>
-                                            @endif
-                                        </td>
-
-                                        <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} sm:table-cell border-r border-stone-300 dark:border-stone-700">
-                                            <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($ics->assignedEmployee?->name ?? 'Unassigned', $this->search) !!}</div>
-                                             @if($this->columns['division'] && $ics->assignedEmployee)
-                                                @php $divisionName = $ics->assignedEmployee->division?->name; @endphp
-                                                <div class="text-stone-600 dark:text-stone-400">
-                                                    @if($divisionName)
-                                                        {!! \App\Helpers\TextHelper::highlight($divisionName, $this->search) !!}
-                                                    @else
-                                                        <span class="italic text-stone-500">No division assigned</span>
-                                                    @endif
-                                                </div>
-                                             @endif
-                                        </td>
-
-                                        <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
-                                            <div class="flex items-center justify-end gap-x-2">
-                                                <a href="{{ route('admin.inventory.ics.show', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                                    View<span class="sr-only">, {{ $ics->ics_number }}</span>
-                                                </a>
-                                                <a href="{{ route('admin.inventory.ics.edit', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                                    Edit<span class="sr-only">, {{ $ics->ics_number }}</span>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        <x-admin.inventory.ics.table-row
+                                            :ics="$ics"
+                                            :densityClasses="$densityClasses"
+                                            :columns="$this->columns"
+                                            :search="$this->search"
+                                            :filterArticle="$this->filterArticle"
+                                            :filterSerialNumber="$this->filterSerialNumber"
+                                            :filterContract="$this->filterContract"
+                                            :filterRemarks="$this->filterRemarks"
+                                            :filterInventoryNumber="$this->filterInventoryNumber"
+                                            :show-issued-to="false"
+                                        />
                                 @empty
                                     <tr>
                                         <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
@@ -851,132 +808,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
             </div>
-        @elseif($view === 'card')
+            @elseif ($this->viewMode === 'card')
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $densityClasses['card_container'] }}">
                 @forelse ($this->icsNumbers as $ics)
-                    <div wire:key="ics-card-{{ $ics->id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-                        <div class="{{ $densityClasses['card_padding'] }}">
-                            <div class="flex items-start justify-between">
-                                <div class="max-w-xs">
-                                    <p class="truncate {{ $densityClasses['text_base'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                        @if ($ics->contractItem?->itemSpecification?->itemCatalog?->name)
-                                            {!! \App\Helpers\TextHelper::highlight($ics->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
-                                        @else
-                                            <span class="italic">Item name not available</span>
-                                        @endif
-                                    </p>
-                                     @php $spec = $ics->contractItem?->itemSpecification; @endphp
-                                     @if ($densityClasses['show_secondary'] && $spec && ($spec->brand || $spec->model))
-                                        <p class="{{ $densityClasses['text_meta'] }} text-stone-500">
-                                            {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
-                                        </p>
-                                    @endif
-                                </div>
-                                <div class="ml-4 flex-shrink-0">
-                                    <span class="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-500/10 dark:text-primary-400 dark:ring-primary-500/20">{!! \App\Helpers\TextHelper::highlight($ics->ics_number, $this->search) !!}</span>
-                                </div>
-                            </div>
-
-                            <div class="mt-4">
-                                <p class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Issued To</p>
-                                <p class="{{ $densityClasses['text_base'] }} font-medium text-stone-800 dark:text-stone-200">{!! \App\Helpers\TextHelper::highlight($ics->assignedEmployee?->name ?? 'Unassigned', $this->search) !!}</p>
-                                @if($densityClasses['show_secondary'])
-                                    @if($ics->assignedEmployee)
-                                        @php $divisionName = $ics->assignedEmployee->division?->name; @endphp
-                                        <p class="{{ $densityClasses['text_base'] }} text-stone-600 dark:text-stone-400">
-                                            @if($divisionName)
-                                                {!! \App\Helpers\TextHelper::highlight($divisionName, $this->search) !!}
-                                            @else
-                                                <span class="italic text-stone-500">No division assigned</span>
-                                            @endif
-                                        </p>
-                                    @endif
-                                @endif
-                            </div>
-
-                            @if($densityClasses['show_tertiary'])
-                             <div class="mt-4">
-                                <p class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / Components</p>
-                                @php
-                                    $hasAnyIdentification = $ics->itemBatches->some(fn($batch) => $batch->identification_data || $batch->components->isNotEmpty());
-                                @endphp
-
-                                @if($ics->itemBatches->isNotEmpty())
-                                    @if($hasAnyIdentification)
-                                        <ul class="mt-1 space-y-2 {{ $densityClasses['text_meta'] }}">
-                                            @foreach($ics->itemBatches as $batch)
-                                                <li wire:key="card-batch-{{ $batch->id }}">
-                                                    @if($ics->itemBatches->count() > 1)
-                                                        <p class="font-medium text-stone-600 dark:text-stone-300">Batch #{{ $loop->iteration }}:</p>
-                                                    @endif
-                                                    <div @if($ics->itemBatches->count() > 1) class="pl-4" @endif>
-                                                        @if($batch->components->isNotEmpty())
-                                                            <ul class="list-disc pl-5 text-stone-600 dark:text-stone-400">
-                                                                @foreach($batch->components as $component)
-                                                                    <li>
-                                                                        <strong>{{ $component->component_type }}:</strong>
-                                                                        @if($component->serial_number)
-                                                                            {!! \App\Helpers\TextHelper::highlight($component->serial_number, [$this->search, $this->filterSerialNumber]) !!}
-                                                                        @else
-                                                                            <span class="italic text-stone-500">Not provided</span>
-                                                                        @endif
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @elseif($batch->identification_data)
-                                                            <p class="text-stone-600 dark:text-stone-300">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) !!}</p>
-                                                        @else
-                                                            <p class="italic text-stone-500">No serial number recorded for this batch.</p>
-                                                        @endif
-                                                    </div>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        <p class="{{ $densityClasses['text_meta'] }} italic text-stone-500">No serial numbers recorded for any batches.</p>
-                                    @endif
-                                @else
-                                    <p class="{{ $densityClasses['text_meta'] }} italic text-stone-500">No item serials recorded.</p>
-                                @endif
-                            </div>
-
-                            <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 {{ $densityClasses['text_base'] }}">
-                                <div>
-                                    <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Quantity</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</dd>
-                                </div>
-                                <div>
-                                    <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Batches</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $ics->itemBatches->count() }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Unit Cost</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">₱{{ number_format($ics->contractItem?->unit_price ?? 0, 2) }}</dd>
-                                </div>
-                                 <div>
-                                    <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Life</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $ics->estimated_useful_life }} yrs</dd>
-                                </div>
-                                @if($densityClasses['show_secondary'])
-                                <div class="col-span-2">
-                                    <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Supplier</dt>
-                                    <dd class="font-medium text-stone-800 dark:text-stone-200">{!! \App\Helpers\TextHelper::highlight($ics->contractItem->contract->supplier->name ?? 'Supplier Not Set', $this->search) !!}</dd>
-                                </div>
-                                @endif
-                            </dl>
-                            @endif
-                        </div>
-                        <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
-                             <div class="flex items-center justify-end gap-x-2">
-                                <a href="{{ route('admin.inventory.ics.show', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                    View
-                                </a>
-                                <a href="{{ route('admin.inventory.ics.edit', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                    Edit
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                        <x-admin.inventory.ics.card
+                            :ics="$ics"
+                            :densityClasses="$densityClasses"
+                            :search="$this->search"
+                            :filterArticle="$this->filterArticle"
+                            :filterSerialNumber="$this->filterSerialNumber"
+                        />
                 @empty
                     <div class="sm:col-span-2 lg:col-span-3">
                         <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
@@ -986,73 +827,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 @endforelse
             </div>
-        @elseif($view === 'compact')
-             <div class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-                <ul role="list" class="divide-y divide-stone-200 dark:divide-stone-700">
-                    @forelse ($this->icsNumbers as $ics)
-                        <li wire:key="ics-compact-{{ $ics->id }}" class="flex items-center justify-between gap-x-6 px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <div class="flex min-w-0 gap-x-4">
-                                <div class="min-w-0 flex-auto">
-                                    <p class="truncate text-sm font-semibold leading-6 text-stone-900 dark:text-stone-100">
-                                        @if ($ics->contractItem?->itemSpecification?->itemCatalog?->name)
-                                            {!! \App\Helpers\TextHelper::highlight($ics->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}
-                                        @else
-                                            <span class="italic">Item name not available</span>
                                         @endif
-                                    </p>
-                                    <p class="mt-1 flex flex-wrap items-center text-xs leading-5 text-stone-500">
-                                        <span>{!! \App\Helpers\TextHelper::highlight($ics->ics_number, $this->search) !!}</span>
-                                         @if($ics->date_accepted)
-                                             <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                            @php $inventoryNumber = $ics->ics_type . '-' . $ics->ics_number . '-' . $ics->date_accepted->format('m-Y'); @endphp
-                                            <span class="truncate">Inv No: {!! \App\Helpers\TextHelper::highlight($inventoryNumber, [$this->search, $this->filterInventoryNumber]) !!}</span>
-                                         @endif
-                                        <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                        <span>{{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</span>
-                                        @if ($ics->contractItem?->unit_price > 0)
-                                            <span class="mx-1 text-stone-400 dark:text-stone-600">·</span>
-                                            <span>@ ₱{{ number_format($ics->contractItem->unit_price, 2) }}</span>
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                                <p class="text-sm leading-6 text-stone-900 dark:text-white">
-                                    {{ $ics->estimated_useful_life }} year(s) useful life
-                                </p>
-                                <p class="mt-1 text-xs leading-5 text-stone-500">
-                                    @if($ics->assignedEmployee)
-                                        @php $divisionName = $ics->assignedEmployee->division?->name; @endphp
-                                        @if($divisionName)
-                                            {!! \App\Helpers\TextHelper::highlight($divisionName, $this->search) !!}
-                                        @else
-                                            <span class="italic text-stone-500">No division assigned</span>
-                                        @endif
-                                    @else
-                                        &nbsp;
-                                   @endif
-                                </p>
-                            </div>
-                            <div class="flex flex-none items-center gap-x-4">
-                               <div class="flex items-center justify-end gap-x-2">
-                                    <a href="{{ route('admin.inventory.ics.show', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                        View
-                                    </a>
-                                    <a href="{{ route('admin.inventory.ics.edit', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
-                                        Edit
-                                    </a>
-                                </div>
-                            </div>
-                        </li>
-                    @empty
-                         <li>
-                            <div class="p-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                                No ICS records found matching your criteria.
-                            </div>
-                        </li>
-                    @endforelse
-                </ul>
-            </div>
         @endif
     </div>
     <div class="mt-4">
