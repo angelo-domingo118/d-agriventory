@@ -267,14 +267,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-900">
+                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($this->categories as $category)
                         <tr wire:key="category-{{ $category->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->primaryCategory->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                 <a href="{{ route('admin.data.items-and-categories.secondary-categories.edit', ['secondary_category' => $category, 'view' => 'table']) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
+                                 <a href="{{ route('admin.data.items-and-categories.secondary-categories.edit', ['category' => $category, 'view' => 'table']) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
                             </td>
                         </tr>
                     @empty
