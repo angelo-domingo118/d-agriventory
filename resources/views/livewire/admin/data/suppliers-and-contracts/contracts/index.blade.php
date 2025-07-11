@@ -122,7 +122,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button tag="a" href="{{ route('admin.data.suppliers-and-contracts.contracts.create') }}" wire:navigate variant="primary">New Contract</flux:button>
+            <flux:button tag="a" href="{{ route('admin.data.suppliers-and-contracts.contracts.create', ['view' => 'table']) }}" wire:navigate variant="primary">New Contract</flux:button>
         </div>
     </div>
     
@@ -220,7 +220,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->contract_items_count }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $contract->created_at->format('M d, Y') }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                        <a href="{{ route('admin.data.suppliers-and-contracts.contracts.edit', $contract) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
+                                        <a href="{{ route('admin.data.suppliers-and-contracts.contracts.edit', ['contract' => $contract, 'view' => 'table']) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
                                     </td>
                                 </tr>
                             @empty

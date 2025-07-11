@@ -170,7 +170,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.employees-and-divisions.employees.create')" variant="primary">New Employee</flux:button>
+            <flux:button :href="route('admin.data.employees-and-divisions.employees.create') . '?view=table'" variant="primary">New Employee</flux:button>
         </div>
     </div>
 
@@ -273,18 +273,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($employees as $employee)
                         <tr wire:key="employee-{{ $employee->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">
-                                <div class="font-semibold">{{ $employee->name }}</div>
-                                <div class="text-xs text-stone-500 dark:text-stone-400">{{ $employee->employee_number }}</div>
-                            </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
-                                {{ $employee->position?->title }}
-                            </td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">
-                                {{ $employee->division?->name }}
-                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $employee->name }} <span class="text-stone-500">({{ $employee->employee_number }})</span></td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->position?->title }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->division?->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.employees.edit', $employee) }}" wire:navigate
+                                <a href="{{ route('admin.data.employees-and-divisions.employees.edit', $employee) }}?view=table" wire:navigate
                                    class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    Edit
                                 </a>

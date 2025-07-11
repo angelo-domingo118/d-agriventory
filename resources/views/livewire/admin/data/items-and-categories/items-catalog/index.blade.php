@@ -158,71 +158,221 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="tableResizer('items_catalog_widths', { name: 300, code: 150, unit: 100, secondary_category: 200, primary_category: 200, actions: 100 })">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Items Catalog
-        </h1>
-        <div class="flex items-center gap-x-2">
-            <div x-data="{ open: false }" class="relative">
-                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
-                    <x-flux::icon.settings-2 class="h-5 w-5" />
-                    <span class="sr-only">Toggle View Options</span>
-                </flux:button>
-                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
-                    <div class="px-3 py-2">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
-                    </div>
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button
-                            variant="ghost"
-                            x-on:click="$dispatch('reset-column-widths')"
-                            class="w-full justify-center"
-                        >
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+<div x-data="{ showFilters: @entangle('showFilters') }">
+    <div x-data="tableResizer('items_catalog_widths', { name: 300, code: 150, unit: 100, secondary_category: 200, primary_category: 200, actions: 100 })">
+        <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                Items Catalog
+            </h1>
+            <div class="flex items-center gap-x-2">
+                <div x-data="{ open: false }" class="relative">
+                    <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                        <x-flux::icon.settings-2 class="h-5 w-5" />
+                        <span class="sr-only">Toggle View Options</span>
+                    </flux:button>
+                    <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                        <div class="px-3 py-2">
+                            <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                            <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </flux:select>
+                        </div>
+                        <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                            <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
+                            <flux:button
+                                variant="ghost"
+                                x-on:click="$dispatch('reset-column-widths')"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
+                <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                    <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                    <span class="sr-only">Refresh</span>
+                </flux:button>
+                <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
+                    <x-flux::icon.filter class="h-5 w-5" />
+                    <span class="sr-only">Toggle Filters</span>
+                </flux:button>
+                <flux:button :href="route('admin.data.items-and-categories.items-catalog.create') . '?view=table'" variant="primary">New Item</flux:button>
             </div>
-            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
-                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
-                <span class="sr-only">Refresh</span>
-            </flux:button>
-            <flux:button variant="outline" x-on:click="showFilters = !showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
-                <x-flux::icon.filter class="h-5 w-5" />
-                <span class="sr-only">Toggle Filters</span>
-            </flux:button>
-            <flux:button :href="route('admin.data.items-and-categories.items-catalog.create')" variant="primary">New Item</flux:button>
         </div>
-    </div>
-    
-    <div x-show="showFilters" x-collapse class="mt-4">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <div class="border-b border-stone-200 p-4 dark:border-stone-700">
-                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
-            </div>
-            <div class="p-4">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-4">
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterPrimaryCategory" label="Primary Category">
-                            <option value="">Any Primary Category</option>
-                            @foreach($this->primaryCategories as $category)
-                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                            @endforeach
-                        </flux:select>
+        
+        <div x-show="$wire.showFilters" x-collapse class="mt-4">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 p-4 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-4">
+                        <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterPrimaryCategory" label="Primary Category">
+                                <option value="">Any Primary Category</option>
+                                @foreach($this->primaryCategories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterSecondaryCategory" label="Secondary Category">
+                                <option value="">Any Secondary Category</option>
+                                 @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                                    <optgroup label="{{ $primaryName }}">
+                                        @foreach($secondaryGroup as $sCat)
+                                            <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-4">
+                            <flux:input wire:model.live.debounce.300ms="filterUnit" label="Unit of Measure" placeholder="Search units..." />
+                        </div>
                     </div>
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterSecondaryCategory" label="Secondary Category">
-                            <option value="">Any Secondary Category</option>
-                             @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                </div>
+                <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
+                    <flux:button variant="ghost" wire:click="resetFilters">
+                        Reset Filters
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-stone-600 dark:text-stone-400">
+                @if ($this->items->total() > 0)
+                    <span>Showing {{ $this->items->firstItem() }} to {{ $this->items->lastItem() }} of <strong>{{ $this->items->total() }}</strong> results.</span>
+                @else
+                    <span>No results found.</span>
+                @endif
+            </div>
+            <div class="w-full max-w-xs">
+                <flux:input
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search anything..."
+                    icon="magnifying-glass"
+                    clearable
+                />
+            </div>
+        </div>
+
+        <div class="mt-4 flow-root">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
+                    <thead class="bg-stone-50 dark:bg-stone-800">
+                        <tr class="divide-x divide-stone-200 dark:divide-stone-700">
+                            <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                                    Name
+                                    @if($sortColumn === 'name')
+                                        @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                    @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                    @endif
+                                </div>
+                                <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            </th>
+                            <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
+                                    Code
+                                    @if($sortColumn === 'code')
+                                        @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                    @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                    @endif
+                                </div>
+                                <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            </th>
+                            <th scope="col" :style="`width: ${columnWidths.unit}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                 <div wire:click="sortBy('unit')" class="flex cursor-pointer items-center">
+                                    Unit
+                                    @if($sortColumn === 'unit')
+                                         @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                    @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                    @endif
+                                </div>
+                                <div @mousedown="startResize($event, 'unit')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            </th>
+                            <th scope="col" :style="`width: ${columnWidths.secondary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                <div wire:click="sortBy('category')" class="flex cursor-pointer items-center">
+                                    Category
+                                    @if($sortColumn === 'category')
+                                        @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                    @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                    @endif
+                                </div>
+                                <div @mousedown="startResize($event, 'secondary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            </th>
+                            <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                <div wire:click="sortBy('primary_category')" class="flex cursor-pointer items-center">
+                                    Primary Category
+                                    @if($sortColumn === 'primary_category')
+                                        @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                    @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                    @endif
+                                </div>
+                                <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            </th>
+                            <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                        @forelse($items as $item)
+                            <tr wire:key="item-{{ $item->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $item->name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->code }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->unit }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->primaryCategory?->name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                                    <a href="{{ route('admin.data.items-and-categories.items-catalog.edit', $item) }}?view=table" wire:navigate
+                                       class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                       Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                                    No items found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="mt-4">
+            {{ $items->links() }}
+        </div>
+
+        <!-- Create/Edit Modal -->
+        @if($editing)
+            <flux:modal :show="$showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
+                <form wire:submit.prevent="save">
+                    <x-slot:title>
+                        {{ $editing->exists ? 'Edit' : 'Create' }} Item
+                    </x-slot:title>
+
+                    <div class="space-y-4 p-6">
+                        <flux:select wire:model="editing.secondary_category_id" label="Secondary Category" required>
+                            <option value="">Select a category</option>
+                            @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
                                 <optgroup label="{{ $primaryName }}">
                                     @foreach($secondaryGroup as $sCat)
                                         <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
@@ -230,169 +380,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </optgroup>
                             @endforeach
                         </flux:select>
+                        <flux:input wire:model="editing.name" label="Item Name" required />
+                        <flux:input wire:model="editing.code" label="Item Code" required />
+                        <flux:input wire:model="editing.unit" label="Unit of Measure" placeholder="e.g., piece, box, ream" required />
                     </div>
-                    <div class="sm:col-span-4">
-                        <flux:input wire:model.live.debounce.300ms="filterUnit" label="Unit of Measure" placeholder="Search units..." />
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
-                <flux:button variant="ghost" wire:click="resetFilters">
-                    Reset Filters
-                </flux:button>
-            </div>
-        </div>
+
+                    <x-slot:footer>
+                        <div class="flex justify-end gap-x-4">
+                            <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
+                            <flux:button type="submit" variant="primary">Save</flux:button>
+                        </div>
+                    </x-slot:footer>
+                </form>
+            </flux:modal>
+        @endif
     </div>
-
-
-    <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm text-stone-600 dark:text-stone-400">
-            @if ($this->items->total() > 0)
-                <span>Showing {{ $this->items->firstItem() }} to {{ $this->items->lastItem() }} of <strong>{{ $this->items->total() }}</strong> results.</span>
-            @else
-                <span>No results found.</span>
-            @endif
-        </div>
-        <div class="w-full max-w-xs">
-            <flux:input
-                wire:model.live.debounce.300ms="search"
-                placeholder="Search anything..."
-                icon="magnifying-glass"
-                clearable
-            />
-        </div>
-    </div>
-
-    <div class="mt-4 flow-root">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
-                <thead class="bg-stone-50 dark:bg-stone-800">
-                    <tr class="divide-x divide-stone-200 dark:divide-stone-700">
-                        <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
-                                Name
-                                @if($sortColumn === 'name')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
-                                Code
-                                @if($sortColumn === 'code')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.unit}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('unit')" class="flex cursor-pointer items-center">
-                                Unit
-                                @if($sortColumn === 'unit')
-                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'unit')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.secondary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('category')" class="flex cursor-pointer items-center">
-                                Category
-                                @if($sortColumn === 'category')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'secondary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('primary_category')" class="flex cursor-pointer items-center">
-                                Primary Category
-                                @if($sortColumn === 'primary_category')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            Actions
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                    @forelse($items as $item)
-                        <tr wire:key="item-{{ $item->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $item->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->code }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->unit }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->primaryCategory?->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.items-and-categories.items-catalog.edit', $item) }}" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   Edit
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
-                                No items found.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-
-    <div class="mt-4">
-        {{ $items->links() }}
-    </div>
-
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Item
-                </x-slot:title>
-
-                <div class="space-y-4 p-6">
-                    <flux:select wire:model="editing.secondary_category_id" label="Secondary Category" required>
-                        <option value="">Select a category</option>
-                        @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                            <optgroup label="{{ $primaryName }}">
-                                @foreach($secondaryGroup as $sCat)
-                                    <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
-                                @endforeach
-                            </optgroup>
-                        @endforeach
-                    </flux:select>
-                    <flux:input wire:model="editing.name" label="Item Name" required />
-                    <flux:input wire:model="editing.code" label="Item Code" required />
-                    <flux:input wire:model="editing.unit" label="Unit of Measure" placeholder="e.g., piece, box, ream" required />
-                </div>
-
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
 </div>
 
 <script>

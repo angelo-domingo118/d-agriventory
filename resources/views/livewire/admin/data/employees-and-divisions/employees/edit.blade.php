@@ -14,6 +14,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $employee_number;
     public ?int $position_id;
     public ?int $division_id;
+    public string $previousView = 'tree';
 
     public function mount(Employee $employee): void
     {
@@ -25,6 +26,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->employee_number = $employee->employee_number;
         $this->position_id = $employee->position_id;
         $this->division_id = $employee->division_id;
+        
+        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
@@ -39,34 +42,21 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->employee->update($validated);
 
         session()->flash('success', 'Employee updated successfully.');
-        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
+        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => $this->previousView]), navigate: true);
     }
-    
+
     public function delete(): void
     {
-        if (
-            $this->employee->icsNumbers()->exists() ||
-            $this->employee->parNumbers()->exists() ||
-            $this->employee->assignedIdrNumbers()->exists() ||
-            $this->employee->approvedIdrNumbers()->exists() ||
-            $this->employee->icsTransfersFrom()->exists() ||
-            $this->employee->icsTransfersTo()->exists() ||
-            $this->employee->parTransfersFrom()->exists() ||
-            $this->employee->parTransfersTo()->exists()
-        ) {
-            session()->flash('error', 'This employee cannot be deleted because they are associated with inventory records or transfers.');
+        // Check if the employee has any inventory items assigned
+        if ($this->employee->icsNumbers()->exists() || $this->employee->parNumbers()->exists() || $this->employee->idrNumbers()->exists()) {
+            session()->flash('error', 'Cannot delete an employee that has inventory items assigned.');
             return;
         }
-        
+
         $this->employee->delete();
 
         session()->flash('success', 'Employee deleted successfully.');
-        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
-    }
-
-    public function cancel(): void
-    {
-        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'employees']);
+        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => $this->previousView]), navigate: true);
     }
 
     #[Computed]
@@ -90,56 +80,64 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<form wire:submit="save">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Edit Employee
-        </h1>
-        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-            Update employee details.
-        </p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                    Edit Employee
+                </h1>
+                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                    Update employee details.
+                </p>
+            </div>
+            <div class="flex items-center gap-x-4">
+                <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this employee? This action cannot be undone.">
+                    Delete
+                </flux:button>
+                <flux:button :href="route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => $this->previousView])" variant="ghost" wire:navigate>
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Save Changes
+                </flux:button>
+            </div>
+        </div>
     </div>
 
-    <form wire:submit.prevent="save" class="mt-8">
-        <div class="max-w-4xl">
-            <div class="space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Employee Details</h3>
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="name" label="Full Name" required />
-                    <flux:input wire:model="employee_number" label="Employee Number" required />
-                    <flux:select wire:model="position_id" label="Position" required>
-                        <option value="">Select a position</option>
-                        @foreach($this->positions as $position)
-                            <option value="{{ $position->id }}">{{ $position->title }}</option>
-                        @endforeach
-                    </flux:select>
-                    <flux:select wire:model="division_id" label="Division/Office" required>                        <option value="">Select a division</option>
-                        @foreach($this->divisions as $division)
-                            <option value="{{ $division->id }}">{{ $division->name }}</option>
-                        @endforeach
-                    </flux:select>
+    <div class="mt-8">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Details</h3>
                 </div>
-            </div>
-
-            <div class="mt-8 flex items-center justify-between">
-                <flux:button
-                    type="button"
-                    variant="danger"
-                    wire:click="delete"
-                    wire:confirm="Are you sure you want to delete this employee? This action cannot be undone."
-                >
-                    Delete Employee
-                </flux:button>
-                <div class="flex justify-end gap-x-4">
-                    <flux:button
-                        type="button"
-                        wire:click="cancel"
-                    >
-                        Cancel
-                    </flux:button>
-                    <flux:button type="submit" variant="primary">Save Changes</flux:button>
+                <div class="p-6">
+                    <div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                        <div class="sm:col-span-4">
+                            <flux:input wire:model="name" label="Full Name" required />
+                        </div>
+                        <div class="sm:col-span-4">
+                            <flux:input wire:model="employee_number" label="Employee Number" required />
+                        </div>
+                        <div class="sm:col-span-3">
+                            <flux:select wire:model="position_id" label="Position" placeholder="Select a position" required>
+                                <option value="" disabled>Select a position</option>
+                                @foreach ($this->positions as $position)
+                                    <option value="{{ $position->id }}">{{ $position->title }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-3">
+                            <flux:select wire:model="division_id" label="Division" placeholder="Select a division" required>
+                                <option value="" disabled>Select a division</option>
+                                @foreach ($this->divisions as $division)
+                                    <option value="{{ $division->id }}">{{ $division->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </form>
-</div> 
+    </div>
+</form> 

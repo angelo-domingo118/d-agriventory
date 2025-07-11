@@ -122,7 +122,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.employees-and-divisions.positions.create')" variant="primary">New Position</flux:button>
+            <a href="{{ route('admin.data.employees-and-divisions.positions.create', ['view' => 'table']) }}" wire:navigate>
+                <flux:button as="span" variant="primary">New Position</flux:button>
+            </a>
         </div>
     </div>
     
@@ -187,8 +189,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.positions.edit', $position) }}" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <a href="{{ route('admin.data.employees-and-divisions.positions.edit', ['position' => $position, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    Edit
                                 </a>
                             </td>

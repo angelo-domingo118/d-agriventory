@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 new #[Layout('components.layouts.app')] class extends Component {
@@ -17,6 +18,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $unit;
     public ?int $secondary_category_id;
     public string $description;
+    public string $previousView = 'tree';
 
     public function mount(ItemsCatalog $item): void
     {
@@ -29,18 +31,16 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->unit = $item->unit;
         $this->secondary_category_id = $item->secondary_category_id;
         $this->description = $item->description ?? '';
+        
+        $this->previousView = request()->query('view', 'tree');
     }
 
     #[Computed]
-    public function primaryCategories(): Collection
+    public function secondaryCategories()
     {
-        return PrimaryCategory::orderBy('name')->get();
-    }
-
-    #[Computed]
-    public function secondaryCategories(): Collection
-    {
-        return SecondaryCategory::orderBy('name')->get();
+        return Cache::remember('secondary-categories-with-primary', now()->addHour(), function () {
+            return SecondaryCategory::with('primaryCategory')->orderBy('name')->get();
+        });
     }
 
     public function save(): void
@@ -56,7 +56,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         try {
             $this->item->update($validated);
             session()->flash('success', 'Item updated successfully.');
-            $this->redirectRoute('admin.data.items-and-categories', ['currentTab' => 'items-catalog']);
+            $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView]), navigate: true);
         } catch (\Exception $e) {
             Log::error('Error updating item: ' . $e->getMessage());
             session()->flash('error', 'There was an error updating the item. Please try again.');
@@ -79,7 +79,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
             $this->item->delete();
             session()->flash('success', 'Item deleted successfully.');
-            $this->redirectRoute('admin.data.items-and-categories', ['currentTab' => 'items-catalog']);
+            $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView]), navigate: true);
         } catch (\Exception $e) {
             Log::error('Error deleting item: ' . $e->getMessage());
             $errorMessage = 'There was an error deleting the item. It might be in use in contracts or inventory records.';
@@ -93,53 +93,63 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function with(): array
     {
         return [
-            'primaryCategories' => $this->primaryCategories,
             'secondaryCategories' => $this->secondaryCategories,
         ];
     }
 }; ?>
 
-<div>
+<form wire:submit="save">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Edit Catalog Item
-        </h1>
-        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-            Update the details for this catalog item.
-        </p>
-    </div>
-
-    <div class="mb-4 flex items-center gap-x-4">
-        <a href="{{ route('admin.data.items-and-categories', ['currentTab' => 'items-catalog']) }}"
-            class="flex items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100">
-            <x-flux::icon.arrow-left class="h-4 w-4" />
-            Back
-        </a>
-    </div>
-
-    <form wire:submit.prevent="save" class="mt-8">
-        <div class="max-w-4xl">
-            <div class="space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Item Details</h3>
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="name" label="Item Name" required />
-                    <flux:input wire:model="code" label="Item Code" required />
-                    <div class="sm:col-span-2">
-                        <flux:textarea wire:model="description" label="Description" />
-                    </div>
-                    <flux:select wire:model="secondary_category_id" label="Secondary Category" required>
-                        <option value="">Select a category</option>
-                        @foreach($this->secondaryCategories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </flux:select>
-                </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                    Edit Catalog Item
+                </h1>
+                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                    Update the details of this catalog item.
+                </p>
             </div>
-
-            <div class="mt-8 flex justify-end gap-x-4">
-                <a href="{{ route('admin.data.items-and-categories', ['currentTab' => 'items']) }}" class="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100">Cancel</a>
-                <flux:button type="submit" variant="primary">Save Changes</flux:button>
+            <div class="flex items-center gap-x-4">
+                <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this item? This action cannot be undone.">
+                    Delete
+                </flux:button>
+                <flux:button :href="route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView])" variant="ghost" wire:navigate>
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Save Changes
+                </flux:button>
             </div>
         </div>
-    </form>
-</div> 
+    </div>
+
+    <div class="mt-8">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Details</h3>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-2xl">
+                        <div class="space-y-6">
+                            <flux:input wire:model="name" label="Item Name" required />
+                            <flux:input wire:model="code" label="Item Code" required />
+                            <flux:input wire:model="unit" label="Unit of Measure" required />
+                             <flux:textarea wire:model="description" label="Description" />
+                            <flux:select wire:model="secondary_category_id" label="Secondary Category" required>
+                                <option value="">Select a category</option>
+                                @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                                    <optgroup label="{{ $primaryName }}">
+                                        @foreach($secondaryGroup as $sCat)
+                                            <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form> 

@@ -173,7 +173,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.items-and-categories.secondary-categories.create')" variant="primary">New Category</flux:button>
+            <a href="{{ route('admin.data.items-and-categories.secondary-categories.create', ['view' => 'table']) }}" wire:navigate>
+                <flux:button as="span" variant="primary">New Category</flux:button>
+            </a>
         </div>
     </div>
 
@@ -265,17 +267,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                    @forelse($categories as $category)
+                <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-900">
+                    @forelse($this->categories as $category)
                         <tr wire:key="category-{{ $category->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->primaryCategory?->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->primaryCategory->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.items-and-categories.secondary-categories.edit', $category) }}" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   Edit
-                                </a>
+                                 <a href="{{ route('admin.data.items-and-categories.secondary-categories.edit', ['secondary_category' => $category, 'view' => 'table']) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300">Edit</a>
                             </td>
                         </tr>
                     @empty

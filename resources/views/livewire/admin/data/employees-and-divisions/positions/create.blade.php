@@ -7,65 +7,78 @@ use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public string $title = '';
-    public string $position_type = 'OTHER';
+    public string $previousView = 'tree';
+
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+        
+        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
     {
         $validated = $this->validate([
-            'title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->whereNull('deleted_at')],
-            'position_type' => ['required', 'string', Rule::in(['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])],
+            'title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')],
+            'position_type' => ['required', 'string', 'in:DIVISION_CHIEF,COORDINATOR,FOCAL_PERSON,OFFICER,SPECIALIST,OTHER'],
         ]);
 
         Position::create($validated);
 
         session()->flash('success', 'Position created successfully.');
-
-        $this->redirectRoute('admin.data.employees-and-divisions', ['currentTab' => 'positions']);
+        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'positions', 'view' => $this->previousView]), navigate: true);
     }
 }; ?>
 
-<div>
+<form wire:submit="save">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Create Position
-        </h1>
-        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-            Create a new employee position.
-        </p>
-    </div>
-
-    <div class="mb-4 flex items-center gap-x-4">
-        <a href="{{ route('admin.data.employees-and-divisions') }}"
-            class="flex items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100">
-            <x-flux::icon.arrow-left class="h-4 w-4" />
-            Back
-        </a>
-    </div>
-
-    <form wire:submit.prevent="save" class="mt-8">
-        <div class="max-w-2xl">
-            <div class="space-y-6">
-                <flux:input wire:model="title" label="Position Title" required />
-                <flux:select wire:model="position_type" label="Position Type" required>
-                    <option value="DIVISION_CHIEF">Division Chief</option>
-                    <option value="COORDINATOR">Coordinator</option>
-                    <option value="FOCAL_PERSON">Focal Person</option>
-                    <option value="OFFICER">Officer</option>
-                    <option value="SPECIALIST">Specialist</option>
-                    <option value="OTHER">Other</option>
-                </flux:select>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                    Create New Position
+                </h1>
+                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                    Add a new position title.
+                </p>
             </div>
-
-            <div class="mt-8 flex justify-end gap-x-4">
-                <flux:button :href="route('admin.data.employees-and-divisions')" variant="ghost">Cancel</flux:button>
-                <flux:button type="submit" variant="primary">Create</flux:button>
+            <div class="flex items-center gap-x-4">
+                <x-action-message class="me-3" on="position-created">
+                    {{ __('Position created successfully.') }}
+                </x-action-message>
+                <flux:button :href="route('admin.data.employees-and-divisions', ['currentTab' => 'positions', 'view' => $this->previousView])" variant="ghost" wire:navigate>
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Save Position
+                </flux:button>
             </div>
         </div>
-    </form>
-</div> 
+    </div>
+
+    <div class="mt-8">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Position Details</h3>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-2xl">
+                        <div class="space-y-6">
+                            <flux:input wire:model="title" label="Position Title" required />
+                            <flux:select wire:model="position_type" label="Position Type" required>
+                                <option value="DIVISION_CHIEF">Division Chief</option>
+                                <option value="COORDINATOR">Coordinator</option>
+                                <option value="FOCAL_PERSON">Focal Person</option>
+                                <option value="OFFICER">Officer</option>
+                                <option value="SPECIALIST">Specialist</option>
+                                <option value="OTHER">Other</option>
+                            </flux:select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form> 

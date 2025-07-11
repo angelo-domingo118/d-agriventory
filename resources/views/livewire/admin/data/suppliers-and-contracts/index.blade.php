@@ -11,6 +11,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+
+        $this->currentTab = request()->query('currentTab', 'contracts');
     }
 
     public function setTab(string $tab): void
@@ -19,7 +21,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{ currentTab: @entangle('currentTab'), view: 'tree' }">
+<div x-data="{ currentTab: @entangle('currentTab'), view: '{{ request()->query('view', 'tree') }}' }">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700 sm:flex sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">

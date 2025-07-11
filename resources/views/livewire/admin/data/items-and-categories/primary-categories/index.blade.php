@@ -115,7 +115,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
                 <span class="sr-only">Refresh</span>
             </flux:button>
-            <flux:button :href="route('admin.data.items-and-categories.primary-categories.create')" variant="primary">New Category</flux:button>
+            <a href="{{ route('admin.data.items-and-categories.primary-categories.create', ['view' => 'table']) }}" wire:navigate>
+                <flux:button as="span" variant="primary">New Category</flux:button>
+            </a>
         </div>
     </div>
     
@@ -184,8 +186,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.items-and-categories.primary-categories.edit', $category) }}" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <a href="{{ route('admin.data.items-and-categories.primary-categories.edit', ['primary_category' => $category, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    Edit
                                 </a>
                             </td>

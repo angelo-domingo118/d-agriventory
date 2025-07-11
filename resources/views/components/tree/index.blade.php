@@ -11,8 +11,9 @@
 
 <div x-data="{
     open: [],
+    expandableIds: {{ json_encode($expandableIds) }},
     expandAll() {
-        this.open = @json($expandableIds);
+        this.open = this.expandableIds;
     },
     collapseAll() {
         this.open = [];
@@ -53,7 +54,7 @@
             @endif
 
             @if ($createUrl)
-                <flux:button :href="$createUrl" variant="primary" class="whitespace-nowrap">
+                <flux:button :href="$createUrl . (str_contains($createUrl, '?') ? '&' : '?') . 'view=tree'" variant="primary" class="whitespace-nowrap">
                     <x-flux::icon.plus class="w-5 h-5 mr-2 -ml-1" />
                     {{ $createText }}
                 </flux:button>

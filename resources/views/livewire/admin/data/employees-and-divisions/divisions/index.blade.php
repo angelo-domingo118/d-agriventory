@@ -115,7 +115,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.employees-and-divisions.divisions.create')" variant="primary">New Division</flux:button>
+            <flux:button :href="route('admin.data.employees-and-divisions.divisions.create') . '?view=table'" variant="primary">New Division</flux:button>
         </div>
     </div>
     
@@ -199,7 +199,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $division->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $division->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.divisions.edit', $division) }}" wire:navigate
+                                <a href="{{ route('admin.data.employees-and-divisions.divisions.edit', $division) }}?view=table" wire:navigate
                                    class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    Edit
                                 </a>

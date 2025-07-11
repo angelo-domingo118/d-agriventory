@@ -9,12 +9,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $name = '';
     public string $code = '';
     public string $description = '';
+    public string $previousView = 'tree';
 
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+        
+        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
@@ -28,43 +31,51 @@ new #[Layout('components.layouts.app')] class extends Component {
         PrimaryCategory::create($validated);
 
         session()->flash('success', 'Primary category created successfully.');
-        $this->redirectRoute('admin.data.items-and-categories', ['currentTab' => 'primary-categories']);
+        $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => $this->previousView]), navigate: true);
     }
 }; ?>
 
-<div>
+<form wire:submit="save">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Create Primary Category
-        </h1>
-        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-            Create a new primary category for items.
-        </p>
-    </div>
-
-    <div class="mb-4 flex items-center gap-x-4">
-        <a href="{{ route('admin.data.items-and-categories', ['currentTab' => 'primary-categories']) }}"
-            class="flex items-center gap-x-2 text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100">
-            <x-flux::icon.arrow-left class="h-4 w-4" />
-            Back
-        </a>
-    </div>
-
-    <form wire:submit.prevent="save" class="mt-8">
-        <div class="max-w-4xl">
-            <div class="space-y-6 rounded-lg border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Category Details</h3>
-                <div class="grid grid-cols-1 gap-6">
-                    <flux:input wire:model="name" label="Category Name" required />
-                    <flux:input wire:model="code" label="Category Code" required />
-                    <flux:textarea wire:model="description" label="Description" />
-                </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                    Create New Primary Category
+                </h1>
+                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                    Create a new primary category for items.
+                </p>
             </div>
-
-            <div class="mt-8 flex justify-end gap-x-4">
-                <a href="{{ route('admin.data.items-and-categories', ['currentTab' => 'primary-categories']) }}" class="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100">Cancel</a>
-                <flux:button type="submit" variant="primary">Create Category</flux:button>
+            <div class="flex items-center gap-x-4">
+                <x-action-message class="me-3" on="primary-category-created">
+                    {{ __('Primary category created successfully.') }}
+                </x-action-message>
+                <flux:button :href="route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => $previousView])" variant="ghost" wire:navigate>
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Save Category
+                </flux:button>
             </div>
         </div>
-    </form>
-</div> 
+    </div>
+
+    <div class="mt-8">
+        <div class="grid grid-cols-1 gap-8">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Category Details</h3>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-2xl">
+                        <div class="space-y-6">
+                           <flux:input wire:model="name" label="Category Name" required />
+                           <flux:input wire:model="code" label="Category Code" required />
+                           <flux:textarea wire:model="description" label="Description" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form> 
