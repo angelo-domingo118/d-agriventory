@@ -31,7 +31,7 @@ class PrimaryCategoryManagementTest extends TestCase
             ->set('name', 'New Primary Category')
             ->set('code', 'NPC')
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => 'tree']));
 
         $this->assertDatabaseHas('primary_categories', ['name' => 'New Primary Category', 'code' => 'NPC']);
     }
@@ -45,7 +45,7 @@ class PrimaryCategoryManagementTest extends TestCase
             ->set('name', 'Updated Primary Category')
             ->set('code', 'UPC')
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => 'tree']));
 
         $this->assertDatabaseHas('primary_categories', ['id' => $category->id, 'name' => 'Updated Primary Category', 'code' => 'UPC']);
     }
@@ -57,7 +57,7 @@ class PrimaryCategoryManagementTest extends TestCase
 
         Livewire::test('admin.data.items-and-categories.primary-categories.edit', ['category' => $category])
             ->call('delete')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => 'tree']));
 
         $this->assertSoftDeleted('primary_categories', ['id' => $category->id]);
     }

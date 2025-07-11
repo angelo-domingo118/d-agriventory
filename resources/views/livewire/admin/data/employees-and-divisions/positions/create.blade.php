@@ -8,6 +8,7 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.app')] class extends Component {
     public string $title = '';
     public string $previousView = 'tree';
+    public string $position_type = '';
 
     public function mount(): void
     {

@@ -35,7 +35,7 @@ class ItemsCatalogManagementTest extends TestCase
             ->set('unit', 'piece')
             ->set('secondary_category_id', $this->category->id)
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => 'tree']));
 
         $this->assertDatabaseHas('items_catalog', ['name' => 'Test Item', 'code' => 'TI01']);
     }
@@ -51,7 +51,7 @@ class ItemsCatalogManagementTest extends TestCase
             ->set('unit', $item->unit)
             ->set('secondary_category_id', $item->secondary_category_id)
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items-catalog']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => 'tree']));
 
         $this->assertDatabaseHas('items_catalog', ['id' => $item->id, 'name' => 'Updated Item Name']);
     }
@@ -63,7 +63,7 @@ class ItemsCatalogManagementTest extends TestCase
 
         Livewire::test('admin.data.items-and-categories.items-catalog.edit', ['item' => $item])
             ->call('delete')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items-catalog']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => 'tree']));
 
         $this->assertSoftDeleted('items_catalog', ['id' => $item->id]);
     }

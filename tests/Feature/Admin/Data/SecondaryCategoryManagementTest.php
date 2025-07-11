@@ -35,7 +35,7 @@ class SecondaryCategoryManagementTest extends TestCase
             ->set('code', 'NSC')
             ->set('primary_category_id', $this->primaryCategory->id)
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary', 'view' => 'tree']));
 
         $this->assertDatabaseHas('secondary_categories', ['name' => 'New Secondary Category']);
     }
@@ -50,7 +50,7 @@ class SecondaryCategoryManagementTest extends TestCase
             ->set('code', 'USC')
             ->set('primary_category_id', $this->primaryCategory->id)
             ->call('save')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary', 'view' => 'tree']));
 
         $this->assertDatabaseHas('secondary_categories', ['id' => $category->id, 'name' => 'Updated Secondary Category']);
     }
@@ -62,7 +62,7 @@ class SecondaryCategoryManagementTest extends TestCase
 
         Livewire::test('admin.data.items-and-categories.secondary-categories.edit', ['category' => $category])
             ->call('delete')
-            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary-categories']));
+            ->assertRedirect(route('admin.data.items-and-categories', ['currentTab' => 'secondary', 'view' => 'tree']));
 
         $this->assertSoftDeleted('secondary_categories', ['id' => $category->id]);
     }

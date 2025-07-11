@@ -31,7 +31,7 @@ class SupplierManagementTest extends TestCase
             ->set('name', 'Test Supplier')
             ->set('address', '123 Test St')
             ->call('save')
-            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']));
+            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers', 'view' => 'tree']));
 
         $this->assertDatabaseHas('suppliers', ['name' => 'Test Supplier']);
     }
@@ -44,7 +44,7 @@ class SupplierManagementTest extends TestCase
         Livewire::test('admin.data.suppliers-and-contracts.suppliers.edit', ['supplier' => $supplier])
             ->set('name', 'Updated Supplier Name')
             ->call('save')
-            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']));
+            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers', 'view' => 'tree']));
 
         $this->assertDatabaseHas('suppliers', ['id' => $supplier->id, 'name' => 'Updated Supplier Name']);
     }
@@ -56,7 +56,7 @@ class SupplierManagementTest extends TestCase
 
         Livewire::test('admin.data.suppliers-and-contracts.suppliers.edit', ['supplier' => $supplier])
             ->call('delete')
-            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers']));
+            ->assertRedirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers', 'view' => 'tree']));
 
         $this->assertSoftDeleted('suppliers', ['id' => $supplier->id]);
     }

@@ -53,7 +53,7 @@ class DivisionManagementTest extends TestCase
             ->set('name', 'Test Division')
             ->set('code', 'TD01')
             ->call('save')
-            ->assertRedirect(route('admin.data.employees-and-divisions.divisions.index'));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => 'tree']));
 
         $this->assertDatabaseHas('divisions', [
             'name' => 'Test Division',
@@ -81,7 +81,7 @@ class DivisionManagementTest extends TestCase
             ->set('name', 'Updated Division Name')
             ->set('code', 'UDN')
             ->call('save')
-            ->assertRedirect(route('admin.data.employees-and-divisions.divisions.index'));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => 'tree']));
 
         $this->assertDatabaseHas('divisions', [
             'id' => $division->id,
@@ -97,7 +97,7 @@ class DivisionManagementTest extends TestCase
 
         Livewire::test('admin.data.employees-and-divisions.divisions.edit', ['division' => $division])
             ->call('delete')
-            ->assertRedirect(route('admin.data.employees-and-divisions.divisions.index'));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => 'tree']));
 
         $this->assertDatabaseMissing('divisions', ['id' => $division->id]);
     }

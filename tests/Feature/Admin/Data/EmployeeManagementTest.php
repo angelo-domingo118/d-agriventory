@@ -46,7 +46,7 @@ class EmployeeManagementTest extends TestCase
             ->set('position_id', $this->position->id)
             ->set('division_id', $this->division->id)
             ->call('save')
-            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees']));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => 'tree']));
 
         $this->assertDatabaseHas('employees', [
             'name' => 'John Doe',
@@ -65,7 +65,7 @@ class EmployeeManagementTest extends TestCase
             ->set('position_id', $employee->position_id)
             ->set('division_id', $employee->division_id)
             ->call('save')
-            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees']));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => 'tree']));
 
         $this->assertDatabaseHas('employees', [
             'id' => $employee->id,
@@ -80,7 +80,7 @@ class EmployeeManagementTest extends TestCase
 
         Livewire::test('admin.data.employees-and-divisions.employees.edit', ['employee' => $employee])
             ->call('delete')
-            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees']));
+            ->assertRedirect(route('admin.data.employees-and-divisions', ['currentTab' => 'employees', 'view' => 'tree']));
 
         $this->assertSoftDeleted('employees', ['id' => $employee->id]);
     }

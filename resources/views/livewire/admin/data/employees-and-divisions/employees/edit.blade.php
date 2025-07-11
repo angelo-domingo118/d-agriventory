@@ -48,7 +48,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function delete(): void
     {
         // Check if the employee has any inventory items assigned
-        if ($this->employee->icsNumbers()->exists() || $this->employee->parNumbers()->exists() || $this->employee->idrNumbers()->exists()) {
+        if ($this->employee->icsNumbers()->exists() || $this->employee->parNumbers()->exists() || $this->employee->assignedIdrNumbers()->exists() || $this->employee->approvedIdrNumbers()->exists()) {
             session()->flash('error', 'Cannot delete an employee that has inventory items assigned.');
             return;
         }

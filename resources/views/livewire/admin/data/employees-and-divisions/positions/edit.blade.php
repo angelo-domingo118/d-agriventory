@@ -8,6 +8,7 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.app')] class extends Component {
     public Position $position;
     public string $title;
+    public string $position_type;
     public string $previousView = 'tree';
 
     public function mount(Position $position): void
@@ -17,6 +18,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         $this->position = $position;
         $this->title = $position->title;
+        $this->position_type = $position->position_type ?? '';
         
         $this->previousView = request()->query('view', 'tree');
     }
@@ -25,6 +27,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $validated = $this->validate([
             'title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->ignore($this->position->id)],
+            'position_type' => ['required', 'string', Rule::in(['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])],
         ]);
 
         $this->position->update($validated);
