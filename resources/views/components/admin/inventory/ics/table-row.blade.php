@@ -183,6 +183,12 @@
 
     <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
         <div class="flex items-center justify-end gap-x-2">
+            <a href="{{ route('admin.main.reports.index', ['reportType' => 'ics', 'reportFormat' => 'by_number', 'ics_number' => $ics->ics_number]) }}" 
+                class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" 
+                wire:navigate>
+                <x-flux::icon.chart-bar class="mr-1 h-4 w-4" />
+                Report<span class="sr-only">, {{ $ics->ics_number }}</span>
+            </a>
             <a href="{{ route('admin.inventory.ics.show', $ics) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
                 View<span class="sr-only">, {{ $ics->ics_number }}</span>
             </a>

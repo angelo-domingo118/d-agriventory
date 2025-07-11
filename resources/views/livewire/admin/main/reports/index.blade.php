@@ -4,6 +4,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Request;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public string $reportType = 'idr';
@@ -11,6 +12,68 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $idrSignatoryStyle = 'default';
     public float $zoom = 1.0;
     public bool $previewGenerated = false;
+    
+    // Parameter inputs
+    public ?string $ics_number = null;
+    public ?string $par_number = null;
+    public ?string $employee_name_ics = null;
+    public ?string $employee_name_par = null;
+    public ?string $idr_batch = null;
+    public ?string $idr_employee = null;
+    public ?string $rsmi_number = null;
+
+    public function mount(): void
+    {
+        // Process query parameters if present
+        $queryParams = Request::query();
+        
+        if (isset($queryParams['reportType']) && in_array($queryParams['reportType'], ['ics', 'par', 'idr'])) {
+            $this->reportType = $queryParams['reportType'];
+        }
+        
+        if (isset($queryParams['reportFormat'])) {
+            // Set the format if it's valid for the current report type
+            $validFormats = [
+                'ics' => ['by_number', 'by_employee'],
+                'par' => ['by_number', 'by_employee'],
+                'idr' => ['batch', 'by_employee', 'by_rsmi_number'],
+            ];
+            
+            if (isset($validFormats[$this->reportType]) && in_array($queryParams['reportFormat'], $validFormats[$this->reportType])) {
+                $this->reportFormat = $queryParams['reportFormat'];
+            }
+        }
+        
+        // Prefill input fields based on the query parameters
+        if ($this->reportType === 'ics') {
+            if ($this->reportFormat === 'by_number' && isset($queryParams['ics_number'])) {
+                $this->ics_number = $queryParams['ics_number'];
+            } elseif ($this->reportFormat === 'by_employee' && isset($queryParams['employee_name'])) {
+                $this->employee_name_ics = $queryParams['employee_name'];
+            }
+        } elseif ($this->reportType === 'par') {
+            if ($this->reportFormat === 'by_number' && isset($queryParams['par_number'])) {
+                $this->par_number = $queryParams['par_number'];
+            } elseif ($this->reportFormat === 'by_employee' && isset($queryParams['employee_name'])) {
+                $this->employee_name_par = $queryParams['employee_name'];
+            }
+        } elseif ($this->reportType === 'idr') {
+            if ($this->reportFormat === 'batch' && isset($queryParams['idr_batch'])) {
+                $this->idr_batch = $queryParams['idr_batch'];
+            } elseif ($this->reportFormat === 'by_employee' && isset($queryParams['employee_name'])) {
+                $this->idr_employee = $queryParams['employee_name'];
+            } elseif ($this->reportFormat === 'by_rsmi_number' && isset($queryParams['rsmi_number'])) {
+                $this->rsmi_number = $queryParams['rsmi_number'];
+            }
+        }
+        
+        // If we have parameters, automatically generate the preview
+        if (count(array_intersect_key($queryParams, array_flip(['ics_number', 'par_number', 'employee_name', 'idr_batch', 'rsmi_number']))) > 0) {
+            $this->generatePreview();
+        }
+        
+        $this->resetZoom();
+    }
 
     public function updatedReportType(string $value): void
     {
@@ -199,7 +262,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <div>
                                     <h3 class="font-semibold text-stone-800 dark:text-stone-200">PROPERTY ACKNOWLEDGEMENT RECEIPT</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for a
-                                        specific PAR batch</p>
+                                        specific PAR</p>
                                 </div>
                             </button>
                             <button wire:click="$set('reportFormat', 'by_employee')" type="button"
@@ -218,11 +281,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="space-y-2">
                         <button wire:click="$set('reportType', 'idr')" type="button"
                             class="flex w-full items-start gap-x-4 rounded-lg border p-4 text-left transition {{ $reportType === 'idr' ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
-                            <x-flux::icon.users class="h-6 w-6 text-stone-600 dark:text-stone-400" />
+                            <x-flux::icon.clipboard-document-check class="h-6 w-6 text-stone-600 dark:text-stone-400" />
                             <div>
                                 <h3 class="font-semibold text-stone-800 dark:text-stone-200">IDR Reports</h3>
-                                <p class="text-sm text-stone-600 dark:text-stone-400">Inventory Distribution Receipt
-                                    reports</p>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">Inventory and Distribution
+                                    Reports</p>
                             </div>
                         </button>
 
@@ -230,18 +293,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="ml-10 space-y-2">
                             <button wire:click="$set('reportFormat', 'batch')" type="button"
                                 class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'batch' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
-                                <x-flux::icon.document-check class="h-5 w-5 text-stone-600 dark:text-stone-400" />
+                                <x-flux::icon.archive-box class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">INVENTORIES FOR DISTRIBUTION RECEIPT</h3>
-                                    <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for IDR
-                                        batch</p>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">INVENTORY AND DISTRIBUTION REPORT</h3>
+                                    <p class="text-sm text-stone-600 dark:text-stone-400">Generate report for a
+                                        specific IDR batch</p>
                                 </div>
                             </button>
                             <button wire:click="$set('reportFormat', 'by_employee')" type="button"
                                 class="flex w-full items-start gap-x-4 rounded-lg border p-3 text-left transition {{ $reportFormat === 'by_employee' ? 'border-primary-500 bg-primary-50 ring-1 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
                                 <x-flux::icon.user-circle class="h-5 w-5 text-stone-600 dark:text-stone-400" />
                                 <div>
-                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">LIST OF "I.D.R." ISSUED TO EMPLOYEE</h3>
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">SUMMARY OF IDR BY EMPLOYEE</h3>
                                     <p class="text-sm text-stone-600 dark:text-stone-400">Generate a summary for an
                                         employee</p>
                                 </div>
@@ -269,33 +332,33 @@ new #[Layout('components.layouts.app')] class extends Component {
                         @if ($reportFormat === 'by_number')
                             <flux:field>
                                 <flux:label for="ics_number" required>ICS Number</flux:label>
-                                <flux:input id="ics_number" type="number" placeholder="Enter ICS number" />
+                                <flux:input id="ics_number" type="number" placeholder="Enter ICS number" wire:model="ics_number" />
                             </flux:field>
                         @elseif($reportFormat === 'by_employee')
                             <flux:field>
                                 <flux:label for="employee_name_ics" required>Employee Name</flux:label>
                                 <flux:input id="employee_name_ics" type="text"
-                                    placeholder="Search for an employee..." />
+                                    placeholder="Search for an employee..." wire:model="employee_name_ics" />
                             </flux:field>
                         @endif
                     @elseif ($reportType === 'par')
                         @if ($reportFormat === 'by_number')
                             <flux:field>
                                 <flux:label for="par_number" required>PAR Number</flux:label>
-                                <flux:input id="par_number" type="number" placeholder="Enter PAR number" />
+                                <flux:input id="par_number" type="number" placeholder="Enter PAR number" wire:model="par_number" />
                             </flux:field>
                         @elseif($reportFormat === 'by_employee')
                             <flux:field>
                                 <flux:label for="employee_name_par" required>Employee Name</flux:label>
                                 <flux:input id="employee_name_par" type="text"
-                                    placeholder="Search for an employee..." />
+                                    placeholder="Search for an employee..." wire:model="employee_name_par" />
                             </flux:field>
                         @endif
                     @elseif ($reportType === 'idr')
                         @if ($reportFormat === 'batch')
                             <flux:field>
                                 <flux:label for="idr_batch" required>IDR Batch #</flux:label>
-                                <flux:input id="idr_batch" type="text" placeholder="Search batch..." />
+                                <flux:input id="idr_batch" type="text" placeholder="Search batch..." wire:model="idr_batch" />
                             </flux:field>
                             <div class="mt-4 space-y-2 border-t border-stone-200 pt-4 dark:border-stone-700">
                                 <flux:label>Signatory Style</flux:label>
@@ -332,12 +395,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                         @elseif ($reportFormat === 'by_employee')
                             <flux:field>
                                 <flux:label for="idr_employee" required>Employee</flux:label>
-                                <flux:input id="idr_employee" type="text" placeholder="Search employee..." />
+                                <flux:input id="idr_employee" type="text" placeholder="Search employee..." wire:model="idr_employee" />
                             </flux:field>
                         @elseif($reportFormat === 'by_rsmi_number')
                             <flux:field>
                                 <flux:label for="rsmi_number" required>RSMI Number</flux:label>
-                                <flux:input id="rsmi_number" type="text" placeholder="Enter RSMI number" />
+                                <flux:input id="rsmi_number" type="text" placeholder="Enter RSMI number" wire:model="rsmi_number" />
                             </flux:field>
                         @endif
 

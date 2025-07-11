@@ -554,6 +554,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                     </div>
                                     <div class="flex items-center gap-x-4">
+                                        @if($employeeId !== 'unassigned' && $employee)
+                                            <a href="{{ route('admin.main.reports.index', ['reportType' => 'ics', 'reportFormat' => 'by_employee', 'employee_name' => $employee->name]) }}" 
+                                               class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" 
+                                               wire:navigate>
+                                                <x-flux::icon.chart-bar class="mr-1 h-4 w-4" />
+                                                Generate Report
+                                            </a>
+                                        @endif
                                         <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
                                         <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
                                     </div>
