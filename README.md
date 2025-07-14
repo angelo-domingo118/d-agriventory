@@ -6,15 +6,15 @@
 
 ## About D'Agriventory
 
-D'Agriventory is a comprehensive inventory management system designed specifically for the **Department of Agriculture Cordillera (DA-CAR)**. The application streamlines the tracking of agricultural inventory, procurement, asset management, and reporting processes in compliance with Philippine government standards and Cordillera Administrative Region requirements.
+D'Agriventory is a comprehensive inventory management system designed specifically for the **Department of Agriculture - Cordillera Administrative Region (DA-CAR) Regional Office** based in Baguio City. The application streamlines the tracking of agricultural inventory, procurement, asset management, and reporting processes for the DA-CAR Regional Office, in compliance with Philippine government standards.
 
-This system addresses the unique challenges of agricultural inventory management in the mountainous terrain of the Cordillera region, supporting the department's mission to enhance agricultural productivity and food security across Abra, Apayao, Benguet, Ifugao, Kalinga, and Mountain Province.
+This system helps manage the inventory and assets for the regional office, which serves the entire Cordillera Administrative Region.
 
 ## Features
 
 ### Core Modules
 
-- **👥 User & Role Management** - Manage users with various roles (admin, division inventory managers, employees)
+- **👥 User & Role Management** - Manage users with various roles (admin, division inventory managers)
 - **🏢 Organization Management** - Track divisions, suppliers, positions, and organizational hierarchy
 - **📝 Procurement System** - Manage contracts, suppliers, and items procurement workflows
 - **📦 Inventory Cataloging** - Organize items by primary and secondary categories with detailed specifications
@@ -24,7 +24,7 @@ This system addresses the unique challenges of agricultural inventory management
   - **IDR (Inventory and Inspection of Deliveries and Receipts)** - Delivery tracking and verification
 - **📈 Reporting & Analytics** - Generate detailed reports by employee, number, batch, and format
 - **🔍 Audit Logging** - Keep detailed logs of all system changes and transactions
-- **🔄 Transfer Management** - Handle inventory transfers between divisions and employees
+- **🔄 Transfer Management** - Handle inventory transfers between divisions
 - **💊 Consumables Tracking** - Specialized tracking for consumable items and supplies
 
 ### Administrative Features
@@ -258,7 +258,6 @@ The system supports multiple user roles aligned with DA-CAR organizational struc
 
 - **🔴 Admin**: Full system access, user management, system configuration for department administrators
 - **🟡 Division Inventory Manager**: Division-specific inventory management for regional offices and units
-- **🟢 Employee**: Limited access to assigned items and basic operations for field staff and office personnel
 
 ## API Documentation
 
@@ -301,6 +300,6 @@ For support and questions:
 ---
 
 <p align="center">
-Built with ❤️ for the Department of Agriculture Cordillera<br>
-<em>Supporting agricultural development in the Cordillera Administrative Region</em>
+Built with ❤️ for the Department of Agriculture - CAR Regional Office<br>
+<em>Supporting agricultural development from the Baguio City Regional Office</em>
 </p>
