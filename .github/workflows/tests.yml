@@ -63,23 +63,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install Node Dependencies
-        run: npm i
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      - name: Add Flux Credentials Loaded From ENV
-        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-
-      - name: Install Dependencies
+      - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Copy Environment File
-        run: cp .env.example .env
+      - name: Install Node dependencies
+        run: npm i
 
-      - name: Generate Application Key
+      - name: Generate key
         run: php artisan key:generate
 
       - name: Run Migrations
         env:
+          DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           DB_DATABASE: d_agriventory_testing
@@ -87,14 +85,12 @@ jobs:
           DB_PASSWORD: password
         run: php artisan migrate -v
 
-      - name: Build Assets
-        run: npm run build
-
       - name: Run Tests
         env:
+          DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           DB_DATABASE: d_agriventory_testing
           DB_USERNAME: root
           DB_PASSWORD: password
-        run: ./vendor/bin/pest
+        run: ./vendor/bin/pest --ci --coverage --coverage-clover=coverage.xml

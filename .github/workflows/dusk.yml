@@ -42,6 +42,7 @@ jobs:
         run: npm run build
       - name: Run Migrations
         env:
+          DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           DB_DATABASE: d_agriventory_testing
@@ -50,6 +51,7 @@ jobs:
         run: php artisan migrate -v
       - name: Run Dusk Tests
         env:
+          DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           DB_DATABASE: d_agriventory_testing
