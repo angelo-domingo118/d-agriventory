@@ -129,20 +129,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         ]);
 
         DB::transaction(function () use ($validated) {
-            $prefix = now()->format('Y-m-');
-            $lastIdr = IdrNumber::where('number', 'like', $prefix . '%')
-                ->orderBy('number', 'desc')
-                ->lockForUpdate()
-                ->first();
-
-            if ($lastIdr) {
-                $lastNumber = (int) substr($lastIdr->number, -4);
-                $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-            } else {
-                $newNumber = '0001';
-            }
-            
-            $validated['number'] = $prefix . $newNumber;
+            // Lock the table to prevent race conditions when generating a new number.
+            $lastIdr = IdrNumber::latest('id')->lockForUpdate()->first();
+            $validated['number'] = $lastIdr ? $lastIdr->number + 1 : 1;
 
             $idr = IdrNumber::create($validated);
             foreach ($this->batches as $batchData) {

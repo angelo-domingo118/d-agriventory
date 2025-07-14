@@ -19,7 +19,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public int $perPage = 10;
     
     // Sorting properties
-    public string $sortColumn = 'name';
+    public string $sortColumn = 'title';
     public string $sortDirection = 'asc';
 
     public function mount()
@@ -53,7 +53,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function positions()
     {
         return Position::query()
-            ->when($this->search, fn($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when($this->search, fn($q, $search) => $q->where('title', 'like', "%{$search}%"))
             ->orderBy($this->sortColumn, $this->sortDirection)
             ->paginate($this->perPage);
     }
@@ -166,9 +166,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
                         <th scope="col" class="w-full px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
+                            <div wire:click="sortBy('title')" class="flex cursor-pointer items-center">
                                 Name
-                                @if($sortColumn === 'name')
+                                @if($sortColumn === 'title')
                                     @if($sortDirection === 'asc')
                                         <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
                                     @else
@@ -187,7 +187,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($positions as $position)
                         <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->title }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <a href="{{ route('admin.data.employees-and-divisions.positions.edit', ['position' => $position, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    Edit

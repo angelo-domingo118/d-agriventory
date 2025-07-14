@@ -62,7 +62,7 @@ D'Agriventory is built on the modern TALL stack:
 - **PHP 8.2 or higher** with required extensions
 - **Composer** (latest version)
 - **Node.js 18+** with npm
-- **Database** (MySQL 8.0+, PostgreSQL 13+, or SQLite)
+- **MySQL 8.0+**
 - **Git** for version control
 
 ### Installation
@@ -89,18 +89,14 @@ D'Agriventory is built on the modern TALL stack:
    php artisan key:generate
    ```
 
-5. **Configure your database** in the `.env` file
+5. **Configure your database** in the `.env` file for your main development database.
    ```env
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_DATABASE=d_agriventory
+   DB_DATABASE=laravel
    DB_USERNAME=root
    DB_PASSWORD=your_password
-   
-   # For SQLite (simpler setup)
-   # DB_CONNECTION=sqlite
-   # DB_DATABASE=/absolute/path/to/database.sqlite
    ```
 
 6. **Run database migrations**
@@ -163,20 +159,41 @@ php artisan view:cache
 
 ### Testing
 
-Run the comprehensive test suite:
+**Note:** All tests run on a dedicated MySQL database to ensure consistency with the production environment. Before running tests, you must create an empty MySQL database named `d_agriventory_testing`. The test runner will use the same credentials from your `.env` file to connect to it.
+
+D'Agriventory uses two types of tests:
+
+- **Feature & Unit Tests (Pest)**: These tests cover the application's backend logic and are run from the command line without a browser.
+- **Browser Tests (Dusk)**: These tests automate a real Chrome browser to test user interactions and frontend components.
+
+#### Running Feature & Unit Tests
+
+Run the backend test suite using Pest:
 
 ```bash
-# Run all tests (recommended)
+# Run all backend tests (recommended)
 composer test
 
-# Using Pest directly (faster during development)
+# Or using Pest directly
 ./vendor/bin/pest
 
-# Run specific test file
+# Run a specific test file
 ./vendor/bin/pest tests/Feature/AdminTest.php
 
 # Run with coverage (if configured)
 ./vendor/bin/pest --coverage
+```
+
+#### Running Browser Tests
+
+Run the browser test suite using Laravel Dusk:
+
+```bash
+# Run all Dusk tests
+php artisan dusk
+
+# Run a specific Dusk test file
+php artisan dusk tests/Browser/AdminLoginTest.php
 ```
 
 ### Code Quality

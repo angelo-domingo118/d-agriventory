@@ -62,7 +62,6 @@ class IdrManagementTest extends TestCase
         $this->contractItem2 = ContractItem::factory()->create(['contract_id' => $contract->id, 'item_specification_id' => $spec2->id, 'unit_price' => 8000]);
 
         IdrNumber::factory()->create([
-            'number' => '2024-01-0001',
             'assigned_employee_id' => $this->employee1->id,
             'approving_employee_id' => $this->employee2->id,
             'received_by_id' => $this->employee1->id,
@@ -70,7 +69,6 @@ class IdrManagementTest extends TestCase
             'contract_item_id' => $this->contractItem1->id,
         ]);
         IdrNumber::factory()->create([
-            'number' => '2024-01-0002',
             'assigned_employee_id' => $this->employee2->id,
             'approving_employee_id' => $this->employee1->id,
             'received_by_id' => $this->employee2->id,
