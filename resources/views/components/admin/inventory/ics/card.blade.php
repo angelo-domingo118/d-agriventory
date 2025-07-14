@@ -17,16 +17,31 @@
                         <span class="italic">Item name not available</span>
                     @endif
                 </p>
-                 @php $spec = $ics->contractItem?->itemSpecification; @endphp
-                 @if ($densityClasses['show_secondary'] && $spec && ($spec->brand || $spec->model))
-                    <p class="{{ $densityClasses['text_meta'] }} text-stone-500">
-                        {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' / '), [$search, $filterArticle]) !!}
-                    </p>
-                @endif
+                @php $spec = $ics->contractItem?->itemSpecification; @endphp
             </div>
             <div class="ml-4 flex-shrink-0">
                 <span class="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-500/10 dark:text-primary-400 dark:ring-primary-500/20">{!! \App\Helpers\TextHelper::highlight($ics->ics_number, $search) !!}</span>
             </div>
+        </div>
+
+        <div class="mt-2 space-y-1 {{ $densityClasses['text_meta'] }}">
+            @if ($densityClasses['show_secondary'] && $spec && ($spec->brand || $spec->model))
+                <div class="flex items-start gap-x-2">
+                    <span class="font-semibold text-stone-500 dark:text-stone-400">Brand/Model:</span>
+                    <span class="text-stone-600 dark:text-stone-300">
+                        {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' '), [$search, $filterArticle]) !!}
+                    </span>
+                </div>
+            @endif
+
+            @if ($densityClasses['show_tertiary'] && $spec?->detailed_specifications)
+                 <div class="flex items-start gap-x-2">
+                    <span class="font-semibold text-stone-500 dark:text-stone-400">Details:</span>
+                    <p class="text-stone-600 dark:text-stone-300 break-words">
+                        {!! \App\Helpers\TextHelper::highlight($spec->detailed_specifications, [$search, $filterArticle]) !!}
+                    </p>
+                </div>
+            @endif
         </div>
 
         <div class="mt-4">
@@ -94,7 +109,7 @@
 
         <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 {{ $densityClasses['text_base'] }}">
             <div>
-                <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Quantity</dt>
+                <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Quantity per Batch</dt>
                 <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $ics->quantity }} {{ $ics->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</dd>
             </div>
             <div>

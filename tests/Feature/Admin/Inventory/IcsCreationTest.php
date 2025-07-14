@@ -2,6 +2,19 @@
 
 namespace Tests\Feature\Admin\Inventory;
 
+/**
+ * Tests for the creation of ICS (Inventory Custodian Slip) records.
+ *
+ * This test suite ensures that the ICS creation form functions correctly,
+ * including validation, authorization, and successful record creation.
+ *
+ * After creation, the user is redirected to the ICS index page.
+ * The display logic for that page is handled by its own set of components
+ * and is tested in IcsManagementTest. It's important to be aware of the
+ * data transformations that happen for display (e.g., combining brand/model
+ * with specifications) when debugging.
+ */
+
 use App\Models\AdminUser;
 use App\Models\Contract;
 use App\Models\ContractItem;

@@ -415,6 +415,7 @@ class ContractItemsSeeder extends Seeder
     {
         $brand = null;
         $model = null;
+        $detailedSpecs = $description;
 
         $multiWordBrands = ['WE HOME', 'OMNI ELECTRIC', 'AD-LINK', 'A4TECH'];
 
@@ -436,6 +437,9 @@ class ContractItemsSeeder extends Seeder
                 $brand = $parts[0] ?? null;
                 $model = $parts[1] ?? null;
             }
+
+            $detailedSpecs = ltrim(trim(str_replace($matches[0], '', $description)), ', ');
+
         } elseif (preg_match('/Brand:\s*([^,]+)/i', $description, $matches)) {
             $brandStr = trim($matches[1]);
             $foundBrand = false;
@@ -452,12 +456,13 @@ class ContractItemsSeeder extends Seeder
                 $parts = explode(' ', $brandStr, 2);
                 $brand = $parts[0] ?? null;
             }
+            $detailedSpecs = ltrim(trim(str_replace($matches[0], '', $description)), ', ');
         }
 
         return [
             'brand' => $brand,
             'model' => $model,
-            'detailed_specifications' => $description,
+            'detailed_specifications' => $detailedSpecs,
         ];
     }
 

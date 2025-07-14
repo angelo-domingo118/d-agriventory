@@ -18,13 +18,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->icsNumber = $icsNumber->load([
-            'assignedEmployee.user',
             'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
             'contractItem.contract.supplier',
             'assignedEmployee.position',
             'assignedEmployee.division',
             'itemBatches.components.item.itemSpecification',
-            'itemBatches.contractItem.itemSpecification',
             'transfers.fromEmployee',
             'transfers.toEmployee',
         ]);

@@ -2,6 +2,22 @@
 
 namespace Tests\Feature\Admin\Inventory;
 
+/**
+ * Tests for the ICS (Inventory Custodian Slip) management page.
+ *
+ * This test suite covers the functionality of the ICS index page,
+ * including viewing, searching, filtering, and pagination of ICS records.
+ *
+ * Note on Data Seeding:
+ * The `ItemSpecificationFactory` and, historically, the `ContractItemsSeeder`
+ * are responsible for populating item details. Recent changes (June 2024)
+ * refactored the seeder to parse 'Brand/Model' from descriptions into
+ * separate columns, rather than storing it redundantly. The view components
+ * (`table-row.blade.php` and `card.blade.php` for ICS) have been updated
+ * to construct the full description from these separate fields. Tests
+ * should rely on seeing the final composed output in the Livewire component.
+ */
+
 use App\Models\AdminUser;
 use App\Models\Contract;
 use App\Models\ContractItem;
