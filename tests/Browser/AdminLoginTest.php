@@ -11,7 +11,7 @@ class AdminLoginTest extends DuskTestCase
 {
     use DatabaseMigrations;
 
-    public function testAdminCanLogin(): void
+    public function test_admin_can_login(): void
     {
         $this->seed(AdminUserSeeder::class);
 
