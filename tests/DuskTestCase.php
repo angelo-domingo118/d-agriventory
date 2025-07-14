@@ -31,6 +31,9 @@ abstract class DuskTestCase extends BaseTestCase
             '--disable-search-engine-choice-screen',
             '--disable-smooth-scrolling',
             '--disable-gpu',
+            '--headless',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
         ])->all());
 
         return RemoteWebDriver::create(
