@@ -44,47 +44,38 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'par_number.date_prepared';
     public string $sortDirection = 'desc';
 
-    // Column visibility properties
-    public array $columns;
-    public array $columnGroups = [
-        'article' => [
-            'label' => 'Article & Description',
-            'columns' => [
-                'brand_model' => 'Brand/Model',
-                'specifications' => 'Specifications',
-                'serials' => 'Serial # / ID Data'
-            ]
-        ],
-        'par' => [
-            'label' => 'PAR Details',
-            'columns' => [
-                'quantity' => 'Qty',
-                'unit_cost' => 'Unit Cost',
-                'codes' => 'Area/Building/Account Codes',
-            ]
-        ],
-        'source' => [
-            'label' => 'Document Source',
-            'columns' => [
-                'contract' => 'Contract/PO',
-                'dates' => 'Prepared/Accepted Dates',
-                'remarks' => 'Remarks'
-            ]
-        ],
-        'issued' => [
-            'label' => 'Issued To',
-            'columns' => [
-                'division' => 'Division'
-            ]
-        ]
-    ];
-
     public array $openGroups = [];
 
     #[Computed]
     public function filtersActive(): bool
     {
         return $this->filterDateFrom || $this->filterDateTo || $this->filterEmployeeId || $this->filterSupplierId || $this->filterPriceMin || $this->filterPriceMax || $this->filterDateType !== 'prepared' || $this->filterArticle || $this->filterSerialNumber || $this->filterContract || $this->filterRemarks || $this->filterInventoryNumber || $this->filterAreaCode || $this->filterBuildingCode || $this->filterAccountCode;
+    }
+    
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        $filters = [
+            $this->filterDateFrom,
+            $this->filterDateTo,
+            $this->filterEmployeeId,
+            $this->filterSupplierId,
+            $this->filterPriceMin,
+            $this->filterPriceMax,
+            $this->filterArticle,
+            $this->filterSerialNumber,
+            $this->filterContract,
+            $this->filterRemarks,
+            $this->filterInventoryNumber,
+            $this->filterAreaCode,
+            $this->filterBuildingCode,
+            $this->filterAccountCode,
+        ];
+
+        // Special case for date type, as 'prepared' is the default
+        $count = $this->filterDateType !== 'prepared' ? 1 : 0;
+
+        return $count + collect($filters)->filter()->count();
     }
 
     public function mount(): void
@@ -95,19 +86,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->groupBy = session('par_group_by', 'none');
         $this->viewMode = session('par_view_mode', 'table');
         $this->density = session('par_density', 'spacious');
-
-        $defaultColumns = [];
-        foreach ($this->columnGroups as $group) {
-            foreach (array_keys($group['columns']) as $key) {
-                $defaultColumns[$key] = true;
-            }
-        }
-        $this->columns = session('par_column_visibility', $defaultColumns);
-    }
-
-    public function updatedColumns($value, $key): void
-    {
-        session(['par_column_visibility' => $this->columns]);
     }
 
     public function setGroupBy(string $groupBy): void
@@ -393,47 +371,32 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <label for="perPage" class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</label>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
-                    </div>
-
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Visible Columns</div>
-                        <div class="mt-2 space-y-2">
-                             @foreach ($this->columnGroups as $group)
-                                <div class="">
-                                     <div class="mb-1 text-xs font-medium text-stone-600 dark:text-stone-300">{{ $group['label'] }}</div>
-                                     <div class="space-y-1">
-                                        @foreach ($group['columns'] as $key => $label)
-                                            <flux:checkbox
-                                                wire:model.live="columns.{{ $key }}"
-                                                label="{{ $label }}"
-                                                id="column-{{ $key }}"
-                                            />
-                                        @endforeach
-                                     </div>
-                                </div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    wire:click="$set('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
                             @endforeach
                         </div>
                     </div>
+
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
                         <div class="mt-2 space-y-2">
                         <flux:button
-                            variant="ghost"
-                                x-on:click="$dispatch('reset-column-widths')"
+                            variant="outline"
+                            x-on:click="$dispatch('reset-column-widths')"
                             class="w-full justify-center"
                         >
                             <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
                             Reset Column Widths
                         </flux:button>
                             <flux:button
-                                variant="ghost"
+                                variant="outline"
                                 wire:click="resetSorting"
                                 class="w-full justify-center"
                             >
@@ -470,88 +433,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div x-show="$wire.showFilters" x-collapse class="mt-4">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <div class="border-b border-stone-200 p-4 dark:border-stone-700">
-                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
-            </div>
-            <div class="p-4">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-6">
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / ID" placeholder="Search serial numbers..." />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. PPE-123-07-2024" />
-                    </div>
-                    <div class="sm:col-span-3">
-                        <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO Number" placeholder="Search contract number..." />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live.debounce.300ms="filterAreaCode" label="Area Code" placeholder="e.g. RFO" />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live.debounce.300ms="filterBuildingCode" label="Building Code" placeholder="e.g. Admin" />
-                    </div>
-                     <div class="sm:col-span-2">
-                        <flux:input wire:model.live.debounce.300ms="filterAccountCode" label="Account Code" placeholder="e.g. 10101010" />
-                    </div>
-                    <div class="sm:col-span-6">
-                        <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." />
-                    </div>
-
-                    <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
-
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterEmployeeId" label="Issued To">
-                            <option value="">Any Employee</option>
-                            @foreach($this->employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterSupplierId" label="Supplier">
-                            <option value="">Any Supplier</option>
-                            @foreach($this->suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                         <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost (₱)</label>
-                        <div class="mt-1 grid grid-cols-2 gap-x-2">
-                            <flux:input wire:model.live.debounce.500ms="filterPriceMin" type="number" placeholder="Min" />
-                            <flux:input wire:model.live.debounce.500ms="filterPriceMax" type="number" placeholder="Max" />
-                        </div>
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <flux:select wire:model.live="filterDateType" label="Date Type">
-                            <option value="prepared">Prepared Date</option>
-                            <option value="accepted">Accepted Date</option>
-                            <option value="acquired">Acquired Date</option>
-                        </flux:select>
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live="filterDateFrom" type="date" label="Date From" />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input wire:model.live="filterDateTo" type="date" label="Date To" />
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
-                <flux:button variant="ghost" wire:click="resetFilters">
-                    Reset Filters
-                </flux:button>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-4 flex items-center justify-between">
+    <div class="mt-4 flex items-start gap-x-6">
+        <div class="min-w-0 flex-1 space-y-4">
+            <div class="flex items-center justify-between">
         <div class="text-sm text-stone-600 dark:text-stone-400">
             @if ($this->groupBy === 'employee')
             @if ($this->parNumbers->total() > 0)
@@ -669,7 +553,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <x-admin.inventory.par.table-row
                                                     :par="$par"
                                                     :densityClasses="$densityClasses"
-                                                    :columns="$this->columns"
                                                     :search="$this->search"
                                                     :filterArticle="$this->filterArticle"
                                                     :filterSerialNumber="$this->filterSerialNumber"
@@ -784,7 +667,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-admin.inventory.par.table-row
                                         :par="$par"
                                         :densityClasses="$densityClasses"
-                                        :columns="$this->columns"
                                         :search="$this->search"
                                         :filterArticle="$this->filterArticle"
                                         :filterSerialNumber="$this->filterSerialNumber"
@@ -827,10 +709,107 @@ new #[Layout('components.layouts.app')] class extends Component {
             @endif
         @endif
     </div>
-    <div class="mt-4">
-        {{ $this->parNumbers->links() }}
+            <div class="mt-4">
+                {{ $this->parNumbers->links() }}
+            </div>
+        </div>
+
+        <aside
+            x-show="$wire.showFilters"
+            x-transition
+            x-cloak
+            class="w-96 flex-shrink-0"
+        >
+            <div class="space-y-4 rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="flex items-center justify-between border-b border-stone-200 p-4 dark:border-stone-700">
+                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
+                    @if ($this->activeFiltersCount() > 0)
+                        <flux:button
+                            variant="ghost"
+                            wire:click="resetFilters"
+                        >
+                            Reset ({{ $this->activeFiltersCount() }})
+                        </flux:button>
+                    @endif
+                </div>
+                <div class="p-4">
+                    <div class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / ID" placeholder="Search serial numbers..." clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. PPE-123-07-2024" clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO" placeholder="Search contract..." clearable />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterRemarks" label="Remarks" placeholder="Search remarks..." clearable />
+                        </div>
+                        
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterAreaCode" label="Area Code" placeholder="e.g. RFO" clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterBuildingCode" label="Building Code" placeholder="e.g. Admin" clearable />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <flux:input wire:model.live.debounce.300ms="filterAccountCode" label="Account Code" placeholder="e.g. 10101010" clearable />
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterEmployeeId" label="Issued To">
+                                <option value="">Any Employee</option>
+                                @foreach($this->employees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-2">
+                             <flux:select wire:model.live="filterSupplierId" label="Supplier">
+                                <option value="">Any Supplier</option>
+                                @foreach($this->suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-2">
+                            <flux:select wire:model.live="filterDateType" label="Date Type">
+                                <option value="prepared">Prepared Date</option>
+                                <option value="accepted">Accepted Date</option>
+                                <option value="acquired">Acquired Date</option>
+                            </flux:select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live="filterDateFrom" type="date" label="Date From" />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live="filterDateTo" type="date" label="Date To" />
+                        </div>
+
+                        <div class="col-span-full"><hr class="border-stone-200 dark:border-stone-700" /></div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost (₱)</label>
+                            <div class="mt-1 grid grid-cols-2 gap-x-2">
+                                <flux:input wire:model.live.debounce.500ms="filterPriceMin" type="number" placeholder="Min" />
+                                <flux:input wire:model.live.debounce.500ms="filterPriceMax" type="number" placeholder="Max" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
-</div> 
+</div>
 
 <script>
     document.addEventListener('alpine:init', () => {
