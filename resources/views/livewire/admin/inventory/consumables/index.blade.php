@@ -531,11 +531,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
                                     <div class="flex items-center justify-end gap-x-2">
                                         {{-- TODO: Implement view/details page for grouped consumable items. Currently disabled as there's no dedicated page. --}}
-                                        <flux:button variant="ghost" class="!p-2" disabled title="View (Not yet implemented)">
-                                            <x-flux::icon.eye class="h-5 w-5" />
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="View (Not yet implemented)">
+                                            <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                                            View
                                         </flux:button>
-                                        <flux:button variant="ghost" class="!p-2" disabled title="Edit (Not yet implemented)">
-                                            <x-flux::icon.edit class="h-5 w-5" />
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (Not yet implemented)">
+                                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                            Edit
                                         </flux:button>
                                     </div>
                                 </td>
@@ -592,11 +594,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
                 <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
                     <div class="flex items-center justify-end gap-x-2">
-                        <flux:button variant="ghost" class="!p-2" disabled title="View Details (coming soon)" aria-label="View Details (coming soon)">
-                            <x-flux::icon.eye class="h-5 w-5" />
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="View Details (coming soon)" aria-label="View Details (coming soon)">
+                            <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                            View
                         </flux:button>
-                        <flux:button variant="ghost" class="!p-2" disabled title="Edit (coming soon)" aria-label="Edit (coming soon)">
-                            <x-flux::icon.edit class="h-5 w-5" />
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (coming soon)" aria-label="Edit (coming soon)">
+                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                            Edit
                         </flux:button>
                     </div>
                 </div>

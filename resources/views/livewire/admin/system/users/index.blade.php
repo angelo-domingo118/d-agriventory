@@ -252,13 +252,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                             <div class="flex justify-end space-x-2">
                                                 @adminpermission('view_users')
-                                                    <flux:button variant="ghost" :href="route('admin.system.users.show', $user)" wire:navigate>
+                                                    <flux:button variant="ghost" :href="route('admin.system.users.show', $user)" wire:navigate icon="eye">
                                                         {{ __('View') }}
                                                     </flux:button>
                                                 @endadminpermission
                                                 
                                                 @adminpermission('edit_users')
-                                                    <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate>
+                                                    <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate icon="edit">
                                                         {{ __('Edit') }}
                                                     </flux:button>
                                                 @endadminpermission

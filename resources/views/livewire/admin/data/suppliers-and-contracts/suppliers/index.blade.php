@@ -241,7 +241,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->email }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->phone }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.suppliers-and-contracts.suppliers.edit', ['supplier' => $supplier, 'view' => 'table']) }}" wire:navigate class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-200">
+                                <a href="{{ route('admin.data.suppliers-and-contracts.suppliers.edit', ['supplier' => $supplier, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                     Edit
                                 </a>
                             </td>

@@ -73,7 +73,10 @@
                         'text-xs' => !$isTopLevel,
                     ])
                     @click.stop
-                >{{ $addText }}</a>
+                >
+                    <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    {{ $addText }}
+                </a>
             @endif
             @if ($editUrl)
                 <a href="{{ $editUrl . (str_contains($editUrl, '?') ? '&' : '?') . 'view=tree' }}" wire:navigate
@@ -83,7 +86,10 @@
                         'text-xs' => !$isTopLevel,
                     ])
                     @click.stop
-                >Edit</a>
+                >
+                    <x-flux::icon.pencil class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    Edit
+                </a>
             @endif
         </div>
     </div>

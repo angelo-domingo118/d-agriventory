@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use App\Models\IcsItemBatch;
 use App\Models\IcsNumber;
 use App\Models\ItemComponent;
-use App\Models\ItemSpecification;
-use App\Models\ContractItem;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -28,8 +26,9 @@ class DesktopComputerSeeder extends Seeder
             foreach ($data as $item) {
                 $icsNumberModel = $icsNumbers->get($item['ics_number']);
 
-                if (!$icsNumberModel) {
+                if (! $icsNumberModel) {
                     $this->command->warn("ICS number '{$item['ics_number']}' not found. Skipping desktop computer '{$item['article']}'.");
+
                     continue;
                 }
 
@@ -48,11 +47,11 @@ class DesktopComputerSeeder extends Seeder
 
                 // Create ICS item batch with main unit serial number if provided
                 $identificationData = isset($item['serial_number']) ? $item['serial_number'] : null;
-                
+
                 $icsItemBatch = IcsItemBatch::updateOrCreate(
                     [
                         'ics_number_id' => $icsNumberModel->id,
-                        'identification_data' => $identificationData
+                        'identification_data' => $identificationData,
                     ],
                     []
                 );
@@ -65,6 +64,7 @@ class DesktopComputerSeeder extends Seeder
                     foreach ($item['components'] as $component) {
                         if (empty($component['component_type'])) {
                             $this->command->warn("Skipping component for ICS #{$item['ics_number']} due to missing 'component_type'.");
+
                             continue;
                         }
                         ItemComponent::create([

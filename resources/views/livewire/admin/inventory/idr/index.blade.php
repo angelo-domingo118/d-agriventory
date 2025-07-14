@@ -622,8 +622,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </td>
                                         <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
                                             <div class="flex items-center justify-end gap-x-2">
-                                                <a href="{{ route('admin.inventory.idr.show', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50" wire:navigate>View</a>
-                                                <a href="{{ route('admin.inventory.idr.edit', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50" wire:navigate>Edit</a>
+                                                <a href="{{ route('admin.inventory.idr.show', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                    <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                                                    View
+                                                </a>
+                                                <a href="{{ route('admin.inventory.idr.edit', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                                    Edit
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
