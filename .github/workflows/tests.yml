@@ -14,6 +14,19 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     environment: Testing
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: d_agriventory_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
       - name: Checkout
@@ -22,7 +35,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.2
           tools: composer:v2
           coverage: xdebug
 
@@ -51,4 +64,10 @@ jobs:
         run: npm run build
 
       - name: Run Tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+          DB_DATABASE: d_agriventory_testing
+          DB_USERNAME: root
+          DB_PASSWORD: password
         run: ./vendor/bin/pest
