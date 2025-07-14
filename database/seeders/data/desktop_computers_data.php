@@ -3,269 +3,1130 @@
 return [
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'clone, core i7-12700
-Casing: Antec PPCASE-NX501
-Casing Number: 2447C00590 
-MONITOR
-   Brand/Model: Samsung Essential S24C330GAE
-   Serial Number: GA53H9TXB00986
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: Eaton P-5A7001-NEMA
-   Serial Number: C2423423382205',
+        'brand' => null, // Clone/custom build
+        'model' => 'core i7-12700',
+        'serial_number' => '2447C00590',
         'ics_number' => '35',
+        'components' => [
+            [
+                'component_type' => 'CASING',
+                'brand' => 'Antec',
+                'model' => 'PPCASE-NX501',
+                'serial_number' => '2447C00590',
+            ],
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Samsung',
+                'model' => 'Essential S24C330GAE',
+                'serial_number' => 'GA53H9TXB00986',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'Eaton',
+                'model' => 'P-5A7001-NEMA',
+                'serial_number' => 'C2423423382205',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'clone, core i7-12700
-Casing: Antec PPCASE-NX501
-Casing Number: 2447C00582 
-MONITOR
-   Brand/Model: Samsung Essential S24C330GAE
-   Serial Number: GA53H9TXB00660
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: Eaton P-5A7001-NEMA
-   Serial Number: C2423423381699',
+        'brand' => null, // Clone/custom build
+        'model' => 'core i7-12700',
+        'serial_number' => '2447C00582',
         'ics_number' => '36',
+        'components' => [
+            [
+                'component_type' => 'CASING',
+                'brand' => 'Antec',
+                'model' => 'PPCASE-NX501',
+                'serial_number' => '2447C00582',
+            ],
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Samsung',
+                'model' => 'Essential S24C330GAE',
+                'serial_number' => 'GA53H9TXB00660',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'Eaton',
+                'model' => 'P-5A7001-NEMA',
+                'serial_number' => 'C2423423381699',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'clone, core i7-12700
-Casing: Antec PPCASE-NX501
-Casing Number: 2447C00595 
-MONITOR
-   Brand/Model: Samsung Essential S24C330GAE
-   Serial Number: GA53H9TX502419
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: Eaton P-5A7001-NEMA
-   Serial Number: C2423423381699',
+        'brand' => null, // Clone/custom build
+        'model' => 'core i7-12700',
+        'serial_number' => '2447C00595',
         'ics_number' => '37',
+        'components' => [
+            [
+                'component_type' => 'CASING',
+                'brand' => 'Antec',
+                'model' => 'PPCASE-NX501',
+                'serial_number' => '2447C00595',
+            ],
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Samsung',
+                'model' => 'Essential S24C330GAE',
+                'serial_number' => 'GA53H9TX502419',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'Eaton',
+                'model' => 'P-5A7001-NEMA',
+                'serial_number' => 'C2423423381699',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER (CPU ONLY)',
-        'description' => 'clone, core i7
-Casing: Antec PPCASE-NX501
-Casing Number: 2447C00733
-UPS
-   Brand/Model: Eaton P-5A7001-NEMA
-   Serial Number: C2423423380749',
+        'brand' => null,
+        'model' => 'core i7',
+        'serial_number' => '2447C00733',
         'ics_number' => '43',
+        'components' => [
+            [
+                'component_type' => 'CASING',
+                'brand' => 'Antec',
+                'model' => 'PPCASE-NX501',
+                'serial_number' => '2447C00733',
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'Eaton',
+                'model' => 'P-5A7001-NEMA',
+                'serial_number' => 'C2423423380749',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER (CPU ONLY)',
-        'description' => 'clone, core i7
-Casing: Antec PPCASE-NX501
-Casing Number: 2447C00561
-UPS
-   Brand/Model: Eaton P-5A7001-NEMA
-   Serial Number: C2423423380751',
+        'brand' => null,
+        'model' => 'core i7',
+        'serial_number' => '2447C00561',
         'ics_number' => '44',
+        'components' => [
+            [
+                'component_type' => 'CASING',
+                'brand' => 'Antec',
+                'model' => 'PPCASE-NX501',
+                'serial_number' => '2447C00561',
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'Eaton',
+                'model' => 'P-5A7001-NEMA',
+                'serial_number' => 'C2423423380751',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004A09600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041392X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000334',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004A09600',
         'ics_number' => '124',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041392X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000334',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004B79600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041832X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000333',
-        'ics_number' => '124',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004B79600',
+        'ics_number' => '125',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041832X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000333',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP0014350049E9600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP0034410415F2X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000336',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014350049E9600',
         'ics_number' => '126',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP0034410415F2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000336',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004939600
- 
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041812X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000335',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004939600',
         'ics_number' => '127',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041812X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000335',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004A19600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041402X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000398',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004A19600',
         'ics_number' => '128',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041402X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000398',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004A59600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP0034410418F2X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000397',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004A59600',
         'ics_number' => '129',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP0034410418F2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000397',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP0014500073D9600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041582X00
- 
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000400',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014500073D9600',
         'ics_number' => '130',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041582X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000400',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004949600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041562X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000399',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004949600',
         'ics_number' => '131',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041562X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000399',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004929600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041A42X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000338',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004929600',
         'ics_number' => '132',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041A42X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000338',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP0014500075B9600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041972X00
- 
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000337',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014500075B9600',
         'ics_number' => '133',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041582X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000337',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP0014500077B9600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041E12X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000340',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014500077B9600',
         'ics_number' => '134',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041E12X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000340',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004D09600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041E22X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000339',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004D09600',
         'ics_number' => '135',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041E22X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000339',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004BA9600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041A92X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000382',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004BA9600',
         'ics_number' => '136',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041A92X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000382',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1775
-Serial Number: DTBLQSP001435004B99600
-MONITOR
-   Brand/Model: Acer SA222Q
-   Serial Number: MMTX5SP003441041552X00
-KEYBOARD & MOUSE
-UPS
-   Brand/Model: CyberPower UT1000EGLCD
-   Serial Number: 320710DZ30000381',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004B99600',
         'ics_number' => '137',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041552X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000381',
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1785
-Serial Number: DTBLNSP003452003F09600
-MONITOR
-   Brand/Model: Phillips 24E2N110
-   Serial Number: UHB2438013761
-KEYBOARD & MOUSE',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1785',
+        'serial_number' => 'DTBLNSP003452003F09600',
         'ics_number' => '433',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Phillips',
+                'model' => '24E2N110',
+                'serial_number' => 'UHB2438013761',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+        ],
     ],
     [
         'article' => 'DESKTOP COMPUTER',
-        'description' => 'Brand/Model: Acer Aspire TC-1785
-Serial Number: DTBLNSP003452003D89600
-MONITOR
-   Brand/Model: Phillips 24E2N110
-   Serial Number: UHB243801377
-KEYBOARD & MOUSE',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1785',
+        'serial_number' => 'DTBLNSP003452003D89600',
         'ics_number' => '433',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Phillips',
+                'model' => '24E2N110',
+                'serial_number' => 'UHB243801377',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001502010179600',
+        'ics_number' => '388',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345100BAA2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000390',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP00150200FFF9600',
+        'ics_number' => '389',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345100BAD2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000392',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014350049F9600',
+        'ics_number' => '140',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP0034410413F2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000291',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004B19600',
+        'ics_number' => '141',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C7F2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000292',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004E59600',
+        'ics_number' => '142',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001B002X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000289',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004BD9600',
+        'ics_number' => '143',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C442X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000290',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014350049D9600',
+        'ics_number' => '144',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041322X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000363',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004BE9600',
+        'ics_number' => '145',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP0034410415D2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000364',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004909600',
+        'ics_number' => '146',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C802X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000361',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001450007629600',
+        'ics_number' => '147',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001A8A2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000362',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435005359600',
+        'ics_number' => '148',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C8F2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000378',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004DE9600',
+        'ics_number' => '149',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C842X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000377',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004DD9600',
+        'ics_number' => '150',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C732X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000380',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004CE9600',
+        'ics_number' => '151',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041912X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000379',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014500076F9600',
+        'ics_number' => '152',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041E42X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000447',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435004A49600',
+        'ics_number' => '153',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP00345001C702X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000448',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001450007639600',
+        'ics_number' => '154',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP0034410415B2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000445',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001450007649600',
+        'ics_number' => '155',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041462X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000446',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP001435005449600',
+        'ics_number' => '156',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041AC2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000387',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014350049F9600',
+        'ics_number' => '157',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041AA2X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000388',
+            ],
+        ],
+    ],
+    [
+        'article' => 'DESKTOP COMPUTER',
+        'brand' => 'Acer',
+        'model' => 'Aspire TC-1775',
+        'serial_number' => 'DTBLQSP0014500075C9600',
+        'ics_number' => '158',
+        'components' => [
+            [
+                'component_type' => 'MONITOR',
+                'brand' => 'Acer',
+                'model' => 'SA222Q',
+                'serial_number' => 'MMTX5SP003441041902X00',
+            ],
+            [
+                'component_type' => 'KEYBOARD & MOUSE',
+                'brand' => null,
+                'model' => null,
+                'serial_number' => null,
+            ],
+            [
+                'component_type' => 'UPS',
+                'brand' => 'CyberPower',
+                'model' => 'UT1000EGLCD',
+                'serial_number' => '320710DZ30000385',
+            ],
+        ],
     ],
 ];

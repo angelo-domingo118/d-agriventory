@@ -22,6 +22,7 @@ class IcsItemBatchSeeder extends Seeder
         DB::transaction(function () use ($data, $icsNumbers) {
             foreach ($data as $item) {
                 if (str_contains(strtoupper($item['Article']), 'DESKTOP COMPUTER')) {
+                    $this->command->info("Skipping desktop computer item '{$item['Article']}' - will be handled by DesktopComputerSeeder.");
                     continue;
                 }
 

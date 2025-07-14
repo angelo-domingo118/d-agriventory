@@ -105,9 +105,9 @@ class ContractItemsSeeder extends Seeder
             ['unit' => 'unit', 'unit_price' => 49000.00, 'article' => 'PHOTOCOPIER', 'description' => 'Brand/Model: Develop Ineo 205i, with table'],
         ],
         '254-2133' => [
-            ['unit' => 'set', 'unit_price' => 46000.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'clone, core i7-12700, Casing: Antec PPCASE-NX501, MONITOR Brand/Model: Samsung Essential S24C330GAE, KEYBOARD & MOUSE, UPS Brand/Model: Eaton P-5A7001-NEMA'],
+            ['unit' => 'set', 'unit_price' => 46000.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'clone, core i7-12700'],
             ['unit' => 'unit', 'unit_price' => 47000.00, 'article' => 'LAPTOP COMPUTER', 'description' => 'Brand/Model: HP 15-FD0252TU'],
-            ['unit' => 'unit', 'unit_price' => 47000.00, 'article' => 'DESKTOP COMPUTER (CPU ONLY)', 'description' => 'clone, core i7, Casing: Antec PPCASE-NX501, UPS Brand/Model: Eaton P-5A7001-NEMA'],
+            ['unit' => 'unit', 'unit_price' => 47000.00, 'article' => 'DESKTOP COMPUTER (CPU ONLY)', 'description' => 'clone, core i7'],
         ],
         '254-256' => [
             ['unit' => 'unit', 'unit_price' => 49750.00, 'article' => 'LAPTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire Lite AL 14-51M-57H1'],
@@ -148,7 +148,7 @@ class ContractItemsSeeder extends Seeder
         ],
         '2025-01' => [
             ['unit' => 'unit', 'unit_price' => 41605.00, 'article' => 'LAPTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire 15'],
-            ['unit' => 'set', 'unit_price' => 48425.04, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1775, MONITOR Brand/Model: Acer SA222Q, KEYBOARD & MOUSE, UPS Brand/Model: CyberPower UT1000EGLCD'],
+            ['unit' => 'set', 'unit_price' => 48425.04, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1775'],
         ],
         '256-298' => [
             ['unit' => 'unit', 'unit_price' => 3200.00, 'article' => 'KNAPSACK SPRAYER', 'description' => 'Brand: Gintong Palay, semi automatic, 16L capacity, with complete accessories and tools'],
@@ -250,7 +250,7 @@ class ContractItemsSeeder extends Seeder
             ['unit' => 'piece', 'unit_price' => 3900.00, 'article' => 'PALLETTE', 'description' => 'plastic, HDPE, color blue, 1200x100x150mm minimum'],
         ],
         '254-488' => [
-            ['unit' => 'set', 'unit_price' => 48750.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1775, MONITOR Brand/Model: Acer SA222Q, KEYBOARD & MOUSE, UPS Brand/Model: Cyper Power UT1000EGLCD'],
+            ['unit' => 'set', 'unit_price' => 48750.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1775'],
             ['unit' => 'unit', 'unit_price' => 3180.00, 'article' => 'POWERBANK', 'description' => 'Brand/Model: Vention I13BB, 10000 mAH'],
         ],
         '254-365' => [
@@ -277,7 +277,7 @@ class ContractItemsSeeder extends Seeder
             ['unit' => 'unit', 'unit_price' => 13200.00, 'article' => 'LATERAL FILING CABINET', 'description' => 'powdered coated metal, plastic roller for railing, with central lock'],
         ],
         '254-364' => [
-            ['unit' => 'set', 'unit_price' => 48500.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1785, MONITOR Brand/Model: Phillips 24E2N110, KEYBOARD & MOUSE'],
+            ['unit' => 'set', 'unit_price' => 48500.00, 'article' => 'DESKTOP COMPUTER', 'description' => 'Brand/Model: Acer Aspire TC-1785'],
         ],
         '254-327' => [
             ['unit' => 'piece', 'unit_price' => 550.00, 'article' => 'TRIER', 'description' => 'buriki, standard size, stainless steel'],
@@ -419,7 +419,9 @@ class ContractItemsSeeder extends Seeder
 
         $multiWordBrands = ['WE HOME', 'OMNI ELECTRIC', 'AD-LINK', 'A4TECH'];
 
-        if (preg_match('/Brand\/Model:\s*([^,]+)/i', $description, $matches)) {
+        if (str_contains(strtoupper($description), 'DESKTOP COMPUTER')) {
+            // Special handling for desktop computers to avoid parsing complex descriptions
+        } elseif (preg_match('/Brand\/Model:\s*([^,]+)/i', $description, $matches)) {
             $brandModelStr = trim($matches[1]);
             $foundBrand = false;
 

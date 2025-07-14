@@ -50,40 +50,49 @@
                     @endphp
                     @if($ics->itemBatches->isNotEmpty())
                         @if($hasAnyIdentification)
-                            <ul class="mt-1 space-y-2">
+                            <div class="mt-1 space-y-2 pl-4">
                                 @foreach($ics->itemBatches as $batch)
-                                    <li wire:key="batch-{{ $batch->id }}">
+                                    <div wire:key="batch-{{ $batch->id }}">
                                         @if($ics->itemBatches->count() > 1)
                                             <p class="font-medium text-stone-600 dark:text-stone-300">Batch #{{ $loop->iteration }}:</p>
                                         @endif
-                                        <div @if($ics->itemBatches->count() > 1) class="pl-4" @endif>
-                                            @if($batch->components->isNotEmpty())
-                                                <ul class="list-disc pl-5 text-stone-600 dark:text-stone-400">
-                                                    @foreach($batch->components as $component)
-                                                        <li>
-                                                            <strong>{{ $component->component_type }}:</strong>
-                                                            @if($component->serial_number)
-                                                                {!! \App\Helpers\TextHelper::highlight($component->serial_number, [$search, $filterSerialNumber]) !!}
-                                                            @else
-                                                                <span class="italic text-stone-500">Not provided</span>
-                                                            @endif
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-                                            @elseif($batch->identification_data)
-                                                <p class="text-stone-600 dark:text-stone-300">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}</p>
-                                            @else
-                                                <p class="italic text-stone-500">No serial number recorded for this batch.</p>
+                                        <div class="space-y-2 text-stone-600 dark:text-stone-400 @if($ics->itemBatches->count() > 1) pl-4 @endif">
+                                            @if($batch->identification_data)
+                                                <div>
+                                                    <div class="font-semibold text-stone-700 dark:text-stone-300">SYSTEM UNIT</div>
+                                                    <div class="ml-3 text-sm">
+                                                        <span class="text-stone-500">Serial Number:</span>
+                                                        <span>{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}</span>
+                                                    </div>
+                                                </div>
                                             @endif
+                                            
+                                            @foreach($batch->components as $component)
+                                                <div>
+                                                    <div class="font-semibold text-stone-700 dark:text-stone-300">{{ strtoupper($component->component_type) }}</div>
+                                                    @if($component->brand || $component->model)
+                                                        <div class="ml-3 text-sm">
+                                                            <span class="text-stone-500">Brand/Model:</span>
+                                                            <span>{!! \App\Helpers\TextHelper::highlight(collect([$component->brand, $component->model])->filter()->join(' '), [$search, $filterArticle, $filterSerialNumber]) !!}</span>
+                                                        </div>
+                                                    @endif
+                                                    @if($component->serial_number)
+                                                        <div class="ml-3 text-sm">
+                                                            <span class="text-stone-500">Serial Number:</span>
+                                                            <span>{!! \App\Helpers\TextHelper::highlight($component->serial_number, [$search, $filterSerialNumber]) !!}</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
                                         </div>
-                                    </li>
+                                    </div>
                                 @endforeach
-                            </ul>
+                            </div>
                         @else
-                            <p class="italic text-stone-500">No serial numbers recorded for any batches.</p>
+                            <p class="italic text-stone-500 pl-4">No serial numbers recorded for any batches.</p>
                         @endif
                     @else
-                        <p class="italic text-stone-500">No item serials recorded.</p>
+                        <p class="italic text-stone-500 pl-4">No item serials recorded.</p>
                     @endif
                 </div>
             @endif
