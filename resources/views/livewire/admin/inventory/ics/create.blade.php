@@ -24,6 +24,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $ics_number = '';
     public ?int $supplier_id = null;
     public ?int $contract_id = null;
+    public ?int $items_catalog_id = null; // Changed from item_specification_id
+    public ?string $item_specification_id = null; // Can now be "new" or an integer ID
     public ?int $contract_item_id = null;
     public ?int $assigned_employee_id = null;
     public string $ics_type = 'SPLV';
@@ -36,11 +38,20 @@ new #[Layout('components.layouts.app')] class extends Component {
     // New fields for main item
     public ?string $main_item_brand = null;
     public ?string $main_item_model = null;
+    public ?string $detailed_specifications = null;
     public ?string $main_item_serial_number = null;
 
     // Category fields for new items
     public ?int $primary_category_id = null;
     public ?int $secondary_category_id = null;
+    public ?string $unit_of_measure = '';
+    
+    // Unit of measure autocomplete
+    public string $unit_search = '';
+    public array $unit_suggestions = [];
+    public bool $show_unit_suggestions = false;
+    public ?string $selected_unit = null;
+    public bool $creating_new_unit = false;
 
     // Display only property
     public ?float $unit_price = 0.0;
@@ -68,6 +79,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $selected_item_name = null;
     public bool $creating_new_item = false;
 
+    public string $specification_search = '';
+    public array $specification_suggestions = [];
+    public bool $show_specification_suggestions = false;
+    public ?string $selected_specification_name = null;
+    public bool $creating_new_specification = false;
+
     public string $employee_search = '';
     public array $employee_suggestions = [];
     public bool $show_employee_suggestions = false;
@@ -91,6 +108,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         // Start with one batch
         $this->updatedQuantity($this->quantity);
+        
+        // Set default unit of measure - empty string initially
+        $this->unit_of_measure = '';
+        $this->unit_search = '';
+        $this->selected_unit = '';
     }
 
     public function generateIcsNumber(): void
@@ -153,6 +175,80 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $this->addError('ics_number', "ICS number must be higher than {$highestInDay->ics_number} for date {$year}-{$month}-{$day}.");
             }
         }
+    }
+    
+    // Unit of measure autocomplete methods
+    public function updatedUnitSearch($value): void
+    {
+        $this->searchUnits($value);
+    }
+
+    public function showAllUnits(): void
+    {
+        $this->searchUnits($this->unit_search);
+        if (count($this->unit_suggestions) > 0) {
+            $this->show_unit_suggestions = true;
+        }
+    }
+
+    public function searchUnits($query): void
+    {
+        // Get all distinct units from the database
+        if (strlen(trim($query)) === 0) {
+            $units = ItemsCatalog::select('unit')
+                ->distinct()
+                ->orderBy('unit')
+                ->pluck('unit')
+                ->toArray();
+        } else {
+            $units = ItemsCatalog::select('unit')
+                ->whereRaw('LOWER(unit) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('unit')
+                ->pluck('unit')
+                ->toArray();
+        }
+        
+        // Create suggestions array
+        $this->unit_suggestions = array_map(function($unit) {
+            return [
+                'id' => $unit,
+                'name' => $unit,
+                'type' => 'existing'
+            ];
+        }, $units);
+        
+        // Add "new" option if the query doesn't match exactly
+        $exactExists = collect($this->unit_suggestions)->contains(function ($unit) use ($query) {
+            return strtolower($unit['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->unit_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_unit_suggestions = count($this->unit_suggestions) > 0;
+    }
+
+    public function selectUnit($unitData): void
+    {
+        if ($unitData['type'] === 'existing') {
+            $this->unit_of_measure = $unitData['name'];
+            $this->unit_search = $unitData['name'];
+            $this->selected_unit = $unitData['name'];
+            $this->creating_new_unit = false;
+        } elseif ($unitData['type'] === 'new') {
+            $this->unit_of_measure = $unitData['name'];
+            $this->unit_search = $unitData['name'];
+            $this->selected_unit = $unitData['name'] . ' (new)';
+            $this->creating_new_unit = true;
+        }
+        
+        $this->show_unit_suggestions = false;
     }
 
     // Supplier autocomplete methods
@@ -326,21 +422,19 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function searchItems($query): void
     {
         if (strlen(trim($query)) === 0) {
-            $items = ItemsCatalog::orderBy('name')->get();
+            $items = ItemsCatalog::orderBy('name')->limit(20)->get();
         } else {
-            $items = ItemsCatalog::whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%'])
+            $items = ItemsCatalog::where('name', 'like', '%' . $query . '%')
                 ->orderBy('name')
+                ->limit(20)
                 ->get();
         }
-        
-        $this->item_suggestions = $items->map(function ($item) {
-            $specification = $item->specifications()->first();
 
+        $this->item_suggestions = $items->map(function ($item) {
             return [
-                'id' => $item->id,
+                'id' => $item->id, // This is items_catalog_id
                 'name' => $item->name,
-                'description' => $specification->detailed_specifications ?? null,
-                'unit_price' => null, // This will be fetched on selection
+                'unit' => $item->unit,
                 'type' => 'existing'
             ];
         })->toArray();
@@ -352,7 +446,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!$exactExists && strlen(trim($query)) >= 2) {
             array_unshift($this->item_suggestions, [
                 'id' => 'new',
-                'name' => $query,
+                'name' => "Create new item catalog: \"{$query}\"",
+                'description' => 'This will create a new entry in the item catalog.',
                 'type' => 'new'
             ]);
         }
@@ -362,34 +457,154 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectItem($itemData): void
     {
+        // Reset all item-related properties when a new catalog item is selected
+        $this->resetItemData();
+        
         if ($itemData['type'] === 'existing') {
-            $item = ItemsCatalog::find($itemData['id']);
-            $this->contract_item_id = $itemData['id']; // This is the ItemsCatalog ID, to be handled in store()
-            $this->item_search = $item->name;
-            $this->selected_item_name = $item->name;
-
-            // Find unit price from contract item if contract is selected
-            if ($this->contract_id) {
-                $contractItem = ContractItem::whereHas('itemSpecification', function ($q) use ($item) {
-                    $q->where('item_catalog_id', $item->id);
-                })->where('contract_id', $this->contract_id)->first();
-                $this->unit_price = $contractItem->unit_price ?? 0.0;
-            } else {
-                $this->unit_price = 0.0;
-            }
-
-            $this->creating_new_item = false;
-        } elseif ($itemData['type'] === 'new') {
-            $this->contract_item_id = null;
+            $this->items_catalog_id = $itemData['id'];
             $this->item_search = $itemData['name'];
-            $this->selected_item_name = $itemData['name'] . ' (new)';
+            $this->selected_item_name = $itemData['name'];
+            
+            // Set unit of measure from the selected item
+            $this->unit_of_measure = $itemData['unit'];
+            $this->unit_search = $itemData['unit'];
+            $this->selected_unit = $itemData['unit'];
+            
+            $this->creating_new_item = false;
+            $this->creating_new_unit = false;
+
+            // Let user select a specification
+            $this->dispatch('focus-specification');
+
+        } elseif ($itemData['type'] === 'new') {
+            preg_match('/"([^"]+)"/', $itemData['name'], $matches);
+            $newItemName = $matches[1] ?? $this->item_search;
+
+            $this->items_catalog_id = null;
+            $this->item_search = $newItemName;
+            $this->selected_item_name = $newItemName . ' (new)';
             $this->unit_price = 0.0;
             $this->creating_new_item = true;
+            $this->creating_new_specification = true; // New item requires new spec
+
+            // Reset spec fields for new item entry
+            $this->main_item_brand = null;
+            $this->main_item_model = null;
+            $this->detailed_specifications = null;
+            $this->unit_of_measure = '';
+            $this->unit_search = '';
+            $this->selected_unit = '';
+            $this->primary_category_id = null;
+            $this->secondary_category_id = null;
+            
+            // Focus on primary category instead of skipping to employee
+            $this->dispatch('focus-primary-category');
         }
         
         $this->show_item_suggestions = false;
         $this->updateItemType();
-        $this->dispatch('focus-employee');
+    }
+
+    public function updatedSpecificationSearch($value): void
+    {
+        $this->searchSpecifications($value);
+    }
+
+    public function showAllSpecifications(): void
+    {
+        $this->searchSpecifications($this->specification_search);
+        if (count($this->specification_suggestions) > 0) {
+            $this->show_specification_suggestions = true;
+        }
+    }
+
+    public function searchSpecifications($query): void
+    {
+        if (!$this->items_catalog_id) {
+            $this->specification_suggestions = [];
+            $this->show_specification_suggestions = false;
+            return;
+        }
+
+        $specsQuery = ItemSpecification::where('item_catalog_id', $this->items_catalog_id);
+
+        if (strlen(trim($query)) > 0) {
+            $specsQuery->where(function ($q) use ($query) {
+                $q->where('brand', 'like', '%' . $query . '%')
+                ->orWhere('model', 'like', '%' . $query . '%');
+            });
+        }
+
+        $specs = $specsQuery->orderBy('brand')->orderBy('model')->get();
+        
+        $this->specification_suggestions = $specs->map(function ($spec) {
+            $specName = collect([$spec->brand, $spec->model])->filter()->implode(' ');
+            return [
+                'id' => $spec->id,
+                'name' => $specName ?: 'Default Specification',
+                'type' => 'existing',
+                'brand' => $spec->brand,
+                'model' => $spec->model,
+                'description' => $spec->detailed_specifications
+            ];
+        })->toArray();
+
+        $exactExists = collect($this->specification_suggestions)->contains(function ($spec) use ($query) {
+            return strtolower($spec['name']) === strtolower($query);
+        });
+
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->specification_suggestions, [
+                'id' => 'new',
+                'name' => "Create new specification: \"{$query}\"",
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_specification_suggestions = count($this->specification_suggestions) > 0;
+    }
+
+    public function selectSpecification($specData): void
+    {
+        if ($specData['type'] === 'existing') {
+            $this->item_specification_id = $specData['id'];
+            $this->specification_search = $specData['name'];
+            $this->selected_specification_name = $specData['name'];
+            $this->creating_new_specification = false;
+            
+            $this->main_item_brand = $specData['brand'];
+            $this->main_item_model = $specData['model'];
+            $this->detailed_specifications = $specData['description'];
+
+            if ($this->contract_id) {
+                $contractItem = ContractItem::where('item_specification_id', $this->item_specification_id)
+                    ->where('contract_id', $this->contract_id)
+                    ->first();
+                $this->unit_price = $contractItem->unit_price ?? 0.0;
+                $this->contract_item_id = $contractItem?->id;
+            } else {
+                $this->unit_price = 0.0;
+            }
+
+        } elseif ($specData['type'] === 'new') {
+            preg_match('/"([^"]+)"/', $specData['name'], $matches);
+            $newSpecName = $matches[1] ?? $this->specification_search;
+            
+            $this->item_specification_id = 'new';
+            $this->specification_search = $newSpecName;
+            $this->selected_specification_name = $newSpecName . ' (new)';
+            $this->creating_new_specification = true;
+            
+            // Reset fields for new spec entry
+            $this->main_item_brand = null;
+            $this->main_item_model = null;
+            $this->detailed_specifications = null;
+            $this->unit_price = 0.0;
+            $this->contract_item_id = null;
+        }
+
+        $this->show_specification_suggestions = false;
+        $this->updateItemType();
     }
 
     // Employee autocomplete methods
@@ -482,20 +697,39 @@ new #[Layout('components.layouts.app')] class extends Component {
     private function resetItemData(): void
     {
         $this->contract_item_id = null;
+        $this->items_catalog_id = null; // Changed
+        $this->item_specification_id = null;
         $this->item_search = '';
         $this->selected_item_name = null;
         $this->creating_new_item = false;
         $this->item_suggestions = [];
         $this->show_item_suggestions = false;
+
+        $this->specification_search = '';
+        $this->specification_suggestions = [];
+        $this->show_specification_suggestions = false;
+        $this->selected_specification_name = null;
+        $this->creating_new_specification = false; 
+
         $this->unit_price = 0;
         $this->isDesktopComputer = false;
         $this->isParItem = false;
+        $this->main_item_brand = null;
+        $this->main_item_model = null;
+        $this->detailed_specifications = null;
+        $this->unit_of_measure = '';
+        $this->unit_search = '';
+        $this->selected_unit = '';
+        $this->creating_new_unit = false;
+        $this->primary_category_id = null;
+        $this->secondary_category_id = null;
     }
 
     private function updateItemType(): void
     {
         $this->isDesktopComputer = str_contains(strtoupper($this->selected_item_name ?? ''), 'DESKTOP COMPUTER');
         
+        // Format unit price and set ICS type based on value
         if ($this->unit_price >= 50000) {
             $this->isParItem = true;
             $this->ics_type = '';
@@ -506,6 +740,55 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->isParItem = false;
             $this->ics_type = 'SPLV';
         }
+    }
+
+    #[Computed]
+    public function specifications()
+    {
+        if (!$this->items_catalog_id) {
+            return collect();
+        }
+        return ItemSpecification::where('item_catalog_id', $this->items_catalog_id)->get();
+    }
+
+    public function updatedItemSpecificationId($value)
+    {
+        if ($value === 'new') {
+            $this->creating_new_specification = true;
+            // Reset fields for new spec entry
+            $this->main_item_brand = null;
+            $this->main_item_model = null;
+            $this->detailed_specifications = null;
+            $this->unit_price = 0.0; // Reset price as it's tied to spec in contract
+            $this->contract_item_id = null;
+
+        } elseif ($value) {
+            $this->creating_new_specification = false;
+            $spec = ItemSpecification::find($value);
+            if ($spec) {
+                $this->main_item_brand = $spec->brand;
+                $this->main_item_model = $spec->model;
+                $this->detailed_specifications = $spec->detailed_specifications;
+
+                if ($this->contract_id) {
+                    $contractItem = ContractItem::where('item_specification_id', $spec->id)
+                        ->where('contract_id', $this->contract_id)
+                        ->first();
+                    $this->unit_price = $contractItem->unit_price ?? 0.0;
+                    $this->contract_item_id = $contractItem?->id;
+                } else {
+                    $this->unit_price = 0.0;
+                }
+            }
+        } else {
+             $this->main_item_brand = null;
+             $this->main_item_model = null;
+             $this->detailed_specifications = null;
+             $this->unit_price = 0.0;
+             $this->contract_item_id = null;
+        }
+
+        $this->updateItemType();
     }
 
     #[Computed]
@@ -583,7 +866,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $newItem = ItemsCatalog::create([
             'name' => $this->item_search,
             'secondary_category_id' => $this->secondary_category_id,
-            'unit' => 'unit', // default value
+            'unit' => $this->unit_of_measure, // Use the selected unit
             'code' => 'new-' . time(), // temp code
         ]);
 
@@ -603,7 +886,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'assigned_employee_id' => 'required_without:creating_new_employee|nullable|exists:employees,id',
             'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
             'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
-            'contract_item_id' => 'required_without:creating_new_item|nullable|exists:items_catalog,id',
+            'items_catalog_id' => 'required_without:creating_new_item|nullable|exists:items_catalog,id',
+            'item_specification_id' => 'required|string',
             'quantity' => 'required|integer|min:1',
             'estimated_useful_life' => 'nullable|integer|min:1',
             'date_prepared' => 'nullable|date',
@@ -619,6 +903,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
             $rules['primary_category_id'] = 'required|exists:primary_categories,id';
             $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
+            $rules['unit_of_measure'] = 'required|string|max:50';
+        }
+        if ($this->creating_new_specification) {
+            $rules['main_item_brand'] = 'nullable|string|max:255';
+            $rules['main_item_model'] = 'nullable|string|max:255';
         }
         if ($this->creating_new_employee) {
             // Add validation for new employee fields if you add them
@@ -643,10 +932,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $this->contract_id = $newContract->id;
             }
 
-            if ($this->creating_new_item) {
-                $this->contract_item_id = $this->createNewItem();
-            }
-
             if ($this->creating_new_employee) {
                 // This would be more complex, requiring first name, last name, etc.
                 // For now, let's assume a simple case.
@@ -657,20 +942,32 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $this->assigned_employee_id = $newEmployee->id;
             }
 
-            $catalog_id = $this->contract_item_id;
+            $spec_id = $this->item_specification_id;
+            $catalog_id = $this->items_catalog_id;
+
             if ($this->creating_new_item) {
-                $catalog_id = $this->createNewItem();
+                 $newItem = ItemsCatalog::create([
+                    'name' => $this->item_search,
+                    'secondary_category_id' => $this->secondary_category_id,
+                    'unit' => $this->unit_of_measure,
+                    'code' => 'new-' . time(), // temp code
+                ]);
+                $catalog_id = $newItem->id;
             }
 
-            // Find or create ItemSpecification
-            $specification = ItemSpecification::firstOrCreate(
-                ['item_catalog_id' => $catalog_id, 'brand' => $this->main_item_brand, 'model' => $this->main_item_model],
-                ['detailed_specifications' => '']
-            );
+            if ($this->creating_new_specification) {
+                $newSpec = ItemSpecification::create([
+                    'item_catalog_id' => $catalog_id,
+                    'brand' => $this->main_item_brand,
+                    'model' => $this->main_item_model,
+                    'detailed_specifications' => $this->detailed_specifications,
+                ]);
+                $spec_id = $newSpec->id;
+            }
 
             // Find or create ContractItem
             $final_contract_item = ContractItem::firstOrCreate(
-                ['contract_id' => $this->contract_id, 'item_specification_id' => $specification->id],
+                ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
                 ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
             );
 
@@ -744,7 +1041,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
         <!-- Main Content -->
         <div class="lg:col-span-3">
-            @if ($isParItem)
+                            @if ($isParItem)
                 <div class="mb-6 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-900/20">
                     <div class="flex">
                         <div class="flex-shrink-0">
@@ -757,33 +1054,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 High-Value Item Alert
                             </p>
                             <p class="mt-1 text-sm text-red-600 dark:text-red-300">
-                                This item's value is ₱{{ number_format($this->unit_price, 2) }}. Items valued at ₱50,000 or more should be registered as Property, Plant, and Equipment (PPE) using a <strong>Property Acknowledgement Receipt (PAR)</strong>, not an ICS.
+                                This item's value is ₱{{ number_format($this->unit_price, 2) }} per {{ $unit_of_measure ?: ($this->unit_of_measure ?: '') }}. Items valued at ₱50,000 or more should be registered as Property, Plant, and Equipment (PPE) using a <strong>Property Acknowledgement Receipt (PAR)</strong>, not an ICS.
                             </p>
                         </div>
                     </div>
                 </div>
             @endif
             
-            @if ($creating_new_item)
-                <div class="mb-6 rounded-lg border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-900/20">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-blue-400 dark:text-blue-300" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-blue-700 dark:text-blue-200 font-medium">
-                                Creating New Item
-                            </p>
-                            <p class="mt-1 text-sm text-blue-600 dark:text-blue-300">
-                                "{{ $selected_item_name }}" will be added to the system as a new item catalog entry.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
             <div class="space-y-8">
                 <!-- Supplier & Contract Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
@@ -849,51 +1126,39 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-6">
                         <div class="space-y-6">
-                            <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-3">
-                                <div class="sm:col-span-2">
+                            <!-- Item Catalog Selection -->
+                            <div>
+                                <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Catalog</h4>
+                                <div>
                                     <x-autocomplete
                                         id="item_search"
                                         wire:model.live="item_search"
                                         wire:suggestions="item_suggestions"
                                         wire:showSuggestions="show_item_suggestions"
-                                        label="Item"
-                                        placeholder="Type to search items..."
+                                        label="Select Item"
+                                        placeholder="Search by item name..."
                                         required
                                         :disabled="!$this->contract_id && !$this->creating_new_contract"
                                         onFocus="$wire.showAllItems()"
                                         onSelect="$wire.selectItem"
-                                        error="contract_item_id"
+                                        error="items_catalog_id"
                                     />
                                     @if($creating_new_item)
                                         <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                             <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
                                                 <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
                                             </svg>
-                                            <span class="font-medium">New item will be created upon saving.</span>
+                                            <span class="font-medium">New item catalog will be created upon saving.</span>
                                         </div>
                                     @endif
                                 </div>
-                                <div class="sm:col-span-1">
-                                    <flux:input
-                                        wire:model="unit_price"
-                                        label="Unit Cost"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        :disabled="!$creating_new_item"
-                                    >
-                                        <x-slot:leading>
-                                            <span class="text-stone-500">₱</span>
-                                        </x-slot:leading>
-                                    </flux:input>
-                                    <x-input-error for="unit_price" class="mt-2" />
-                                </div>
                             </div>
-                            
+
+                            <!-- Categories Section - Only when creating new item -->
                             @if ($creating_new_item)
                                 <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
                                     <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Categories</h4>
-                                    <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+                                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                         <div>
                                             <flux:select wire:model.live="primary_category_id" label="Primary Category" required>
                                                 <option value="">Select primary category</option>
@@ -915,6 +1180,94 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                 </div>
                             @endif
+                            
+                            <!-- Item Specifications Section -->
+                            <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                                <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
+                                @if($this->items_catalog_id && !$creating_new_item)
+                                <div class="mb-4">
+                                    <x-autocomplete
+                                        id="specification_search"
+                                        wire:model.live="specification_search"
+                                        wire:suggestions="specification_suggestions"
+                                        wire:showSuggestions="show_specification_suggestions"
+                                        label="Specification Template"
+                                        placeholder="Search by brand/model or create new..."
+                                        required
+                                        onFocus="$wire.showAllSpecifications()"
+                                        onSelect="$wire.selectSpecification"
+                                        error="item_specification_id"
+                                    />
+                                    @if($creating_new_specification)
+                                        <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                            <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                            </svg>
+                                            <span class="font-medium">New specification will be created upon saving.</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                @endif
+                                <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                                    <div>
+                                        <flux:input wire:model="main_item_brand" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" />
+                                        <x-input-error for="main_item_brand" class="mt-2" />
+                                    </div>
+                                    <div>
+                                        <flux:input wire:model="main_item_model" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" />
+                                        <x-input-error for="main_item_model" class="mt-2" />
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <flux:textarea wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" />
+                                    <x-input-error for="detailed_specifications" class="mt-2" />
+                                </div>
+                            </div>
+                            
+                            <!-- Pricing Section -->
+                            <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                                <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
+                                <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                                    <div>
+                                        <flux:input
+                                            wire:model="unit_price"
+                                            label="Unit Cost"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            :disabled="!$creating_new_item && !$creating_new_specification"
+                                        >
+                                            <x-slot:leading>
+                                                <span class="text-stone-500">₱</span>
+                                            </x-slot:leading>
+                                        </flux:input>
+                                        <x-input-error for="unit_price" class="mt-2" />
+                                    </div>
+                                    <div>
+                                        <x-autocomplete
+                                            id="unit_search_pricing"
+                                            wire:model.live="unit_search"
+                                            wire:suggestions="unit_suggestions"
+                                            wire:showSuggestions="show_unit_suggestions"
+                                            label="Unit of Measure"
+                                            placeholder="e.g., piece, unit, kg"
+                                            required
+                                            onFocus="$wire.showAllUnits()"
+                                            onSelect="$wire.selectUnit"
+                                            error="unit_of_measure"
+                                        />
+                                        <x-input-error for="unit_of_measure" class="mt-2" />
+                                        @if($creating_new_unit)
+                                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                                </svg>
+                                                <span class="font-medium">New unit of measure will be used.</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1019,6 +1372,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
 
+
+                
                 <!-- Document Details -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
@@ -1030,7 +1385,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 wire:model.blur="ics_number" 
                                 label="ICS Number (YYYYMMDD##)" 
                                 required 
-                                tabindex="501"
+                                tabindex="510"
                                 pattern="\d{10}"
                                 maxlength="10"
                             />
@@ -1040,13 +1395,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </p>
                         </div>
                         
-                        <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="502">
+                        <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="511">
                             <option value="">Select Type</option>
                             <option value="SPLV">SPLV - ₱5,000.00 or less</option>
                             <option value="SPHV">SPHV - ₱5,001.00 to ₱49,999.99</option>
                         </flux:select>
                         
-                        <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="503" />
+                        <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
                         
                         <div>
                             <flux:input
@@ -1055,7 +1410,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 label="Date Prepared"
                                 placeholder="MM/DD/YYYY"
                                 :disabled="$isParItem"
-                                tabindex="504"
+                                tabindex="513"
                             />
                             <x-input-error for="date_prepared" class="mt-2" />
                         </div>
@@ -1067,12 +1422,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 label="Date Accepted"
                                 placeholder="MM/DD/YYYY"
                                 :disabled="$isParItem"
-                                tabindex="505"
+                                tabindex="514"
                             />
                             <x-input-error for="date_accepted" class="mt-2" />
                         </div>
                         
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="506" />
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" />
                     </div>
                 </div>
             </div>
@@ -1094,7 +1449,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         @this.on('focus-contract', () => focusOn('contract_search'));
         @this.on('focus-item', () => focusOn('item_search'));
+        @this.on('focus-specification', () => focusOn('specification_search'));
         @this.on('focus-employee', () => focusOn('employee_search'));
+        @this.on('focus-primary-category', () => focusOn('primary_category_id'));
+        @this.on('focus-unit', () => focusOn('unit_search'));
     });
 </script>
 @endscript
