@@ -100,8 +100,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
         
-        $this->generateIcsNumber();
-        
         // Pre-load data for dropdowns
         $this->allPrimaryCategories = PrimaryCategory::orderBy('name')->get();
         $this->allSecondaryCategories = SecondaryCategory::orderBy('name')->get();
@@ -120,18 +118,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Find the highest numeric ICS number
         $lastIcs = IcsNumber::orderByRaw('CAST(ics_number AS UNSIGNED) DESC')->first();
         $this->ics_number = $lastIcs ? (string)(((int) $lastIcs->ics_number) + 1) : '1';
-    }
-
-    public function validateIcsNumber($value): void
-    {
-        if (!ctype_digit($value) || (int) $value <= 0) {
-            $this->addError('ics_number', 'The ICS number must be a positive integer.');
-            return;
-        }
-
-        if (IcsNumber::where('ics_number', $value)->exists()) {
-            $this->addError('ics_number', 'This ICS number already exists.');
-        }
     }
     
     // Unit of measure autocomplete methods
@@ -836,7 +822,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
 
-        $this->validateIcsNumber($this->ics_number);
+        if (empty($this->ics_number)) {
+            $this->generateIcsNumber();
+        }
 
         $rules = [
             'ics_number' => ['required', 'integer', 'min:1', Rule::unique('ics_numbers')],
@@ -1019,21 +1007,37 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Column 1: Item Information -->
             <div class="space-y-6">
-                <!-- Employee Assignment Section -->
+                <!-- Supplier & Contract Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
                     </div>
                     <div class="p-4">
-                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" error="assigned_employee_id" />
-                        @if ($creating_new_employee)
-                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                </svg>
-                                <span class="font-medium">New employee will be created upon saving.</span>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
+                                @if ($creating_new_supplier)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New supplier will be created upon saving.</span>
+                                    </div>
+                                @endif
                             </div>
-                        @endif
+                            <div>
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB Number" placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
+                                <x-input-error for="contract_search_error" class="mt-2" />
+                                @if ($creating_new_contract)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New contract will be created upon saving.</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1152,37 +1156,21 @@ new #[Layout('components.layouts.app')] class extends Component {
 
             <!-- Column 2: Supplier, Contract, and Details -->
             <div class="space-y-6">
-                <!-- Supplier & Contract Section -->
+                <!-- Employee Assignment Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
                     </div>
                     <div class="p-4">
-                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-                            <div>
-                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
-                                @if ($creating_new_supplier)
-                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                        </svg>
-                                        <span class="font-medium">New supplier will be created upon saving.</span>
-                                    </div>
-                                @endif
+                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" error="assigned_employee_id" />
+                        @if ($creating_new_employee)
+                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                </svg>
+                                <span class="font-medium">New employee will be created upon saving.</span>
                             </div>
-                            <div>
-                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB Number" placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
-                                <x-input-error for="contract_search_error" class="mt-2" />
-                                @if ($creating_new_contract)
-                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                        </svg>
-                                        <span class="font-medium">New contract will be created upon saving.</span>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
 
@@ -1216,11 +1204,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="space-y-4 p-4">
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
-                                <flux:input wire:model.blur="ics_number" label="ICS Number" type="number" required tabindex="510" />
+                                <flux:input wire:model.blur="ics_number" label="ICS Number" type="number" placeholder="Auto-generated if blank" tabindex="510" />
                                 <x-input-error for="ics_number" class="mt-2" />
                             </div>
                             <div>
-                                <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
+                                <x-quantity-input wire:model="estimated_useful_life" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" />
                             </div>
                         </div>
 
@@ -1258,7 +1246,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
 
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" />
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="11" />
                     </div>
                 </div>
             </div>
@@ -1276,7 +1264,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required tabindex="10" />
+                            <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
 
                             <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
