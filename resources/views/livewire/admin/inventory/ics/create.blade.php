@@ -1014,7 +1014,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <form wire:submit="store">
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
+    <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
@@ -1038,11 +1038,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-4">
         <!-- Main Content -->
         <div class="lg:col-span-3">
                             @if ($isParItem)
-                <div class="mb-6 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-900/20">
+                <div class="mb-4 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-900/20">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-red-400 dark:text-red-300" viewBox="0 0 20 20" fill="currentColor">
@@ -1061,14 +1061,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
             @endif
             
-            <div class="space-y-8">
+            <div class="space-y-6">
                 <!-- Supplier & Contract Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
                     </div>
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                             <div>
                                 <x-autocomplete
                                     id="supplier_search"
@@ -1124,8 +1124,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-6">
+                    <div class="p-4">
+                        <div class="space-y-4">
                             <!-- Item Catalog Selection -->
                             <div>
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Catalog</h4>
@@ -1156,7 +1156,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                             <!-- Categories Section - Only when creating new item -->
                             @if ($creating_new_item)
-                                <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                                <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
                                     <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Categories</h4>
                                     <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                         <div>
@@ -1182,7 +1182,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             @endif
                             
                             <!-- Item Specifications Section -->
-                            <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                            <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
                                 @if($this->items_catalog_id && !$creating_new_item)
                                 <div class="mb-4">
@@ -1225,7 +1225,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             
                             <!-- Pricing Section -->
-                            <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                            <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <div>
@@ -1279,14 +1279,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                             Batches @if($isDesktopComputer) & Components @endif
                         </h3>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-6">
+                    <div class="p-4">
+                        <div class="space-y-4">
                             <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required tabindex="10" />
 
-                            <div class="space-y-8">
+                            <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
-                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-stone-50 p-4 dark:border-stone-600 dark:bg-stone-800/50">
-                                        <div class="flex items-center justify-between border-b border-stone-200 pb-3 dark:border-stone-700">
+                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-stone-50 p-3 dark:border-stone-600 dark:bg-stone-800/50">
+                                        <div class="flex items-center justify-between border-b border-stone-200 pb-2 dark:border-stone-700">
                                             <h4 class="font-semibold text-stone-800 dark:text-stone-200">
                                                 Batch #{{ $loop->iteration }}
                                             </h4>
@@ -1342,13 +1342,13 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         <!-- Sidebar Info -->
         <div class="lg:col-span-1">
-            <div class="space-y-8">
+            <div class="space-y-6">
                 <!-- Employee Assignment Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
                     </div>
-                    <div class="p-6">
+                    <div class="p-4">
                         <x-autocomplete
                             id="employee_search"
                             wire:model.live="employee_search"
@@ -1379,7 +1379,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                     </div>
-                    <div class="space-y-6 p-6">
+                    <div class="space-y-4 p-4">
                         <div>
                             <flux:input 
                                 wire:model.blur="ics_number" 
