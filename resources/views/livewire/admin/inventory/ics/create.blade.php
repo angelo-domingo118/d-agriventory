@@ -1128,11 +1128,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <div>
-                                        <flux:input wire:model="unit_price" label="Unit Cost" type="number" step="0.01" min="0" :disabled="!$creating_new_item && !$creating_new_specification">
-                                            <x-slot:leading>
+                                        <label for="unit_cost" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost</label>
+                                        <div class="relative">
+                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                 <span class="text-stone-500">₱</span>
-                                            </x-slot:leading>
-                                        </flux:input>
+                                            </div>
+                                            <flux:input id="unit_cost" wire:model="unit_price" type="number" step="0.01" min="0" :disabled="!$creating_new_item && !$creating_new_specification" class="pl-7" />
+                                        </div>
                                         <x-input-error for="unit_price" class="mt-2" />
                                     </div>
                                     <div>
