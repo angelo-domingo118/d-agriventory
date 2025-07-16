@@ -117,63 +117,20 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function generateIcsNumber(): void
     {
-        $currentYear = now()->format('Y');
-        $currentMonth = now()->format('m');
-        $currentDay = now()->format('d');
-        
-        // Format: YYYYMMDD## (e.g., 2024010101 for January 1, 2024, first ICS of the day)
-        $datePrefix = $currentYear . $currentMonth . $currentDay;
-        
-        $lastIcs = IcsNumber::where('ics_number', 'like', $datePrefix . '%')
-            ->orderBy('ics_number', 'desc')
-            ->first();
-
-        if ($lastIcs) {
-            $lastSequence = (int) substr($lastIcs->ics_number, -2);
-            $newSequence = str_pad($lastSequence + 1, 2, '0', STR_PAD_LEFT);
-        } else {
-            $newSequence = '01';
-        }
-
-        $this->ics_number = $datePrefix . $newSequence;
+        // Find the highest numeric ICS number
+        $lastIcs = IcsNumber::orderByRaw('CAST(ics_number AS UNSIGNED) DESC')->first();
+        $this->ics_number = $lastIcs ? (string)(((int) $lastIcs->ics_number) + 1) : '1';
     }
 
     public function validateIcsNumber($value): void
     {
-        if (!preg_match('/^\d{10}$/', $value)) {
-            $this->addError('ics_number', 'ICS number must be exactly 10 digits (YYYYMMDD##).');
+        if (!ctype_digit($value) || (int) $value <= 0) {
+            $this->addError('ics_number', 'The ICS number must be a positive integer.');
             return;
         }
 
-        // Check if it already exists
         if (IcsNumber::where('ics_number', $value)->exists()) {
             $this->addError('ics_number', 'This ICS number already exists.');
-            return;
-        }
-
-        // Validate date portion
-        $year = substr($value, 0, 4);
-        $month = substr($value, 4, 2);
-        $day = substr($value, 6, 2);
-        
-        if (!checkdate($month, $day, $year)) {
-            $this->addError('ics_number', 'Invalid date in ICS number (YYYYMMDD##).');
-            return;
-        }
-
-        // Check if it's not lower than the highest existing number for the same date
-        $datePrefix = substr($value, 0, 8);
-        $sequence = (int) substr($value, 8, 2);
-        
-        $highestInDay = IcsNumber::where('ics_number', 'like', $datePrefix . '%')
-            ->orderBy('ics_number', 'desc')
-            ->first();
-
-        if ($highestInDay) {
-            $highestSequence = (int) substr($highestInDay->ics_number, 8, 2);
-            if ($sequence <= $highestSequence) {
-                $this->addError('ics_number', "ICS number must be higher than {$highestInDay->ics_number} for date {$year}-{$month}-{$day}.");
-            }
         }
     }
     
@@ -882,7 +839,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->validateIcsNumber($this->ics_number);
 
         $rules = [
-            'ics_number' => ['required', 'string', 'size:10', Rule::unique('ics_numbers')],
+            'ics_number' => ['required', 'integer', 'min:1', Rule::unique('ics_numbers')],
             'assigned_employee_id' => 'required_without:creating_new_employee|nullable|exists:employees,id',
             'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
             'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
@@ -1060,123 +1017,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         @endif
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <!-- Column 1: Supplier, Contract, and Details -->
-            <div class="space-y-6">
-                <!-- Supplier & Contract Section -->
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
-                    </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-                            <div>
-                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
-                                @if ($creating_new_supplier)
-                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                        </svg>
-                                        <span class="font-medium">New supplier will be created upon saving.</span>
-                                    </div>
-                                @endif
-                            </div>
-                            <div>
-                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB Number" placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
-                                <x-input-error for="contract_search_error" class="mt-2" />
-                                @if ($creating_new_contract)
-                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                        </svg>
-                                        <span class="font-medium">New contract will be created upon saving.</span>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Document Details -->
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800"
-                    x-data="{
-                        formatDate(event) {
-                            let value = event.target.value.replace(/\D/g, '');
-                            if (value.length > 8) {
-                                value = value.substring(0, 8);
-                            }
-                            const month = value.substring(0, 2);
-                            const day = value.substring(2, 4);
-                            const year = value.substring(4, 8);
-
-                            let formattedValue = '';
-                            if (value.length > 4) {
-                                formattedValue = `${month}/${day}/${year}`;
-                            } else if (value.length > 2) {
-                                formattedValue = `${month}/${day}`;
-                            } else if (value.length > 0) {
-                                formattedValue = month;
-                            }
-                            
-                            event.target.value = formattedValue;
-                        }
-                    }">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
-                    </div>
-                    <div class="space-y-4 p-4">
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-                            <div>
-                                <flux:input wire:model.blur="ics_number" label="ICS Number (YYYYMMDD##)" required tabindex="510" pattern="\d{10}" maxlength="10" />
-                                <x-input-error for="ics_number" class="mt-2" />
-                                <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                                    Format: Year+Month+Day+2-digit sequence (e.g., 2024010101)
-                                </p>
-                            </div>
-                            <div>
-                                <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
-                            </div>
-                        </div>
-
-                        <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="511">
-                            <option value="">Select Type</option>
-                            <option value="SPLV">SPLV - ₱5,000.00 or less</option>
-                            <option value="SPHV">SPHV - ₱5,001.00 to ₱49,999.99</option>
-                        </flux:select>
-
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-                            <div>
-                                <flux:input
-                                    wire:model.blur="date_prepared"
-                                    type="text"
-                                    label="Date Prepared"
-                                    placeholder="MM/DD/YYYY"
-                                    :disabled="$isParItem"
-                                    tabindex="513"
-                                    @input="formatDate($event)"
-                                />
-                                <x-input-error for="date_prepared" class="mt-2" />
-                            </div>
-
-                            <div>
-                                <flux:input
-                                    wire:model.blur="date_accepted"
-                                    type="text"
-                                    label="Date Accepted"
-                                    placeholder="MM/DD/YYYY"
-                                    :disabled="$isParItem"
-                                    tabindex="514"
-                                    @input="formatDate($event)"
-                                />
-                                <x-input-error for="date_accepted" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Column 2: Item Information -->
+            <!-- Column 1: Item Information -->
             <div class="space-y-6">
                 <!-- Employee Assignment Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
@@ -1305,6 +1146,119 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Supplier, Contract, and Details -->
+            <div class="space-y-6">
+                <!-- Supplier & Contract Section -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
+                                @if ($creating_new_supplier)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New supplier will be created upon saving.</span>
+                                    </div>
+                                @endif
+                            </div>
+                            <div>
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB Number" placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
+                                <x-input-error for="contract_search_error" class="mt-2" />
+                                @if ($creating_new_contract)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New contract will be created upon saving.</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Details -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800"
+                    x-data="{
+                        formatDate(event) {
+                            let value = event.target.value.replace(/\D/g, '');
+                            if (value.length > 8) {
+                                value = value.substring(0, 8);
+                            }
+                            const month = value.substring(0, 2);
+                            const day = value.substring(2, 4);
+                            const year = value.substring(4, 8);
+
+                            let formattedValue = '';
+                            if (value.length > 4) {
+                                formattedValue = `${month}/${day}/${year}`;
+                            } else if (value.length > 2) {
+                                formattedValue = `${month}/${day}`;
+                            } else if (value.length > 0) {
+                                formattedValue = month;
+                            }
+                            
+                            event.target.value = formattedValue;
+                        }
+                    }">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
+                    </div>
+                    <div class="space-y-4 p-4">
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input wire:model.blur="ics_number" label="ICS Number" type="number" required tabindex="510" />
+                                <x-input-error for="ics_number" class="mt-2" />
+                            </div>
+                            <div>
+                                <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
+                            </div>
+                        </div>
+
+                        <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="511">
+                            <option value="">Select Type</option>
+                            <option value="SPLV">SPLV - ₱5,000.00 or less</option>
+                            <option value="SPHV">SPHV - ₱5,001.00 to ₱49,999.99</option>
+                        </flux:select>
+
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input
+                                    wire:model.blur="date_prepared"
+                                    type="text"
+                                    label="Date Prepared"
+                                    placeholder="MM/DD/YYYY"
+                                    :disabled="$isParItem"
+                                    tabindex="513"
+                                    @input="formatDate($event)"
+                                />
+                                <x-input-error for="date_prepared" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <flux:input
+                                    wire:model.blur="date_accepted"
+                                    type="text"
+                                    label="Date Accepted"
+                                    placeholder="MM/DD/YYYY"
+                                    :disabled="$isParItem"
+                                    tabindex="514"
+                                    @input="formatDate($event)"
+                                />
+                                <x-input-error for="date_accepted" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" />
                     </div>
                 </div>
             </div>
