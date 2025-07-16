@@ -1124,12 +1124,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                     </div>
                     <div class="space-y-4 p-4">
-                        <div>
-                            <flux:input wire:model="ics_number" label="ICS Number (YYYYMMDD##)" required tabindex="510" pattern="\d{10}" maxlength="10" />
-                            <x-input-error for="ics_number" class="mt-2" />
-                            <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                                Format: Year+Month+Day+2-digit sequence (e.g., 2024010101)
-                            </p>
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input wire:model.blur="ics_number" label="ICS Number (YYYYMMDD##)" required tabindex="510" pattern="\d{10}" maxlength="10" />
+                                <x-input-error for="ics_number" class="mt-2" />
+                                <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                                    Format: Year+Month+Day+2-digit sequence (e.g., 2024010101)
+                                </p>
+                            </div>
+                            <div>
+                                <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
+                            </div>
                         </div>
 
                         <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="511">
@@ -1137,8 +1142,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <option value="SPLV">SPLV - ₱5,000.00 or less</option>
                             <option value="SPHV">SPHV - ₱5,001.00 to ₱49,999.99</option>
                         </flux:select>
-
-                        <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" tabindex="512" />
 
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
