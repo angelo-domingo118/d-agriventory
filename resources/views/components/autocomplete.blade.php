@@ -31,19 +31,7 @@
                 if (this.inputRef && this.$refs.dropdown) {
                     const rect = this.inputRef.getBoundingClientRect();
                     const dropdown = this.$refs.dropdown;
-                    const dropdownHeight = dropdown.offsetHeight;
-                    const spaceBelow = window.innerHeight - rect.bottom;
-
-                    if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
-                        // Not enough space below, but enough above: show above
-                        dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px';
-                        dropdown.style.bottom = 'auto';
-                    } else {
-                        // Default to below
-                        dropdown.style.top = (rect.bottom + 4) + 'px';
-                        dropdown.style.bottom = 'auto';
-                    }
-
+                    dropdown.style.top = (rect.bottom + 4) + 'px';
                     dropdown.style.left = rect.left + 'px';
                     dropdown.style.width = rect.width + 'px';
                 }
