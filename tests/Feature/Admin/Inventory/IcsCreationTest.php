@@ -160,4 +160,144 @@ class IcsCreationTest extends TestCase
             ->call('store')
             ->assertHasErrors(['ics_number' => 'unique']);
     }
+
+    #[Test]
+    public function brand_autocomplete_returns_unique_brands_from_database()
+    {
+        $this->actingAs($this->adminUser);
+
+        // Create some item specifications with brands
+        $itemCatalog = ItemsCatalog::factory()->create();
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'HP']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'Dell']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'Samsung']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'HP']); // Duplicate
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('showAllBrands')
+            ->assertSet('brand_suggestions', [
+                ['id' => 'Dell', 'name' => 'Dell', 'type' => 'existing'],
+                ['id' => 'HP', 'name' => 'HP', 'type' => 'existing'],
+                ['id' => 'Samsung', 'name' => 'Samsung', 'type' => 'existing'],
+            ])
+            ->assertSet('show_brand_suggestions', true);
+    }
+
+    #[Test]
+    public function model_autocomplete_returns_unique_models_from_database()
+    {
+        $this->actingAs($this->adminUser);
+
+        // Create some item specifications with models
+        $itemCatalog = ItemsCatalog::factory()->create();
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'ProBook 450 G9']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'XPS 15']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'Galaxy Book']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'ProBook 450 G9']); // Duplicate
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('showAllModels')
+            ->assertSet('model_suggestions', [
+                ['id' => 'Galaxy Book', 'name' => 'Galaxy Book', 'type' => 'existing'],
+                ['id' => 'ProBook 450 G9', 'name' => 'ProBook 450 G9', 'type' => 'existing'],
+                ['id' => 'XPS 15', 'name' => 'XPS 15', 'type' => 'existing'],
+            ])
+            ->assertSet('show_model_suggestions', true);
+    }
+
+    #[Test]
+    public function brand_search_filters_results_by_query()
+    {
+        $this->actingAs($this->adminUser);
+
+        // Create some item specifications with brands
+        $itemCatalog = ItemsCatalog::factory()->create();
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'HP']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'Dell']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'brand' => 'Samsung']);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->set('brand_search', 'HP')
+            ->call('searchBrands', 'HP')
+            ->assertSet('brand_suggestions', [
+                ['id' => 'HP', 'name' => 'HP', 'type' => 'existing'],
+            ])
+            ->assertSet('show_brand_suggestions', true);
+    }
+
+    #[Test]
+    public function model_search_filters_results_by_query()
+    {
+        $this->actingAs($this->adminUser);
+
+        // Create some item specifications with models
+        $itemCatalog = ItemsCatalog::factory()->create();
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'ProBook 450 G9']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'XPS 15']);
+        ItemSpecification::factory()->create(['item_catalog_id' => $itemCatalog->id, 'model' => 'Galaxy Book']);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->set('model_search', 'ProBook')
+            ->call('searchModels', 'ProBook')
+            ->assertSet('model_suggestions', [
+                ['id' => 'ProBook 450 G9', 'name' => 'ProBook 450 G9', 'type' => 'existing'],
+            ])
+            ->assertSet('show_model_suggestions', true);
+    }
+
+    #[Test]
+    public function selecting_existing_brand_sets_correct_values()
+    {
+        $this->actingAs($this->adminUser);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('selectBrand', ['type' => 'existing', 'name' => 'HP'])
+            ->assertSet('main_item_brand', 'HP')
+            ->assertSet('brand_search', 'HP')
+            ->assertSet('selected_brand', 'HP')
+            ->assertSet('creating_new_brand', false)
+            ->assertSet('show_brand_suggestions', false);
+    }
+
+    #[Test]
+    public function selecting_new_brand_sets_correct_values()
+    {
+        $this->actingAs($this->adminUser);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('selectBrand', ['type' => 'new', 'name' => 'NewBrand'])
+            ->assertSet('main_item_brand', 'NewBrand')
+            ->assertSet('brand_search', 'NewBrand')
+            ->assertSet('selected_brand', 'NewBrand (new)')
+            ->assertSet('creating_new_brand', true)
+            ->assertSet('show_brand_suggestions', false);
+    }
+
+    #[Test]
+    public function selecting_existing_model_sets_correct_values()
+    {
+        $this->actingAs($this->adminUser);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('selectModel', ['type' => 'existing', 'name' => 'ProBook 450 G9'])
+            ->assertSet('main_item_model', 'ProBook 450 G9')
+            ->assertSet('model_search', 'ProBook 450 G9')
+            ->assertSet('selected_model', 'ProBook 450 G9')
+            ->assertSet('creating_new_model', false)
+            ->assertSet('show_model_suggestions', false);
+    }
+
+    #[Test]
+    public function selecting_new_model_sets_correct_values()
+    {
+        $this->actingAs($this->adminUser);
+
+        Livewire::test('admin.inventory.ics.create')
+            ->call('selectModel', ['type' => 'new', 'name' => 'NewModel'])
+            ->assertSet('main_item_model', 'NewModel')
+            ->assertSet('model_search', 'NewModel')
+            ->assertSet('selected_model', 'NewModel (new)')
+            ->assertSet('creating_new_model', true)
+            ->assertSet('show_model_suggestions', false);
+    }
 }

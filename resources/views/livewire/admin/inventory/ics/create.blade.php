@@ -53,6 +53,20 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $selected_unit = null;
     public bool $creating_new_unit = false;
 
+    // Brand autocomplete
+    public string $brand_search = '';
+    public array $brand_suggestions = [];
+    public bool $show_brand_suggestions = false;
+    public ?string $selected_brand = null;
+    public bool $creating_new_brand = false;
+
+    // Model autocomplete
+    public string $model_search = '';
+    public array $model_suggestions = [];
+    public bool $show_model_suggestions = false;
+    public ?string $selected_model = null;
+    public bool $creating_new_model = false;
+
     // Display only property
     public ?float $unit_price = 0.0;
     public bool $isParItem = false;
@@ -114,6 +128,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->unit_of_measure = '';
         $this->unit_search = '';
         $this->selected_unit = '';
+        
+        // Initialize brand and model search fields
+        $this->brand_search = '';
+        $this->model_search = '';
+        $this->selected_brand = '';
+        $this->selected_model = '';
         
         // Set default ICS type with full description
         $this->updateItemType();
@@ -213,6 +233,162 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         
         $this->show_unit_suggestions = false;
+    }
+
+    // Brand autocomplete methods
+    public function updatedBrandSearch($value): void
+    {
+        $this->searchBrands($value);
+    }
+
+    public function showAllBrands(): void
+    {
+        $this->searchBrands($this->brand_search);
+        if (count($this->brand_suggestions) > 0) {
+            $this->show_brand_suggestions = true;
+        }
+    }
+
+    public function searchBrands($query): void
+    {
+        // Get all distinct brands from the database
+        if (strlen(trim($query)) === 0) {
+            $brands = ItemSpecification::select('brand')
+                ->whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->distinct()
+                ->orderBy('brand')
+                ->pluck('brand')
+                ->toArray();
+        } else {
+            $brands = ItemSpecification::select('brand')
+                ->whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->whereRaw('LOWER(brand) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('brand')
+                ->pluck('brand')
+                ->toArray();
+        }
+        
+        // Create suggestions array
+        $this->brand_suggestions = array_map(function($brand) {
+            return [
+                'id' => $brand,
+                'name' => $brand,
+                'type' => 'existing'
+            ];
+        }, $brands);
+        
+        // Add "new" option if the query doesn't match exactly
+        $exactExists = collect($this->brand_suggestions)->contains(function ($brand) use ($query) {
+            return strtolower($brand['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->brand_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_brand_suggestions = count($this->brand_suggestions) > 0;
+    }
+
+    public function selectBrand($brandData): void
+    {
+        if ($brandData['type'] === 'existing') {
+            $this->main_item_brand = $brandData['name'];
+            $this->brand_search = $brandData['name'];
+            $this->selected_brand = $brandData['name'];
+            $this->creating_new_brand = false;
+        } elseif ($brandData['type'] === 'new') {
+            $this->main_item_brand = $brandData['name'];
+            $this->brand_search = $brandData['name'];
+            $this->selected_brand = $brandData['name'] . ' (new)';
+            $this->creating_new_brand = true;
+        }
+        
+        $this->show_brand_suggestions = false;
+    }
+
+    // Model autocomplete methods
+    public function updatedModelSearch($value): void
+    {
+        $this->searchModels($value);
+    }
+
+    public function showAllModels(): void
+    {
+        $this->searchModels($this->model_search);
+        if (count($this->model_suggestions) > 0) {
+            $this->show_model_suggestions = true;
+        }
+    }
+
+    public function searchModels($query): void
+    {
+        // Get all distinct models from the database
+        if (strlen(trim($query)) === 0) {
+            $models = ItemSpecification::select('model')
+                ->whereNotNull('model')
+                ->where('model', '!=', '')
+                ->distinct()
+                ->orderBy('model')
+                ->pluck('model')
+                ->toArray();
+        } else {
+            $models = ItemSpecification::select('model')
+                ->whereNotNull('model')
+                ->where('model', '!=', '')
+                ->whereRaw('LOWER(model) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('model')
+                ->pluck('model')
+                ->toArray();
+        }
+        
+        // Create suggestions array
+        $this->model_suggestions = array_map(function($model) {
+            return [
+                'id' => $model,
+                'name' => $model,
+                'type' => 'existing'
+            ];
+        }, $models);
+        
+        // Add "new" option if the query doesn't match exactly
+        $exactExists = collect($this->model_suggestions)->contains(function ($model) use ($query) {
+            return strtolower($model['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->model_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_model_suggestions = count($this->model_suggestions) > 0;
+    }
+
+    public function selectModel($modelData): void
+    {
+        if ($modelData['type'] === 'existing') {
+            $this->main_item_model = $modelData['name'];
+            $this->model_search = $modelData['name'];
+            $this->selected_model = $modelData['name'];
+            $this->creating_new_model = false;
+        } elseif ($modelData['type'] === 'new') {
+            $this->main_item_model = $modelData['name'];
+            $this->model_search = $modelData['name'];
+            $this->selected_model = $modelData['name'] . ' (new)';
+            $this->creating_new_model = true;
+        }
+        
+        $this->show_model_suggestions = false;
     }
 
     // Supplier autocomplete methods
@@ -680,6 +856,21 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->unit_search = '';
         $this->selected_unit = '';
         $this->creating_new_unit = false;
+        
+        // Reset brand autocomplete fields
+        $this->brand_search = '';
+        $this->brand_suggestions = [];
+        $this->show_brand_suggestions = false;
+        $this->selected_brand = null;
+        $this->creating_new_brand = false;
+        
+        // Reset model autocomplete fields
+        $this->model_search = '';
+        $this->model_suggestions = [];
+        $this->show_model_suggestions = false;
+        $this->selected_model = null;
+        $this->creating_new_model = false;
+        
         $this->primary_category_id = null;
         $this->secondary_category_id = null;
     }
@@ -720,6 +911,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->detailed_specifications = null;
             $this->unit_price = 0.0; // Reset price as it's tied to spec in contract
             $this->contract_item_id = null;
+            
+            // Reset brand and model autocomplete fields
+            $this->brand_search = '';
+            $this->brand_suggestions = [];
+            $this->show_brand_suggestions = false;
+            $this->selected_brand = null;
+            $this->creating_new_brand = false;
+            
+            $this->model_search = '';
+            $this->model_suggestions = [];
+            $this->show_model_suggestions = false;
+            $this->selected_model = null;
+            $this->creating_new_model = false;
 
         } elseif ($value) {
             $this->creating_new_specification = false;
@@ -728,6 +932,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $this->main_item_brand = $spec->brand;
                 $this->main_item_model = $spec->model;
                 $this->detailed_specifications = $spec->detailed_specifications;
+                
+                // Set brand and model search fields
+                $this->brand_search = $spec->brand ?? '';
+                $this->selected_brand = $spec->brand ?? '';
+                $this->creating_new_brand = false;
+                
+                $this->model_search = $spec->model ?? '';
+                $this->selected_model = $spec->model ?? '';
+                $this->creating_new_model = false;
 
                 if ($this->contract_id) {
                     $contractItem = ContractItem::where('item_specification_id', $spec->id)
@@ -745,6 +958,19 @@ new #[Layout('components.layouts.app')] class extends Component {
              $this->detailed_specifications = null;
              $this->unit_price = 0.0;
              $this->contract_item_id = null;
+             
+             // Reset brand and model autocomplete fields
+             $this->brand_search = '';
+             $this->brand_suggestions = [];
+             $this->show_brand_suggestions = false;
+             $this->selected_brand = null;
+             $this->creating_new_brand = false;
+             
+             $this->model_search = '';
+             $this->model_suggestions = [];
+             $this->show_model_suggestions = false;
+             $this->selected_model = null;
+             $this->creating_new_model = false;
         }
 
         $this->updateItemType();
@@ -1131,11 +1357,27 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <div>
-                                        <flux:input wire:model="main_item_brand" id="main_item_brand" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" />
+                                        <x-autocomplete id="brand_search" wire:model.live="brand_search" wire:suggestions="brand_suggestions" wire:showSuggestions="show_brand_suggestions" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllBrands()" onSelect="$wire.selectBrand" />
+                                        @if ($creating_new_brand)
+                                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                                <span class="font-medium">New brand will be used.</span>
+                                            </div>
+                                        @endif
                                         <x-input-error for="main_item_brand" class="mt-2" />
                                     </div>
                                     <div>
-                                        <flux:input wire:model="main_item_model" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" />
+                                        <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" />
+                                        @if ($creating_new_model)
+                                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                                <span class="font-medium">New model will be used.</span>
+                                            </div>
+                                        @endif
                                         <x-input-error for="main_item_model" class="mt-2" />
                                     </div>
                                 </div>
