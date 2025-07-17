@@ -1572,8 +1572,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </p>
                                 <x-input-error for="ics_number" class="mt-2" />
                             </div>
-                            <div>
-                                <x-quantity-input wire:model="estimated_useful_life" label="Estimated Useful Life (Years)" min="1" :disabled="$isParItem" />
+                            <div x-data="{ 
+                                validateNumber(e) {
+                                    // Allow only numbers and control keys
+                                    if (!/^\d*$/.test(e.target.value)) {
+                                        // Remove non-numeric characters
+                                        e.target.value = e.target.value.replace(/[^\d]/g, '');
+                                        // Update the Livewire property
+                                        $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
+                                    }
+                                }
+                            }">
+                                <x-quantity-input 
+                                    wire:model="estimated_useful_life" 
+                                    label="Estimated Useful Life (Years)" 
+                                    placeholder="Optional (e.g. 3, 5)" 
+                                    :disabled="$isParItem"
+                                    type="text" 
+                                    inputmode="numeric" 
+                                    @input="validateNumber($event)" />
                             </div>
                         </div>
 
