@@ -104,6 +104,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->allPrimaryCategories = PrimaryCategory::orderBy('name')->get();
         $this->allSecondaryCategories = SecondaryCategory::orderBy('name')->get();
 
+        // Auto-generate ICS number
+        $this->generateIcsNumber();
+        
         // Start with one batch
         $this->updatedQuantity($this->quantity);
         
@@ -118,9 +121,24 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function generateIcsNumber(): void
     {
-        // Find the highest numeric ICS number
+        // Find the highest numeric ICS number and its batch count
         $lastIcs = IcsNumber::orderByRaw('CAST(ics_number AS UNSIGNED) DESC')->first();
-        $this->ics_number = $lastIcs ? (string)(((int) $lastIcs->ics_number) + 1) : '1';
+        
+        if ($lastIcs) {
+            // Count the number of batches for the last ICS number
+            $batchCount = IcsItemBatch::where('ics_number_id', $lastIcs->id)->count();
+            
+            // If there are no batches, default to 1
+            if ($batchCount === 0) {
+                $batchCount = 1;
+            }
+            
+            // Next ICS number is the highest existing number + its batch count
+            $this->ics_number = (string)(((int) $lastIcs->ics_number) + $batchCount);
+        } else {
+            // If no previous ICS numbers, start with 1
+            $this->ics_number = '1';
+        }
     }
     
     // Unit of measure autocomplete methods
@@ -1204,7 +1222,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="space-y-4 p-4">
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
-                                <flux:input wire:model.blur="ics_number" label="ICS Number" type="number" placeholder="Auto-generated if blank" tabindex="510" />
+                                <flux:input 
+                                    wire:model.blur="ics_number" 
+                                    label="ICS Number (Auto-generated)" 
+                                    type="number" 
+                                    readonly
+                                    tabindex="510" />
+                                <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                                    Calculated based on previous ICS number + batch count
+                                </p>
                                 <x-input-error for="ics_number" class="mt-2" />
                             </div>
                             <div>
