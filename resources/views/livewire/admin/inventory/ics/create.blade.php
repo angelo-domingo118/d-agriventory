@@ -28,7 +28,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $item_specification_id = null; // Can now be "new" or an integer ID
     public ?int $contract_item_id = null;
     public ?int $assigned_employee_id = null;
-    public string $ics_type = 'SPLV';
+    public string $ics_type = 'SPLV - Semi-Expendable Property (Low Value) - ₱5,000 or less';
     public int $quantity = 1;
     public ?int $estimated_useful_life = null;
     public ?string $date_prepared = null;
@@ -111,6 +111,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->unit_of_measure = '';
         $this->unit_search = '';
         $this->selected_unit = '';
+        
+        // Set default ICS type with full description
+        $this->updateItemType();
     }
 
     public function generateIcsNumber(): void
@@ -675,13 +678,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Format unit price and set ICS type based on value
         if ($this->unit_price >= 50000) {
             $this->isParItem = true;
-            $this->ics_type = 'Not applicable - Item requires PAR';
+            $this->ics_type = 'Not applicable - Item requires PAR (₱50,000 or more)';
         } elseif ($this->unit_price > 5000) {
             $this->isParItem = false;
-            $this->ics_type = 'SPHV - Semi-Expendable Property (High Value)';
+            $this->ics_type = 'SPHV - Semi-Expendable Property (High Value) - ₱5,001 to ₱49,999';
         } else {
             $this->isParItem = false;
-            $this->ics_type = 'SPLV - Semi-Expendable Property (Low Value)';
+            $this->ics_type = 'SPLV - Semi-Expendable Property (Low Value) - ₱5,000 or less';
         }
     }
 
@@ -1202,7 +1205,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div>
                             <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
                             <div class="relative">
-                                <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" />
+                                <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
                             </div>
                             @if ($isParItem)
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">
