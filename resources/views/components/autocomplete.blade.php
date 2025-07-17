@@ -39,9 +39,10 @@
         },
         handleKeydown(event) {
             if (!this.showSuggestions || this.suggestions.length === 0) {
-                if (event.key === 'Tab' && this.createNew && this.inputRef.value.trim() !== '') {
+                if ((event.key === 'Enter' || event.key === 'Tab') && this.createNew && this.inputRef.value.trim() !== '') {
                     const existingSuggestion = this.suggestions.find(s => s.name && s.name.toLowerCase() === this.inputRef.value.trim().toLowerCase());
                     if (!existingSuggestion) {
+                        event.preventDefault();
                         this.selectSuggestion({ id: 'new', name: this.inputRef.value.trim(), type: 'new' });
                     }
                 }
@@ -60,14 +61,18 @@
                     this.scrollToSelected();
                     break;
                 case 'Enter':
+                    event.preventDefault(); // Prevent form submission
                     if (this.selectedIndex >= 0) {
-                        event.preventDefault();
                         this.selectSuggestion(this.suggestions[this.selectedIndex]);
-                    } else if (this.createNew && this.inputRef.value.trim() !== '') {
-                        const existingSuggestion = this.suggestions.find(s => s.name && s.name.toLowerCase() === this.inputRef.value.trim().toLowerCase());
-                        if (!existingSuggestion) {
-                            event.preventDefault();
-                            this.selectSuggestion({ id: 'new', name: this.inputRef.value.trim(), type: 'new' });
+                    } else {
+                        const newOption = this.suggestions.find(s => s.type === 'new');
+                        if (newOption) {
+                            this.selectSuggestion(newOption);
+                        } else if (this.createNew && this.inputRef.value.trim() !== '') {
+                            const existingSuggestion = this.suggestions.find(s => s.name && s.name.toLowerCase() === this.inputRef.value.trim().toLowerCase());
+                            if (!existingSuggestion) {
+                                this.selectSuggestion({ id: 'new', name: this.inputRef.value.trim(), type: 'new' });
+                            }
                         }
                     }
                     break;
