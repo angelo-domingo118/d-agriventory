@@ -77,15 +77,16 @@
                     }
                     break;
                 case 'Tab':
-                    if (this.selectedIndex >= 0) {
+                    if (this.showSuggestions && this.suggestions.length > 0) {
                         event.preventDefault();
-                        this.selectSuggestion(this.suggestions[this.selectedIndex]);
-                    } else if (this.createNew && this.inputRef.value.trim() !== '') {
-                        const existingSuggestion = this.suggestions.find(s => s.name && s.name.toLowerCase() === this.inputRef.value.trim().toLowerCase());
-                        if (!existingSuggestion) {
-                            // Don't prevent default, allow tabbing
-                            this.selectSuggestion({ id: 'new', name: this.inputRef.value.trim(), type: 'new' });
+                        if (event.shiftKey) {
+                            // Move up the list
+                            this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
+                        } else {
+                            // Move down the list
+                            this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1);
                         }
+                        this.scrollToSelected();
                     }
                     break;
                 case 'Escape':
