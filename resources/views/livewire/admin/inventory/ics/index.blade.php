@@ -41,8 +41,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $filterInventoryNumber = '';
 
     // Sorting properties
-    public string $sortColumn = 'ics_number.date_prepared';
-    public string $sortDirection = 'desc';
+public string $sortColumn = 'ics_number.ics_number';
+public string $sortDirection = 'desc';
 
     public array $openGroups = [];
 
@@ -127,7 +127,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function resetSorting(): void
     {
-        $this->sortColumn = 'ics_number.date_prepared';
+        $this->sortColumn = 'ics_number.ics_number';
         $this->sortDirection = 'desc';
     }
 
@@ -234,7 +234,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         // Apply sorting
         if ($this->sortColumn && $this->sortDirection) {
-            $query->orderBy($this->sortColumn, $this->sortDirection);
+            // Special handling for ics_number column - treat it as numeric
+            if ($this->sortColumn === 'ics_number.ics_number') {
+                $query->orderBy(DB::raw('CAST(ics_number.ics_number AS UNSIGNED)'), $this->sortDirection);
+            } else {
+                $query->orderBy($this->sortColumn, $this->sortDirection);
+            }
         }
 
         if ($this->groupBy === 'employee') {
