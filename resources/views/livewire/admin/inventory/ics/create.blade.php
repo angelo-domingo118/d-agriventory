@@ -105,6 +105,18 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $selected_employee_name = null;
     public bool $creating_new_employee = false;
 
+    // Primary Category Autocomplete
+    public string $primary_category_search = '';
+    public array $primary_category_suggestions = [];
+    public bool $show_primary_category_suggestions = false;
+    public ?string $selected_primary_category_name = null;
+
+    // Secondary Category Autocomplete
+    public string $secondary_category_search = '';
+    public array $secondary_category_suggestions = [];
+    public bool $show_secondary_category_suggestions = false;
+    public ?string $selected_secondary_category_name = null;
+
     public Collection $allPrimaryCategories;
     public Collection $allSecondaryCategories;
 
@@ -114,10 +126,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
         
-        // Pre-load data for dropdowns
-        $this->allPrimaryCategories = PrimaryCategory::orderBy('name')->get();
-        $this->allSecondaryCategories = SecondaryCategory::orderBy('name')->get();
-
         // Auto-generate ICS number
         $this->generateIcsNumber();
         
@@ -818,6 +826,110 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->show_employee_suggestions = false;
     }
 
+    // Primary Category autocomplete methods
+    public function updatedPrimaryCategorySearch($value): void
+    {
+        $this->searchPrimaryCategories($value);
+    }
+
+    public function showAllPrimaryCategories(): void
+    {
+        $this->searchPrimaryCategories($this->primary_category_search);
+        if (count($this->primary_category_suggestions) > 0) {
+            $this->show_primary_category_suggestions = true;
+        }
+    }
+
+    public function searchPrimaryCategories($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $categories = PrimaryCategory::orderBy('name')->get();
+        } else {
+            $categories = PrimaryCategory::where('name', 'like', '%' . $query . '%')
+                ->orderBy('name')
+                ->get();
+        }
+
+        $this->primary_category_suggestions = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $this->show_primary_category_suggestions = count($this->primary_category_suggestions) > 0;
+    }
+
+    public function selectPrimaryCategory($categoryData): void
+    {
+        if ($categoryData['type'] === 'existing') {
+            $this->primary_category_id = $categoryData['id'];
+            $this->primary_category_search = $categoryData['name'];
+            $this->selected_primary_category_name = $categoryData['name'];
+        }
+
+        $this->show_primary_category_suggestions = false;
+        // Reset secondary category when primary changes
+        $this->secondary_category_id = null;
+        $this->secondary_category_search = '';
+        $this->selected_secondary_category_name = null;
+        $this->dispatch('focus-secondary-category');
+    }
+
+    // Secondary Category autocomplete methods
+    public function updatedSecondaryCategorySearch($value): void
+    {
+        $this->searchSecondaryCategories($value);
+    }
+
+    public function showAllSecondaryCategories(): void
+    {
+        $this->searchSecondaryCategories($this->secondary_category_search);
+        if (count($this->secondary_category_suggestions) > 0) {
+            $this->show_secondary_category_suggestions = true;
+        }
+    }
+
+    public function searchSecondaryCategories($query): void
+    {
+        if (!$this->primary_category_id) {
+            $this->secondary_category_suggestions = [];
+            $this->show_secondary_category_suggestions = false;
+            return;
+        }
+
+        $queryBuilder = SecondaryCategory::where('primary_category_id', $this->primary_category_id);
+
+        if (strlen(trim($query)) > 0) {
+            $queryBuilder->where('name', 'like', '%' . $query . '%');
+        }
+
+        $categories = $queryBuilder->orderBy('name')->get();
+
+        $this->secondary_category_suggestions = $categories->map(function ($category) {
+            return [
+                'id' => $category->id,
+                'name' => $category->name,
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $this->show_secondary_category_suggestions = count($this->secondary_category_suggestions) > 0;
+    }
+
+    public function selectSecondaryCategory($categoryData): void
+    {
+        if ($categoryData['type'] === 'existing') {
+            $this->secondary_category_id = $categoryData['id'];
+            $this->secondary_category_search = $categoryData['name'];
+            $this->selected_secondary_category_name = $categoryData['name'];
+        }
+
+        $this->show_secondary_category_suggestions = false;
+        $this->dispatch('focus-brand');
+    }
+
     // Helper methods
     private function resetContractData(): void
     {
@@ -986,12 +1098,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedUnitPrice(): void
     {
         $this->updateItemType();
-    }
-
-    public function updatedPrimaryCategoryId()
-    {
-        $this->secondary_category_id = null;
-        $this->dispatch('focus-secondary-category');
     }
 
     public function updatedSecondaryCategoryId()
@@ -1325,21 +1431,32 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Categories</h4>
                                     <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                         <div>
-                                            <flux:select wire:model.live="primary_category_id" label="Primary Category" required id="primary_category_id">
-                                                <option value="">Select primary category</option>
-                                                @foreach ($allPrimaryCategories as $category)
-                                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                                @endforeach
-                                            </flux:select>
+                                            <x-autocomplete 
+                                                id="primary_category_search" 
+                                                wire:model.live="primary_category_search" 
+                                                wire:suggestions="primary_category_suggestions" 
+                                                wire:showSuggestions="show_primary_category_suggestions" 
+                                                label="Primary Category" 
+                                                placeholder="Search primary categories..." 
+                                                required 
+                                                onFocus="$wire.showAllPrimaryCategories()" 
+                                                onSelect="$wire.selectPrimaryCategory" 
+                                                error="primary_category_id" />
                                             <x-input-error for="primary_category_id" class="mt-2" />
                                         </div>
                                         <div>
-                                            <flux:select wire:model.live="secondary_category_id" label="Secondary Category" :disabled="!$this->primary_category_id" required id="secondary_category_id">
-                                                <option value="">Select secondary category</option>
-                                                @foreach ($this->filteredSecondaryCategories as $category)
-                                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                                @endforeach
-                                            </flux:select>
+                                            <x-autocomplete 
+                                                id="secondary_category_search" 
+                                                wire:model.live="secondary_category_search" 
+                                                wire:suggestions="secondary_category_suggestions" 
+                                                wire:showSuggestions="show_secondary_category_suggestions" 
+                                                label="Secondary Category" 
+                                                placeholder="Search secondary categories..." 
+                                                required 
+                                                :disabled="!$this->primary_category_id" 
+                                                onFocus="$wire.showAllSecondaryCategories()" 
+                                                onSelect="$wire.selectSecondaryCategory" 
+                                                error="secondary_category_id" />
                                             <x-input-error for="secondary_category_id" class="mt-2" />
                                         </div>
                                     </div>
