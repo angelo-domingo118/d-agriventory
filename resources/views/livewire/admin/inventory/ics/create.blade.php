@@ -675,13 +675,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Format unit price and set ICS type based on value
         if ($this->unit_price >= 50000) {
             $this->isParItem = true;
-            $this->ics_type = '';
+            $this->ics_type = 'Not applicable - Item requires PAR';
         } elseif ($this->unit_price > 5000) {
             $this->isParItem = false;
-            $this->ics_type = 'SPHV';
+            $this->ics_type = 'SPHV - Semi-Expendable Property (High Value)';
         } else {
             $this->isParItem = false;
-            $this->ics_type = 'SPLV';
+            $this->ics_type = 'SPLV - Semi-Expendable Property (Low Value)';
         }
     }
 
@@ -731,6 +731,11 @@ new #[Layout('components.layouts.app')] class extends Component {
              $this->contract_item_id = null;
         }
 
+        $this->updateItemType();
+    }
+
+    public function updatedUnitPrice(): void
+    {
         $this->updateItemType();
     }
 
@@ -984,26 +989,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <div class="mt-6">
-        @if ($isParItem)
-            <div class="mb-4 rounded-lg border-l-4 border-red-500 bg-red-50 p-4 dark:bg-red-900/20">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-400 dark:text-red-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-red-700 dark:text-red-200">
-                            High-Value Item Alert
-                        </p>
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-300">
-                            This item's value is ₱{{ number_format($this->unit_price, 2) }} per {{ $unit_of_measure ?: '' }}. Items valued at ₱50,000 or more should be registered as Property, Plant, and Equipment (PPE) using a <strong>Property Acknowledgement Receipt (PAR)</strong>, not an ICS.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        @endif
-
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <!-- Column 1: Item Information -->
             <div class="space-y-6">
@@ -1133,7 +1118,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                 <span class="text-stone-500">₱</span>
                                             </div>
-                                            <flux:input id="unit_cost" wire:model="unit_price" type="number" step="0.01" min="0" :disabled="!$creating_new_item && !$creating_new_specification" class="pl-7" />
+                                            <flux:input id="unit_cost" wire:model.live="unit_price" type="number" step="0.01" min="0" :disabled="!$creating_new_item && !$creating_new_specification" class="pl-7 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                                         </div>
                                         <x-input-error for="unit_price" class="mt-2" />
                                     </div>
@@ -1214,11 +1199,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
 
-                        <flux:select wire:model="ics_type" label="ICS Type" required :disabled="$isParItem || !$this->selected_item_name" tabindex="511">
-                            <option value="">Select Type</option>
-                            <option value="SPLV">SPLV - ₱5,000.00 or less</option>
-                            <option value="SPHV">SPHV - ₱5,001.00 to ₱49,999.99</option>
-                        </flux:select>
+                        <div>
+                            <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
+                            <div class="relative">
+                                <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" />
+                            </div>
+                            @if ($isParItem)
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">
+                                    This item's value is ₱{{ number_format($this->unit_price, 2) }}. Items valued at ₱50,000 or more should be registered as PAR, not ICS.
+                                </p>
+                            @endif
+                        </div>
 
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
