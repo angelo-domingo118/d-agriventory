@@ -1278,8 +1278,22 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <input id="auto-serial-numbers" x-model="autoSerialNumbers" type="checkbox" 
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                                         @change="$wire.set('batches', $wire.batches.map(batch => {
-                                            if (!batch.identification_data && autoSerialNumbers) {
-                                                batch.identification_data = 'Serial Number: ';
+                                            if (autoSerialNumbers) {
+                                                // Add 'Serial Number: ' prefix if it doesn't exist
+                                                if (!batch.identification_data || batch.identification_data.trim() === '') {
+                                                    batch.identification_data = 'Serial Number: ';
+                                                }
+                                            } else {
+                                                // Remove 'Serial Number: ' prefix if it exists
+                                                if (batch.identification_data && batch.identification_data.startsWith('Serial Number: ')) {
+                                                    if (batch.identification_data === 'Serial Number: ' || batch.identification_data === 'Serial Number:') {
+                                                        batch.identification_data = '';
+                                                    } else {
+                                                        // Preserve any text after the prefix
+                                                        const userInput = batch.identification_data.substring('Serial Number: '.length).trim();
+                                                        batch.identification_data = userInput;
+                                                    }
+                                                }
                                             }
                                             return batch;
                                         }))" checked>
