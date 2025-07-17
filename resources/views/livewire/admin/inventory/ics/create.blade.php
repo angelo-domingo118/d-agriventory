@@ -844,6 +844,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'quantity' => 'required|integer|min:1',
             'estimated_useful_life' => 'nullable|integer|min:1',
             'date_prepared' => 'nullable|date',
+            'batches.*.identification_data' => 'nullable|string|max:255',
         ];
 
         if ($this->creating_new_supplier) {
@@ -865,6 +866,14 @@ new #[Layout('components.layouts.app')] class extends Component {
         if ($this->creating_new_employee) {
             // Add validation for new employee fields if you add them
             $rules['employee_search'] = 'required|string|max:255';
+        }
+        
+        if ($this->isDesktopComputer) {
+            // Add validation for desktop computer components
+            $rules['batches.*.components.*.component_type'] = 'required|string|max:255';
+            $rules['batches.*.components.*.brand'] = 'nullable|string|max:255';
+            $rules['batches.*.components.*.model'] = 'nullable|string|max:255';
+            $rules['batches.*.components.*.serial_number'] = 'nullable|string|max:255';
         }
 
         $this->validate($rules);
@@ -1253,65 +1262,116 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">
-                            Batches @if ($isDesktopComputer)
-                                & Components
-                            @endif
+                            Batches
                         </h3>
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
+                            <div class="w-full">
+                                <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
+                            </div>
 
                             <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
-                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-stone-50 p-3 dark:border-stone-600 dark:bg-stone-800/50">
-                                        <div class="flex items-center justify-between border-b border-stone-200 pb-2 dark:border-stone-700">
-                                            <h4 class="font-semibold text-stone-800 dark:text-stone-200">
-                                                Batch #{{ $loop->iteration }}
+                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{ expanded: true }">
+                                        <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
+                                            <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
+                                                    {{ $loop->iteration }}
+                                                </span>
+                                                <span>Item #{{ $loop->iteration }}</span>
+                                                @if ($isDesktopComputer)
+                                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300">
+                                                        Desktop Computer
+                                                    </span>
+                                                @endif
                                             </h4>
-                                            @if ($quantity > 1)
-                                                <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
-                                                    <x-flux::icon.trash class="h-4 w-4" />
-                                                </flux:button>
-                                            @endif
+                                            <div class="flex items-center space-x-2">
+                                                <button 
+                                                    type="button" 
+                                                    @click="expanded = !expanded" 
+                                                    class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 focus:outline-none"
+                                                >
+                                                    <x-flux::icon.chevron-up x-show="expanded" class="h-5 w-5" />
+                                                    <x-flux::icon.chevron-down x-show="!expanded" class="h-5 w-5" />
+                                                </button>
+                                                @if ($quantity > 1)
+                                                    <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
+                                                        <x-flux::icon.trash class="h-4 w-4" />
+                                                    </flux:button>
+                                                @endif
+                                            </div>
                                         </div>
+                                        
+                                        <div x-show="expanded" class="p-3">
+                                            <!-- Identification Data (Serial number, Asset tag, etc.) -->
+                                            <div>
+                                                <flux:input wire:model="batches.{{ $batchIndex }}.identification_data" label="Serial Number/Asset Tag" placeholder="Enter serial number, asset tag or other identifying info" tabindex="{{ 10 + ($batchIndex * 100) }}" />
+                                            </div>
 
                                         @if ($isDesktopComputer)
-                                            <div class="mt-4 space-y-4">
-                                                @foreach ($batch['components'] as $componentIndex => $component)
-                                                    <div wire:key="component-{{ $batchIndex }}-{{ $componentIndex }}" class="relative rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-600 dark:bg-stone-700">
-                                                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                            <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 1 }}" />
-                                                            <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 2 }}" />
-                                                            <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 3 }}" />
-                                                            <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 4 }}" />
-                                                        </div>
-                                                        @if (count($batch['components']) > 1)
-                                                            <div class="absolute -right-2 -top-2">
-                                                                <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeComponent({{ $batchIndex }}, {{ $componentIndex }})">
-                                                                    <x-flux::icon.x-mark class="h-4 w-4" />
-                                                                </flux:button>
+                                            <div x-data="{ showComponents: true }">
+                                                <div class="mt-4 border-t border-stone-200 pt-3 dark:border-stone-700">
+                                                    <flux:button 
+                                                        type="button" 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        @click="showComponents = !showComponents"
+                                                        class="w-full flex justify-between items-center"
+                                                    >
+                                                        <span>Item Components</span>
+                                                        <span x-show="!showComponents"><x-flux::icon.chevron-down class="h-4 w-4" /></span>
+                                                        <span x-show="showComponents"><x-flux::icon.chevron-up class="h-4 w-4" /></span>
+                                                    </flux:button>
+                                                </div>
+                                                
+                                                <div x-show="showComponents" class="mt-3">
+                                                    <div class="space-y-4">
+                                                        @foreach ($batch['components'] as $componentIndex => $component)
+                                                            <div wire:key="component-{{ $batchIndex }}-{{ $componentIndex }}" class="relative rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-600 dark:bg-stone-700">
+                                                                <div class="flex justify-between items-center mb-2">
+                                                                    <h5 class="font-medium text-stone-800 dark:text-stone-200">
+                                                                        Component #{{ $loop->iteration }}
+                                                                    </h5>
+                                                                    @if (count($batch['components']) > 1)
+                                                                        <flux:button type="button" variant="danger" size="xs" wire:click.prevent="removeComponent({{ $batchIndex }}, {{ $componentIndex }})">
+                                                                            <x-flux::icon.trash class="h-4 w-4" />
+                                                                        </flux:button>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 1 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 2 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 3 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 4 }}" />
+                                                                </div>
                                                             </div>
-                                                        @endif
+                                                        @endforeach
                                                     </div>
-                                                @endforeach
-                                            </div>
 
-                                            <div class="mt-4 border-t border-stone-200 pt-3 dark:border-stone-700">
-                                                <flux:button type="button" variant="ghost" wire:click.prevent="addComponent({{ $batchIndex }})">
-                                                    <x-flux::icon.plus class="mr-2 h-4 w-4" />
-                                                    Add Component
-                                                </flux:button>
-                                            </div>
-                                        @else
-                                            <div class="mt-4">
-                                                <p class="text-sm text-stone-600 dark:text-stone-400">
-                                                    Components are only shown for desktop computers.
-                                                </p>
+                                                    <div class="mt-4 text-center">
+                                                        <flux:button type="button" variant="outline" wire:click.prevent="addComponent({{ $batchIndex }})" class="w-full">
+                                                            <div class="flex items-center justify-center">
+                                                                <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                                                <span>Add Component</span>
+                                                            </div>
+                                                        </flux:button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         @endif
+                                        </div>
                                     </div>
                                 @endforeach
+                                
+                                <div class="mt-4 text-center">
+                                    <flux:button type="button" variant="outline" wire:click.prevent="$set('quantity', {{ $quantity + 1 }})" class="w-full">
+                                        <div class="flex items-center justify-center">
+                                            <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                            <span>Add Another Batch</span>
+                                        </div>
+                                    </flux:button>
+                                </div>
                             </div>
                         </div>
                     </div>
