@@ -68,7 +68,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public bool $creating_new_model = false;
 
     // Display only property
-    public ?float $unit_price = 0.0;
+    public ?float $unit_price = null;
     public bool $isParItem = false;
     public bool $isDesktopComputer = false;
 
@@ -885,11 +885,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->ics_type = 'Not applicable - Item requires PAR (₱50,000 or more)';
         } elseif ($this->unit_price > 5000) {
             $this->isParItem = false;
-            $this->ics_type = 'SPHV - Semi-Expendable Property (High Value) - ₱5,001 to ₱49,999';
+            $this->ics_type = 'SPHV - ₱5,001 to ₱49,999';
         } else {
             $this->isParItem = false;
-            $this->ics_type = 'SPLV - Semi-Expendable Property (Low Value) - ₱5,000 or less';
+            $this->ics_type = 'SPLV - ₱5,000 or less';
         }
+    }
+    
+    // Custom method that can be called from Alpine
+    public function updateItemTypeFromPrice($price): void
+    {
+        $this->unit_price = $price;
+        $this->updateItemType();
     }
 
     #[Computed]
@@ -1391,16 +1398,100 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-                                    <div>
-                                        <label for="unit_cost" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost</label>
-                                        <div class="relative">
-                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                <span class="text-stone-500">₱</span>
+                                                                            <div>
+                                            <label for="unit_cost" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost</label>
+                                            <div class="relative" x-data="{
+                                                formattedValue: '',
+                                                rawValue: 0,
+                                                
+                                                init() {
+                                                    // Initialize with any existing value
+                                                    if ($wire.unit_price) {
+                                                        this.rawValue = $wire.unit_price;
+                                                        this.updateFormattedValue();
+                                                    }
+                                                    
+                                                    // Watch for external changes to unit_price
+                                                    $watch('$wire.unit_price', (value) => {
+                                                        if (value !== this.rawValue) {
+                                                            this.rawValue = value;
+                                                            this.updateFormattedValue();
+                                                        }
+                                                    });
+                                                },
+                                                
+                                                updateFormattedValue() {
+                                                    // Format as currency with commas and 2 decimal places
+                                                    this.formattedValue = this.rawValue.toLocaleString('en-US', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    });
+                                                },
+                                                
+                                                updatePrice(event) {
+                                                    // Get the current cursor position
+                                                    const cursorPos = event.target.selectionStart;
+                                                    
+                                                    // Get raw value without formatting
+                                                    let value = event.target.value.replace(/[^0-9.]/g, '');
+                                                    
+                                                    // Handle multiple decimal points - keep only the first one
+                                                    const decimalPoints = value.match(/\./g);
+                                                    if (decimalPoints && decimalPoints.length > 1) {
+                                                        const firstDecimalPos = value.indexOf('.');
+                                                        value = value.substring(0, firstDecimalPos + 1) + 
+                                                               value.substring(firstDecimalPos + 1).replace(/\./g, '');
+                                                    }
+                                                    
+                                                    // Limit to 2 decimal places
+                                                    if (value.includes('.')) {
+                                                        const parts = value.split('.');
+                                                        if (parts[1].length > 2) {
+                                                            parts[1] = parts[1].substring(0, 2);
+                                                            value = parts.join('.');
+                                                        }
+                                                    }
+                                                    
+                                                    // Update raw numeric value
+                                                    this.rawValue = parseFloat(value) || 0;
+                                                    
+                                                    // Update formatted display value
+                                                    const oldFormatted = this.formattedValue;
+                                                    this.updateFormattedValue();
+                                                    
+                                                    // Update Livewire property
+                                                    $wire.set('unit_price', this.rawValue);
+                                                    $wire.updateItemTypeFromPrice(this.rawValue);
+                                                    
+                                                    // Adjust cursor position after formatting
+                                                    this.$nextTick(() => {
+                                                        // Count added/removed commas to adjust cursor
+                                                        const oldCommas = (oldFormatted.match(/,/g) || []).length;
+                                                        const newCommas = (this.formattedValue.match(/,/g) || []).length;
+                                                        const commaDiff = newCommas - oldCommas;
+                                                        
+                                                        // Set adjusted cursor position
+                                                        try {
+                                                            event.target.setSelectionRange(
+                                                                Math.max(0, cursorPos + commaDiff), 
+                                                                Math.max(0, cursorPos + commaDiff)
+                                                            );
+                                                        } catch (e) {
+                                                            // Ignore errors with cursor position
+                                                        }
+                                                    });
+                                                }
+                                            }">
+                                                <flux:input 
+                                                    id="unit_cost" 
+                                                    x-model="formattedValue"
+                                                    type="text" 
+                                                    inputmode="decimal" 
+                                                    placeholder="e.g., 1500.00"
+                                                    @input="updatePrice($event)" />
                                             </div>
-                                            <flux:input id="unit_cost" wire:model.live="unit_price" type="number" step="0.01" min="0" :disabled="!$creating_new_item && !$creating_new_specification" class="pl-7 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                                            <x-input-error for="unit_price" class="mt-2" />
                                         </div>
-                                        <x-input-error for="unit_price" class="mt-2" />
-                                    </div>
                                     <div>
                                         <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" error="unit_of_measure" />
                                         <x-input-error for="unit_of_measure" class="mt-2" />
