@@ -1634,7 +1634,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
 
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="11" />
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="9" />
                     </div>
                 </div>
             </div>
