@@ -509,22 +509,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'type' => 'existing',
                 'brand' => $spec->brand,
                 'model' => $spec->model,
-                'description' => $spec->detailed_specifications
+                'description' => $spec->detailed_specifications,
             ];
         })->toArray();
 
-        $exactExists = collect($this->specification_suggestions)->contains(function ($spec) use ($query) {
-            return strtolower($spec['name']) === strtolower($query);
-        });
+        // Always add a "Create New" option at the top
+        array_unshift($this->specification_suggestions, [
+            'id' => 'new',
+            'name' => '+ Create New Specification',
+            'type' => 'new',
+            'description' => 'Add a new specification for this item catalog entry.',
+        ]);
 
-        if (!$exactExists && strlen(trim($query)) >= 2) {
-            array_unshift($this->specification_suggestions, [
-                'id' => 'new',
-                'name' => "Create new specification: \"{$query}\"",
-                'type' => 'new'
-            ]);
-        }
-        
         $this->show_specification_suggestions = count($this->specification_suggestions) > 0;
     }
 
@@ -535,7 +531,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->specification_search = $specData['name'];
             $this->selected_specification_name = $specData['name'];
             $this->creating_new_specification = false;
-            
+
             $this->main_item_brand = $specData['brand'];
             $this->main_item_model = $specData['model'];
             $this->detailed_specifications = $specData['description'];
@@ -552,14 +548,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->dispatch('focus-employee');
 
         } elseif ($specData['type'] === 'new') {
-            preg_match('/"([^"]+)"/', $specData['name'], $matches);
-            $newSpecName = $matches[1] ?? $this->specification_search;
-            
             $this->item_specification_id = 'new';
-            $this->specification_search = $newSpecName;
-            $this->selected_specification_name = $newSpecName . ' (new)';
+            $this->specification_search = '';
+            $this->selected_specification_name = 'Creating new specification...';
             $this->creating_new_specification = true;
-            
+
             // Reset fields for new spec entry
             $this->main_item_brand = null;
             $this->main_item_model = null;
@@ -1125,7 +1118,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
                                 @if ($this->items_catalog_id && !$creating_new_item)
                                     <div class="mb-4">
-                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search by brand/model or create new..." required onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" error="item_specification_id" />
+                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search existing specifications..." required onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" error="item_specification_id" />
                                         @if ($creating_new_specification)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
