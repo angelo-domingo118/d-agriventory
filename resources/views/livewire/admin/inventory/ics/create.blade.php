@@ -549,6 +549,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             } else {
                 $this->unit_price = 0.0;
             }
+            $this->dispatch('focus-employee');
 
         } elseif ($specData['type'] === 'new') {
             preg_match('/"([^"]+)"/', $specData['name'], $matches);
@@ -565,6 +566,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->detailed_specifications = null;
             $this->unit_price = 0.0;
             $this->contract_item_id = null;
+            $this->dispatch('focus-brand');
         }
 
         $this->show_specification_suggestions = false;
@@ -758,6 +760,17 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedUnitPrice(): void
     {
         $this->updateItemType();
+    }
+
+    public function updatedPrimaryCategoryId()
+    {
+        $this->secondary_category_id = null;
+        $this->dispatch('focus-secondary-category');
+    }
+
+    public function updatedSecondaryCategoryId()
+    {
+        $this->dispatch('focus-brand');
     }
 
     #[Computed]
@@ -1086,7 +1099,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Categories</h4>
                                     <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                         <div>
-                                            <flux:select wire:model.live="primary_category_id" label="Primary Category" required>
+                                            <flux:select wire:model.live="primary_category_id" label="Primary Category" required id="primary_category_id">
                                                 <option value="">Select primary category</option>
                                                 @foreach ($allPrimaryCategories as $category)
                                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -1095,7 +1108,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <x-input-error for="primary_category_id" class="mt-2" />
                                         </div>
                                         <div>
-                                            <flux:select wire:model="secondary_category_id" label="Secondary Category" :disabled="!$this->primary_category_id" required>
+                                            <flux:select wire:model.live="secondary_category_id" label="Secondary Category" :disabled="!$this->primary_category_id" required id="secondary_category_id">
                                                 <option value="">Select secondary category</option>
                                                 @foreach ($this->filteredSecondaryCategories as $category)
                                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -1125,7 +1138,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <div>
-                                        <flux:input wire:model="main_item_brand" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" />
+                                        <flux:input wire:model="main_item_brand" id="main_item_brand" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" />
                                         <x-input-error for="main_item_brand" class="mt-2" />
                                     </div>
                                     <div>
@@ -1469,6 +1482,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-specification', () => focusOn('specification_search'));
         @this.on('focus-employee', () => focusOn('employee_search'));
         @this.on('focus-primary-category', () => focusOn('primary_category_id'));
+        @this.on('focus-secondary-category', () => focusOn('secondary_category_id'));
+        @this.on('focus-brand', () => focusOn('main_item_brand'));
         @this.on('focus-unit', () => focusOn('unit_search'));
         
         // Handle automatically adding serial number prefix to new batches
