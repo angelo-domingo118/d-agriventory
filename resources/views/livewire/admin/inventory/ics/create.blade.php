@@ -1710,7 +1710,14 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                             <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
-                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{ expanded: true }">
+                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{
+                                        expanded: true,
+                                        setDefaultSerial() {
+                                            if (document.getElementById('auto-serial-numbers').checked && !@this.get('batches.{{ $batchIndex }}.identification_data')) {
+                                                @this.set('batches.{{ $batchIndex }}.identification_data', 'Serial Number: ');
+                                            }
+                                        }
+                                    }" x-init="setDefaultSerial()">
                                         <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
                                             <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
                                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
@@ -1742,13 +1749,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         
                                         <div x-show="expanded" class="p-3">
                                             <!-- Identification Data (Serial number, Asset tag, etc.) -->
-                                            <div x-data="{ 
-                                                setDefaultSerial() {
-                                                    if (document.getElementById('auto-serial-numbers').checked && !$wire.batches[{{ $batchIndex }}].identification_data) {
-                                                        $wire.set('batches.${lastBatchIndex}.identification_data', 'Serial Number: ');
-                                                    }
-                                                }
-                                            }" x-init="setDefaultSerial()">
+                                            <div>
                                                 <div class="relative">
                                                     <flux:input 
                                                         wire:model="batches.{{ $batchIndex }}.identification_data" 
