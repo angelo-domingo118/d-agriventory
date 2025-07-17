@@ -779,6 +779,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'identification_data' => null,
             'components' => [['id' => null, 'component_type' => '', 'brand' => '', 'model' => '', 'serial_number' => '']],
         ];
+        $this->dispatch('batch-added');
     }
 
     public function removeBatch(int $index): void
@@ -1270,6 +1271,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="w-full">
                                 <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
                             </div>
+                            
+                            <!-- Global settings for batches -->
+                            <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: true }">
+                                <div class="flex items-center h-5">
+                                    <input id="auto-serial-numbers" x-model="autoSerialNumbers" type="checkbox" 
+                                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                        @change="$wire.set('batches', $wire.batches.map(batch => {
+                                            if (!batch.identification_data && autoSerialNumbers) {
+                                                batch.identification_data = 'Serial Number: ';
+                                            }
+                                            return batch;
+                                        }))" checked>
+                                </div>
+                                <label for="auto-serial-numbers" class="ms-2 text-sm font-medium text-stone-800 dark:text-stone-200">
+                                    Auto-populate "Serial Number: " field for all batches
+                                </label>
+                            </div>
 
                             <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
@@ -1279,7 +1297,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
                                                     {{ $loop->iteration }}
                                                 </span>
-                                                <span>Item #{{ $loop->iteration }}</span>
+                                                <span>Batch #{{ $loop->iteration }}</span>
                                                 @if ($isDesktopComputer)
                                                     <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300">
                                                         Desktop Computer
@@ -1305,8 +1323,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         
                                         <div x-show="expanded" class="p-3">
                                             <!-- Identification Data (Serial number, Asset tag, etc.) -->
-                                            <div>
-                                                <flux:input wire:model="batches.{{ $batchIndex }}.identification_data" label="Serial Number/Asset Tag" placeholder="Enter serial number, asset tag or other identifying info" tabindex="{{ 10 + ($batchIndex * 100) }}" />
+                                            <div x-data="{ 
+                                                setDefaultSerial() {
+                                                    if (document.getElementById('auto-serial-numbers').checked && !$wire.batches[{{ $batchIndex }}].identification_data) {
+                                                        $wire.set('batches.{{ $batchIndex }}.identification_data', 'Serial Number: ');
+                                                    }
+                                                }
+                                            }" x-init="setDefaultSerial()">
+                                                <div class="relative">
+                                                    <flux:input 
+                                                        wire:model="batches.{{ $batchIndex }}.identification_data" 
+                                                        label="Serial Number/Asset Tag" 
+                                                        placeholder="Enter serial number, asset tag or other identifying info" 
+                                                        tabindex="{{ 10 + ($batchIndex * 100) }}"
+                                                        @focus="if ($el.value === 'Serial Number: ') { $el.select(); }" />
+                                                </div>
                                             </div>
 
                                         @if ($isDesktopComputer)
@@ -1319,7 +1350,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                         @click="showComponents = !showComponents"
                                                         class="w-full flex justify-between items-center"
                                                     >
-                                                        <span>Item Components</span>
+                                                        <span>Batch Components</span>
                                                         <span x-show="!showComponents"><x-flux::icon.chevron-down class="h-4 w-4" /></span>
                                                         <span x-show="showComponents"><x-flux::icon.chevron-up class="h-4 w-4" /></span>
                                                     </flux:button>
@@ -1399,6 +1430,20 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-employee', () => focusOn('employee_search'));
         @this.on('focus-primary-category', () => focusOn('primary_category_id'));
         @this.on('focus-unit', () => focusOn('unit_search'));
+        
+        // Handle automatically adding serial number prefix to new batches
+        @this.on('batch-added', () => {
+            const autoSerialCheckbox = document.getElementById('auto-serial-numbers');
+            if (autoSerialCheckbox && autoSerialCheckbox.checked) {
+                const batchesLength = @this.batches.length;
+                if (batchesLength > 0) {
+                    const lastBatchIndex = batchesLength - 1;
+                    if (!@this.batches[lastBatchIndex].identification_data) {
+                        @this.set(`batches.${lastBatchIndex}.identification_data`, 'Serial Number: ');
+                    }
+                }
+            }
+        });
     });
 </script>
 @endscript
