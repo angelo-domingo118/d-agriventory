@@ -1539,19 +1539,42 @@ new #[Layout('components.layouts.app')] class extends Component {
                             if (value.length > 8) {
                                 value = value.substring(0, 8);
                             }
-                            const month = value.substring(0, 2);
-                            const day = value.substring(2, 4);
-                            const year = value.substring(4, 8);
 
-                            let formattedValue = '';
-                            if (value.length > 4) {
-                                formattedValue = `${month}/${day}/${year}`;
-                            } else if (value.length > 2) {
-                                formattedValue = `${month}/${day}`;
-                            } else if (value.length > 0) {
-                                formattedValue = month;
+                            let month = value.substring(0, 2);
+                            let day = value.substring(2, 4);
+                            let year = value.substring(4, 8);
+
+                            if (month.length === 2) {
+                                let monthInt = parseInt(month, 10);
+                                if (monthInt > 12) month = '12';
+                                else if (monthInt === 0) month = '01';
+                            }
+
+                            if (day.length === 2 && month.length === 2) {
+                                let dayInt = parseInt(day, 10);
+                                let monthInt = parseInt(month, 10);
+                                let yearInt = year.length === 4 ? parseInt(year, 10) : new Date().getFullYear();
+                                
+                                let maxDaysInMonth = new Date(yearInt, monthInt, 0).getDate();
+
+                                if (dayInt > maxDaysInMonth) {
+                                    day = maxDaysInMonth.toString();
+                                } else if (dayInt === 0) {
+                                    day = '01';
+                                }
                             }
                             
+                            value = month + day + year;
+                            
+                            let formattedValue = '';
+                            if (value.length > 4) {
+                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}/${value.substring(4, 8)}`;
+                            } else if (value.length > 2) {
+                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}`;
+                            } else {
+                                formattedValue = value;
+                            }
+
                             event.target.value = formattedValue;
                         }
                     }">
@@ -1722,7 +1745,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div x-data="{ 
                                                 setDefaultSerial() {
                                                     if (document.getElementById('auto-serial-numbers').checked && !$wire.batches[{{ $batchIndex }}].identification_data) {
-                                                        $wire.set('batches.{{ $batchIndex }}.identification_data', 'Serial Number: ');
+                                                        $wire.set('batches.${lastBatchIndex}.identification_data', 'Serial Number: ');
                                                     }
                                                 }
                                             }" x-init="setDefaultSerial()">
@@ -1731,7 +1754,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                         wire:model="batches.{{ $batchIndex }}.identification_data" 
                                                         label="Serial Number/Asset Tag" 
                                                         placeholder="Enter serial number, asset tag or other identifying info" 
-                                                        tabindex="{{ 10 + ($batchIndex * 100) }}"
+                                                        tabindex="{{ 10 + ((int) $batchIndex * 100) }}"
                                                         @focus="if ($el.value === 'Serial Number: ') { $el.select(); }" />
                                                 </div>
                                             </div>
@@ -1767,10 +1790,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                                     @endif
                                                                 </div>
                                                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 1 }}" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 2 }}" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 3 }}" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ($batchIndex * 100) + ($componentIndex * 4) + 4 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" />
                                                                 </div>
                                                             </div>
                                                         @endforeach
