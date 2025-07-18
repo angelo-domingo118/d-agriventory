@@ -1626,6 +1626,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                     </div>
                                 </div>
+                                @if ($isParItem)
+                                    <div class="mt-4 flex w-full items-center rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-800/20 dark:text-red-400" role="alert">
+                                        <svg class="mr-3 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="font-medium">
+                                            This item's value of ₱{{ number_format($this->unit_price, 2) }} exceeds the ₱50,000 limit for an ICS. Please use the PAR form for this item.
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -1743,11 +1753,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="relative">
                                 <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
                             </div>
-                            @if ($isParItem)
-                                <p class="mt-2 text-sm text-red-600 dark:text-red-400">
-                                    This item's value is ₱{{ number_format($this->unit_price, 2) }}. Items valued at ₱50,000 or more should be registered as PAR, not ICS.
-                                </p>
-                            @endif
                         </div>
 
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
