@@ -1965,8 +1965,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-item', () => focusOn('item_search'));
         @this.on('focus-specification', () => focusOn('specification_search'));
         @this.on('focus-employee', () => focusOn('employee_search'));
-        @this.on('focus-primary-category', () => focusOn('primary_category_id'));
-        @this.on('focus-secondary-category', () => focusOn('secondary_category_id'));
+        @this.on('focus-primary-category', () => focusOn('primary_category_search'));
+        @this.on('focus-secondary-category', () => focusOn('secondary_category_search'));
         @this.on('focus-brand', () => focusOn('main_item_brand'));
         @this.on('focus-unit', () => focusOn('unit_search'));
         
