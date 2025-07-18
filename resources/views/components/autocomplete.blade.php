@@ -25,15 +25,43 @@
             this.positionDropdown();
             window.addEventListener('resize', () => this.positionDropdown());
             window.addEventListener('scroll', () => this.positionDropdown());
+            // Reposition when any ancestor element scrolls (capture phase)
+            document.addEventListener('scroll', () => this.positionDropdown(), true);
+            // Watchers for reactive changes
+            this.$watch('suggestions', () => {
+                if (this.showSuggestions) {
+                    this.$nextTick(() => this.positionDropdown());
+                }
+            });
+            this.$watch('showSuggestions', (value) => {
+                if (value) {
+                    this.$nextTick(() => this.positionDropdown());
+                }
+            });
         },
         positionDropdown() {
             requestAnimationFrame(() => {
                 if (this.inputRef && this.$refs.dropdown) {
                     const rect = this.inputRef.getBoundingClientRect();
                     const dropdown = this.$refs.dropdown;
-                    dropdown.style.top = (rect.bottom + 4) + 'px';
-                    dropdown.style.left = rect.left + 'px';
+                    // Determine preferred position (below by default)
                     dropdown.style.width = rect.width + 'px';
+                    dropdown.style.left = rect.left + 'px';
+                    // Calculate dropdown height (might be 0 if hidden)
+                    dropdown.style.top = '-9999px';
+                    dropdown.style.display = 'block';
+                    const dropdownHeight = dropdown.offsetHeight;
+                    // Reset display if suggestions hidden
+                    if (!this.showSuggestions) {
+                        dropdown.style.display = 'none';
+                    }
+                    const spaceBelow = window.innerHeight - rect.bottom - 8; // 8px margin
+                    if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+                        // Not enough space below, show above
+                        dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px';
+                    } else {
+                        dropdown.style.top = (rect.bottom + 4) + 'px';
+                    }
                 }
             });
         },
