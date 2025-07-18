@@ -241,6 +241,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         
         $this->show_unit_suggestions = false;
+        $this->dispatch('focus-employee');
     }
 
     // Brand autocomplete methods
@@ -319,6 +320,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         
         $this->show_brand_suggestions = false;
+        $this->dispatch('focus-model');
     }
 
     // Model autocomplete methods
@@ -397,6 +399,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         
         $this->show_model_suggestions = false;
+        $this->dispatch('focus-detailed-specs');
     }
 
     // Supplier autocomplete methods
@@ -1506,7 +1509,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <flux:textarea wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" />
+                                    <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" wire:blur="$dispatch('focus-unit-cost')" />
                                     <x-input-error for="detailed_specifications" class="mt-2" />
                                 </div>
                             </div>
@@ -1605,7 +1608,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     type="text" 
                                                     inputmode="decimal" 
                                                     placeholder="e.g., 1500.00"
-                                                    @input="updatePrice($event)" />
+                                                    @input="updatePrice($event)"
+                                                    @blur="$wire.dispatch('focus-unit')" />
                                             </div>
                                             <x-input-error for="unit_price" class="mt-2" />
                                         </div>
@@ -1967,8 +1971,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-employee', () => focusOn('employee_search'));
         @this.on('focus-primary-category', () => focusOn('primary_category_search'));
         @this.on('focus-secondary-category', () => focusOn('secondary_category_search'));
-        @this.on('focus-brand', () => focusOn('main_item_brand'));
-        @this.on('focus-unit', () => focusOn('unit_search'));
+        @this.on('focus-brand', () => focusOn('brand_search'));
+        @this.on('focus-model', () => focusOn('model_search'));
+        @this.on('focus-detailed-specs', () => focusOn('detailed_specifications'));
+        @this.on('focus-unit-cost', () => focusOn('unit_cost'));
+        @this.on('focus-unit', () => focusOn('unit_search_pricing'));
+        @this.on('focus-employee', () => focusOn('employee_search'));
         
         // Handle automatically adding serial number prefix to new batches
         @this.on('batch-added', () => {
