@@ -1368,7 +1368,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <div class="mt-6">
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             <!-- Column 1: Item Information -->
             <div class="space-y-6">
                 <!-- Supplier & Contract Section -->
@@ -1390,7 +1390,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </div>
                             <div>
-                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB Number" placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
                                 <x-input-error for="contract_search_error" class="mt-2" />
                                 @if ($creating_new_contract)
                                     <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
@@ -1784,7 +1784,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
 
             <!-- Column 3: Batches -->
-            <div class="space-y-6">
+            <div class="space-y-6 lg:col-span-2 xl:col-span-1">
                 <!-- Batches & Components -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">

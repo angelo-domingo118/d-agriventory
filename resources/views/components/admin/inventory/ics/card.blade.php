@@ -6,8 +6,8 @@
     'filterSerialNumber' => '',
 ])
 
-<div wire:key="ics-card-{{ $ics->id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-    <div class="{{ $densityClasses['card_padding'] }}">
+<div wire:key="ics-card-{{ $ics->id }}" class="flex flex-col overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+    <div class="{{ $densityClasses['card_padding'] }} flex-grow">
         <div class="flex items-start justify-between">
             <div class="max-w-xs">
                 <p class="truncate {{ $densityClasses['text_base'] }} font-semibold text-stone-900 dark:text-stone-100">
