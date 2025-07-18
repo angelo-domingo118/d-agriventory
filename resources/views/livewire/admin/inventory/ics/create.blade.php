@@ -161,7 +161,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $batchCount = 1;
             }
             
-            // Next ICS number is the highest existing number + its batch count
+            // Calculated based on previous ICS number + batch count
             $this->ics_number = (string)(((int) $lastIcs->ics_number) + $batchCount);
         } else {
             // If no previous ICS numbers, start with 1
@@ -1632,7 +1632,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
                                         </svg>
                                         <span class="font-medium">
-                                            This item's value of ₱{{ number_format($this->unit_price, 2) }} exceeds the ₱50,000 limit for an ICS. Please use the PAR form for this item.
+                                            The unit cost of ₱{{ number_format($this->unit_price, 2) }} for this item requires it to be recorded on a Property Accountability Receipt (PAR), not an ICS.
                                         </span>
                                     </div>
                                 @endif
@@ -1721,9 +1721,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     type="number" 
                                     readonly
                                     tabindex="510" />
-                                <p class="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                                    Calculated based on previous ICS number + batch count
-                                </p>
                                 <x-input-error for="ics_number" class="mt-2" />
                             </div>
                             <div x-data="{ 
@@ -1783,7 +1780,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
 
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="9" />
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="10" />
                     </div>
                 </div>
             </div>
