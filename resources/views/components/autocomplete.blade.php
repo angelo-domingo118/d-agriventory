@@ -135,9 +135,11 @@
         scrollToSelected() {
             if (this.selectedIndex >= 0) {
                 const dropdown = this.$refs.dropdown;
-                const selected = dropdown.children[this.selectedIndex];
+                // Select only the rendered suggestion items, ignoring template and text nodes
+                const items = dropdown.querySelectorAll('[data-suggestion-item]');
+                const selected = items[this.selectedIndex];
                 if (selected) {
-                    selected.scrollIntoView({ block: 'nearest' });
+                    selected.scrollIntoView({ block: 'nearest', inline: 'nearest' });
                 }
             }
         },
@@ -186,7 +188,8 @@
                  class="px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-700 cursor-pointer border-b border-stone-100 dark:border-stone-700 last:border-b-0 transition-colors duration-150"
                  :class="{
                      'bg-stone-100 dark:bg-stone-600': selectedIndex === index,
-                 }">
+                 }"
+                 data-suggestion-item>
                 <div class="flex items-center justify-between">
                     <div class="flex-1 min-w-0">
                         <div class="font-medium text-stone-900 dark:text-stone-100 truncate" x-text="suggestion.name || suggestion.label"></div>
