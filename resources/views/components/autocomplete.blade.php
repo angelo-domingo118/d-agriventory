@@ -13,7 +13,7 @@
     'error' => null
 ])
 
-<div class="relative" 
+<div class="autocomplete-wrapper relative" 
     x-data="{
         suggestions: @entangle($attributes->wire('suggestions')),
         showSuggestions: @entangle($attributes->wire('showSuggestions')),
@@ -77,17 +77,8 @@
                     }
                     break;
                 case 'Tab':
-                    if (this.showSuggestions && this.suggestions.length > 0) {
-                        event.preventDefault();
-                        if (event.shiftKey) {
-                            // Move up the list
-                            this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
-                        } else {
-                            // Move down the list
-                            this.selectedIndex = Math.min(this.selectedIndex + 1, this.suggestions.length - 1);
-                        }
-                        this.scrollToSelected();
-                    }
+                    // Let Tab handle default browser behavior to move to next field
+                    this.showSuggestions = false;
                     break;
                 case 'Escape':
                     this.showSuggestions = false;
@@ -131,6 +122,7 @@
     }" 
     x-effect="if (showSuggestions) { $nextTick(() => positionDropdown()); selectedIndex = -1; }" 
     x-init="init()"
+    wire:showSuggestions="{{ $attributes->wire('showSuggestions')->value() }}"
 >
     <flux:input
         id="{{ $id }}"
@@ -155,7 +147,7 @@
     <div x-show="showSuggestions && suggestions.length > 0" 
          x-ref="dropdown"
          x-transition
-         class="fixed z-[9999] bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg shadow-xl max-h-60 overflow-auto"
+         class="autocomplete-dropdown fixed z-[9999] bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg shadow-xl max-h-60 overflow-auto"
          style="position: fixed !important;"
     >
         <template x-for="(suggestion, index) in suggestions" :key="suggestion.id + '-' + index">

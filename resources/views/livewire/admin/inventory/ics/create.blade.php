@@ -1509,7 +1509,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                 </div>
                                 <div class="mt-4">
-                                    <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" wire:blur="$dispatch('focus-unit-cost')" />
+                                    <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); }" />
                                     <x-input-error for="detailed_specifications" class="mt-2" />
                                 </div>
                             </div>
@@ -1609,12 +1609,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     inputmode="decimal" 
                                                     placeholder="e.g., 1500.00"
                                                     @input="updatePrice($event)"
-                                                    @blur="$wire.dispatch('focus-unit')" />
+                                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit'); }" />
                                             </div>
                                             <x-input-error for="unit_price" class="mt-2" />
                                         </div>
                                     <div>
-                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" error="unit_of_measure" />
+                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" error="unit_of_measure" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
                                         <x-input-error for="unit_of_measure" class="mt-2" />
                                         @if ($creating_new_unit)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
