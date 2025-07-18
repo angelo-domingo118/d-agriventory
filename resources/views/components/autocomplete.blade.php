@@ -45,7 +45,9 @@
                     const rect = this.inputRef.getBoundingClientRect();
                     const dropdown = this.$refs.dropdown;
                     // Determine preferred position (below by default)
-                    dropdown.style.width = rect.width + 'px';
+                    // Ensure dropdown is at least as wide as the input but can grow if needed
+                    dropdown.style.minWidth = rect.width + 'px';
+                    dropdown.style.maxWidth = 'calc(100vw - ' + rect.left + 'px - 16px)'; // prevent overflow off right edge (16px margin)
                     dropdown.style.left = rect.left + 'px';
                     // Calculate dropdown height (might be 0 if hidden)
                     dropdown.style.top = '-9999px';

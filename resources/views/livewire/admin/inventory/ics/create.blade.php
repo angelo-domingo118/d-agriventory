@@ -1978,6 +1978,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-unit', () => focusOn('unit_search_pricing'));
         @this.on('focus-employee', () => focusOn('employee_search'));
         
+        // Automatically focus Supplier field on initial load
+        focusOn('supplier_search');
+        
         // Handle automatically adding serial number prefix to new batches
         @this.on('batch-added', () => {
             const autoSerialCheckbox = document.getElementById('auto-serial-numbers');
