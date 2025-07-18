@@ -23,11 +23,22 @@
         init() {
             this.inputRef = this.$refs.input;
             this.positionDropdown();
-            window.addEventListener('resize', () => this.positionDropdown());
-            window.addEventListener('scroll', () => this.positionDropdown());
+
+            // Throttled repositioning to avoid repeated heavy calls
+            const throttledPosition = () => {
+                if (this.__raf) return;
+                this.__raf = requestAnimationFrame(() => {
+                    this.positionDropdown();
+                    this.__raf = null;
+                });
+            };
+
+            window.addEventListener('resize', throttledPosition);
+            window.addEventListener('scroll', throttledPosition);
             // Reposition when any ancestor element scrolls (capture phase)
-            document.addEventListener('scroll', () => this.positionDropdown(), true);
-            // Watchers for reactive changes
+            document.addEventListener('scroll', throttledPosition, true);
+
+            // Watch reactive changes
             this.$watch('suggestions', () => {
                 if (this.showSuggestions) {
                     this.$nextTick(() => this.positionDropdown());
