@@ -1346,10 +1346,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                 }
 
                 // Dispatch a success toast notification
-                Flux::toast(
-                    'ICS record created successfully.',
-                    'success'
-                );
+                $this->dispatch('notify', [
+                    'text' => 'ICS record created successfully.',
+                    'variant' => 'success',
+                    'heading' => 'Success!',
+                ]);
 
                 $this->redirectRoute('admin.inventory.ics.index', navigate: true);
             });
@@ -1358,10 +1359,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             \Log::error('Error creating ICS record: ' . $e->getMessage());
 
             // Dispatch an error toast notification
-            Flux::toast(
-                $e->getMessage(),
-                'danger'
-            );
+            $this->dispatch('notify', [
+                'text' => $e->getMessage(),
+                'variant' => 'danger',
+                'heading' => 'Error',
+            ]);
         }
     }
 
