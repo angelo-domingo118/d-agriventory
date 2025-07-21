@@ -834,6 +834,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->show_employee_suggestions = false;
+        $this->dispatch('focus-estimated-useful-life');
     }
 
     // Primary Category autocomplete methods
@@ -1742,11 +1743,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
                                 <flux:input 
+                                    id="ics_number_input"
                                     wire:model.blur="ics_number" 
                                     label="ICS Number (Auto-generated)" 
                                     type="number" 
                                     readonly
-                                    tabindex="510" />
+                                    tabindex="-1" />
                                 <x-input-error for="ics_number" class="mt-2" />
                             </div>
                             <div x-data="{ 
@@ -1758,13 +1760,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 }
                             }">
                                 <x-quantity-input 
+                                    id="estimated_useful_life_wrapper"
                                     wire:model="estimated_useful_life" 
                                     label="Estimated Useful Life (Years)" 
                                     placeholder="Optional (e.g. 3, 5)" 
                                     :disabled="$isParItem"
                                     type="number" 
                                     min="1"
-                                    @input="validateNumber($event)" />
+                                    @input="validateNumber($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
                             </div>
                         </div>
 
@@ -1778,6 +1782,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                             <div>
                                 <flux:input
+                                    id="date_prepared"
                                     wire:model.blur="date_prepared"
                                     type="text"
                                     label="Date Prepared"
@@ -1785,12 +1790,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     :disabled="$isParItem"
                                     tabindex="513"
                                     @input="formatDate($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
                                 />
                                 <x-input-error for="date_prepared" class="mt-2" />
                             </div>
 
                             <div>
                                 <flux:input
+                                    id="date_accepted"
                                     wire:model.blur="date_accepted"
                                     type="text"
                                     label="Date Accepted"
@@ -1798,12 +1805,22 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     :disabled="$isParItem"
                                     tabindex="514"
                                     @input="formatDate($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
                                 />
                                 <x-input-error for="date_accepted" class="mt-2" />
                             </div>
                         </div>
 
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isParItem" tabindex="515" rows="10" />
+                        <flux:textarea 
+                            id="remarks"
+                            wire:model="remarks" 
+                            label="Remarks" 
+                            placeholder="Add any notes or remarks here..." 
+                            :disabled="$isParItem" 
+                            tabindex="515" 
+                            rows="10" 
+                            @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
+                        />
                     </div>
                 </div>
             </div>
@@ -1820,7 +1837,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="p-4">
                         <div class="space-y-4">
                             <div class="w-full">
-                                <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
+                                <x-quantity-input 
+                                    id="quantity"
+                                    wire:model.live="quantity" 
+                                    label="Total Quantity / Number of Batches" 
+                                    min="1" 
+                                    required 
+                                    class="w-full" 
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
+                                />
                             </div>
                             
                             <!-- Global settings for batches -->
@@ -1847,7 +1872,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 }
                                             }
                                             return batch;
-                                        }))" checked>
+                                        }))"
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }"
+                                        checked>
                                 </div>
                                 <label for="auto-serial-numbers" class="ms-2 text-sm font-medium text-stone-800 dark:text-stone-200">
                                     Auto-populate "Serial Number: " field for all batches
@@ -1898,6 +1925,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div>
                                                 <div class="relative">
                                                     <flux:input 
+                                                        id="{{ $batchIndex === 0 ? 'serial_number_0' : '' }}"
                                                         wire:model="batches.{{ $batchIndex }}.identification_data" 
                                                         label="Serial Number/Asset Tag" 
                                                         placeholder="Enter serial number, asset tag or other identifying info" 
@@ -1981,10 +2009,17 @@ new #[Layout('components.layouts.app')] class extends Component {
 @script
 <script>
     document.addEventListener('livewire:initialized', () => {
-        const focusOn = (elementId) => {
+        const focusOn = (elementId, inner = false) => {
             setTimeout(() => {
                 const element = document.getElementById(elementId);
                 if (element) {
+                    if (inner) {
+                        const input = element.querySelector('input, textarea');
+                        if (input) {
+                            input.focus();
+                            return;
+                        }
+                    }
                     element.focus();
                 }
             }, 0);
@@ -2001,7 +2036,19 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-detailed-specs', () => focusOn('detailed_specifications'));
         @this.on('focus-unit-cost', () => focusOn('unit_cost'));
         @this.on('focus-unit', () => focusOn('unit_search_pricing'));
-        @this.on('focus-employee', () => focusOn('employee_search'));
+        @this.on('focus-estimated-useful-life', () => focusOn('estimated_useful_life_wrapper', true));
+        @this.on('focus-date-prepared', () => focusOn('date_prepared'));
+        @this.on('focus-date-accepted', () => focusOn('date_accepted'));
+        @this.on('focus-remarks', () => focusOn('remarks'));
+        @this.on('focus-quantity', () => focusOn('quantity', true));
+        @this.on('focus-auto-populate', () => focusOn('auto-serial-numbers'));
+        @this.on('focus-serial-number', () => focusOn('serial_number_0'));
+        
+        // Skip focus on ICS Number input by redirecting immediately to estimated useful life
+        const icsField = document.getElementById('ics_number_input');
+        if (icsField) {
+            icsField.addEventListener('focus', () => focusOn('estimated_useful_life_wrapper', true));
+        }
         
         // Automatically focus Supplier field on initial load
         focusOn('supplier_search');

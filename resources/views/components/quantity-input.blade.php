@@ -49,7 +49,7 @@
         </label>
     @endif
     <div class="relative flex max-w-[10rem] items-center">
-        <button type="button" x-on:click="decrement" {{ $disabled ? 'disabled' : '' }}
+        <button type="button" x-on:click="decrement" {{ $disabled ? 'disabled' : '' }} tabindex="-1"
             class="h-11 rounded-s-lg border border-stone-300 bg-stone-100 p-3 hover:bg-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:border-stone-600 dark:bg-stone-700 dark:hover:bg-stone-600 dark:focus:ring-stone-500">
             <svg class="h-3 w-3 text-stone-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 18 2">
@@ -60,7 +60,7 @@
         <input type="text" x-model.lazy="value" @change="onInput($event)" {{ $disabled ? 'disabled' : '' }}
             class="z-10 block h-11 w-full border-x-0 border-stone-300 bg-stone-50 text-center text-sm text-stone-900 focus:border-blue-500 focus:ring-blue-500 dark:border-stone-600 dark:bg-stone-700 dark:text-white dark:placeholder-stone-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
             placeholder="{{ $min }}" {{ $required ? 'required' : '' }}>
-        <button type="button" x-on:click="increment" {{ $disabled ? 'disabled' : '' }}
+        <button type="button" x-on:click="increment" {{ $disabled ? 'disabled' : '' }} tabindex="-1"
             class="h-11 rounded-e-lg border border-stone-300 bg-stone-100 p-3 hover:bg-stone-200 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:border-stone-600 dark:bg-stone-700 dark:hover:bg-stone-600 dark:focus:ring-stone-500">
             <svg class="h-3 w-3 text-stone-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                 fill="none" viewBox="0 0 18 18">
