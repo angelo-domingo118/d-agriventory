@@ -1725,13 +1725,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div x-data="{ 
                                 validateNumber(e) {
-                                    // Allow only numbers and control keys
-                                    if (!/^\d*$/.test(e.target.value)) {
-                                        // Remove non-numeric characters
-                                        e.target.value = e.target.value.replace(/[^\d]/g, '');
-                                        // Update the Livewire property
-                                        $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
-                                    }
+                                    // Remove non-numeric characters
+                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
+                                    // Always update the Livewire property
+                                    $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
                                 }
                             }">
                                 <x-quantity-input 
@@ -1739,8 +1736,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     label="Estimated Useful Life (Years)" 
                                     placeholder="Optional (e.g. 3, 5)" 
                                     :disabled="$isParItem"
-                                    type="text" 
-                                    inputmode="numeric" 
+                                    type="number" 
+                                    min="1"
                                     @input="validateNumber($event)" />
                             </div>
                         </div>
