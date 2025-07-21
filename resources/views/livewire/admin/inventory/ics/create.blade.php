@@ -18,6 +18,7 @@ use App\Models\IcsNumber;
 use Illuminate\Support\Facades\DB;
 use App\Models\IcsItemBatch;
 use App\Models\ItemComponent;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     // Form state
@@ -617,9 +618,14 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->selected_item_name = $itemData['name'];
             
             // Set unit of measure from the selected item
-            $this->unit_of_measure = $itemData['unit'];
-            $this->unit_search = $itemData['unit'];
-            $this->selected_unit = $itemData['unit'];
+            $itemCatalog = ItemsCatalog::find($itemData['id']);
+            if ($itemCatalog) {
+                $this->unit_of_measure = $itemCatalog->unit;
+                $this->unit_search = $itemCatalog->unit;
+                $this->selected_unit = $itemCatalog->unit;
+                $this->primary_category_id = $itemCatalog->secondaryCategory->primary_category_id ?? null;
+                $this->secondary_category_id = $itemCatalog->secondary_category_id;
+            }
             
             $this->creating_new_item = false;
             $this->creating_new_unit = false;
@@ -637,6 +643,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->unit_price = 0.0;
             $this->creating_new_item = true;
             $this->creating_new_specification = true; // New item requires new spec
+            $this->item_specification_id = 'new';
 
             // Reset spec fields for new item entry
             $this->main_item_brand = null;
@@ -1202,7 +1209,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $rules = [
-            'ics_number' => ['required', 'integer', 'min:1', Rule::unique('ics_numbers')],
+            'ics_number' => ['required', 'integer', 'min:1', Rule::unique('ics_number')],
             'assigned_employee_id' => 'required_without:creating_new_employee|nullable|exists:employees,id',
             'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
             'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
@@ -1245,99 +1252,117 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->validate($rules);
 
-        DB::transaction(function () {
-            if ($this->creating_new_supplier) {
-                $newSupplier = Supplier::create(['name' => $this->supplier_search]);
-                $this->supplier_id = $newSupplier->id;
-            }
+        try {
+            DB::transaction(function () {
+                if ($this->creating_new_supplier) {
+                    $newSupplier = Supplier::create(['name' => $this->supplier_search]);
+                    $this->supplier_id = $newSupplier->id;
+                }
 
-            if ($this->creating_new_contract) {
-                // Assuming you have more fields for a contract, this would be more complex
-                $newContract = Contract::create([
-                    'contract_po_ib_number' => $this->contract_search,
-                    'supplier_id' => $this->supplier_id,
-                    'po_date' => now(), // Or get this from the form
-                ]);
-                $this->contract_id = $newContract->id;
-            }
+                if ($this->creating_new_contract) {
+                    // Assuming you have more fields for a contract, this would be more complex
+                    $newContract = Contract::create([
+                        'contract_po_ib_number' => $this->contract_search,
+                        'supplier_id' => $this->supplier_id,
+                        'po_date' => now(), // Or get this from the form
+                    ]);
+                    $this->contract_id = $newContract->id;
+                }
 
-            if ($this->creating_new_employee) {
-                // This would be more complex, requiring first name, last name, etc.
-                // For now, let's assume a simple case.
-                $newEmployee = Employee::create([
-                    'name' => $this->employee_search,
-                    'employee_number' => 'EMP-' . str_pad(Employee::count() + 1, 4, '0', STR_PAD_LEFT),
-                ]);
-                $this->assigned_employee_id = $newEmployee->id;
-            }
+                if ($this->creating_new_employee) {
+                    // This would be more complex, requiring first name, last name, etc.
+                    // For now, let's assume a simple case.
+                    $newEmployee = Employee::create([
+                        'name' => $this->employee_search,
+                        'employee_number' => 'EMP-' . str_pad(Employee::count() + 1, 4, '0', STR_PAD_LEFT),
+                    ]);
+                    $this->assigned_employee_id = $newEmployee->id;
+                }
 
-            $spec_id = $this->item_specification_id;
-            $catalog_id = $this->items_catalog_id;
+                $spec_id = $this->item_specification_id;
+                $catalog_id = $this->items_catalog_id;
 
-            if ($this->creating_new_item) {
-                 $newItem = ItemsCatalog::create([
-                    'name' => $this->item_search,
-                    'secondary_category_id' => $this->secondary_category_id,
-                    'unit' => $this->unit_of_measure,
-                    'code' => 'new-' . time(), // temp code
-                ]);
-                $catalog_id = $newItem->id;
-            }
+                if ($this->creating_new_item) {
+                     $newItem = ItemsCatalog::create([
+                        'name' => $this->item_search,
+                        'secondary_category_id' => $this->secondary_category_id,
+                        'unit' => $this->unit_of_measure,
+                        'code' => 'new-' . time(), // temp code
+                    ]);
+                    $catalog_id = $newItem->id;
+                }
 
-            if ($this->creating_new_specification) {
-                $newSpec = ItemSpecification::create([
-                    'item_catalog_id' => $catalog_id,
-                    'brand' => $this->main_item_brand,
-                    'model' => $this->main_item_model,
-                    'detailed_specifications' => $this->detailed_specifications,
-                ]);
-                $spec_id = $newSpec->id;
-            }
+                if ($this->creating_new_specification) {
+                    $newSpec = ItemSpecification::create([
+                        'item_catalog_id' => $catalog_id,
+                        'brand' => $this->main_item_brand,
+                        'model' => $this->main_item_model,
+                        'detailed_specifications' => $this->detailed_specifications,
+                    ]);
+                    $spec_id = $newSpec->id;
+                }
 
-            // Find or create ContractItem
-            $final_contract_item = ContractItem::firstOrCreate(
-                ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
-                ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
-            );
+                // Find or create ContractItem
+                $final_contract_item = ContractItem::firstOrCreate(
+                    ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
+                    ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
+                );
 
+                // Extract the code from the descriptive string, e.g., "SPLV - ₱5,000 or less" -> "SPLV"
+                $icsTypeCode = strtok($this->ics_type, ' ');
 
-            $icsNumber = IcsNumber::create([
-                'ics_number' => $this->ics_number,
-                'assigned_employee_id' => $this->assigned_employee_id,
-                'contract_item_id' => $final_contract_item->id,
-                'ics_type' => $this->ics_type,
-                'quantity' => $this->quantity,
-                'estimated_useful_life' => $this->estimated_useful_life,
-                'remarks' => $this->remarks,
-                'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
-                'date_accepted' => $this->date_accepted ? Carbon::parse($this->date_accepted) : null,
-            ]);
-
-            foreach ($this->batches as $batch) {
-                // Here we need to link to the contract_item_id or items_catalog_id
-                $itemBatch = IcsItemBatch::create([
-                    'ics_number_id' => $icsNumber->id,
-                    'identification_data' => $batch['identification_data'] ?? null,
+                $icsNumber = IcsNumber::create([
+                    'ics_number' => $this->ics_number,
+                    'assigned_employee_id' => $this->assigned_employee_id,
+                    'contract_item_id' => $final_contract_item->id,
+                    'ics_type' => $icsTypeCode,
+                    'quantity' => $this->quantity,
+                    'estimated_useful_life' => $this->estimated_useful_life,
+                    'remarks' => $this->remarks,
+                    'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
+                    'date_accepted' => $this->date_accepted ? Carbon::parse($this->date_accepted) : null,
                 ]);
 
-                if ($this->isDesktopComputer && isset($batch['components'])) {
-                    foreach ($batch['components'] as $component) {
-                        if (!empty($component['component_type'])) {
-                            ItemComponent::create([
-                                'ics_item_batch_id' => $itemBatch->id,
-                                'component_type' => $component['component_type'],
-                                'brand' => $component['brand'],
-                                'model' => $component['model'],
-                                'serial_number' => $component['serial_number'],
-                            ]);
+                foreach ($this->batches as $batch) {
+                    // Here we need to link to the contract_item_id or items_catalog_id
+                    $itemBatch = IcsItemBatch::create([
+                        'ics_number_id' => $icsNumber->id,
+                        'identification_data' => $batch['identification_data'] ?? null,
+                    ]);
+
+                    if ($this->isDesktopComputer && isset($batch['components'])) {
+                        foreach ($batch['components'] as $component) {
+                            if (!empty($component['component_type'])) {
+                                ItemComponent::create([
+                                    'ics_item_batch_id' => $itemBatch->id,
+                                    'component_type' => $component['component_type'],
+                                    'brand' => $component['brand'],
+                                    'model' => $component['model'],
+                                    'serial_number' => $component['serial_number'],
+                                ]);
+                            }
                         }
                     }
                 }
-            }
 
-            session()->flash('success', 'ICS record created successfully.');
-            $this->redirectRoute('admin.inventory.ics.index');
-        });
+                // Dispatch a success toast notification
+                Flux::toast(
+                    'ICS record created successfully.',
+                    'success'
+                );
+
+                $this->redirectRoute('admin.inventory.ics.index', navigate: true);
+            });
+        } catch (\Exception $e) {
+            // Log the exception for debugging
+            \Log::error('Error creating ICS record: ' . $e->getMessage());
+
+            // Dispatch an error toast notification
+            Flux::toast(
+                $e->getMessage(),
+                'danger'
+            );
+        }
     }
 
 }; ?>
@@ -1360,8 +1385,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <flux:button variant="ghost" :href="route('admin.inventory.ics.index')" wire:navigate>
                     Cancel
                 </flux:button>
-                <flux:button type="submit" variant="primary" :disabled="$isParItem">
-                    Save Record
+                <flux:button type="submit" variant="primary" :disabled="$isParItem" wire:loading.attr="disabled" wire:target="store">
+                    <span wire:loading.remove wire:target="store">Save Record</span>
+                    <span wire:loading wire:target="store">Saving...</span>
                 </flux:button>
             </div>
         </div>

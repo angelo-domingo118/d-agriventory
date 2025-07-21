@@ -227,7 +227,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function update(): void
     {
         $validated = $this->validate([
-            'ics_number' => ['required', 'string', 'max:255', Rule::unique('ics_numbers', 'ics_number')->ignore($this->icsNumber->id)],
+            'ics_number' => ['required', 'string', 'max:255', Rule::unique('ics_number', 'ics_number')->ignore($this->icsNumber->id)],
             'contract_id' => ['required', 'integer', Rule::exists('contracts', 'id')],
             'contract_item_id' => ['required', 'integer', Rule::exists('contract_items', 'id')],
             'assigned_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
