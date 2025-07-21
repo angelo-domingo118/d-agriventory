@@ -9,6 +9,10 @@
         position: '{{ $position }}',
         duration: {{ $duration }},
         add(toast) {
+            // Ensure the toast has a unique id
+            if (!toast.id) {
+                toast.id = Date.now().toString();
+            }
             this.toasts.push(toast);
             this.fire(toast.id);
         },

@@ -164,6 +164,62 @@
         @persist('toast')
             <flux:toast />
         @endpersist
+
+        {{-- Register the tableResizer Alpine helper globally (no need to touch app.js) --}}
+        @once
+            <script>
+                (function registerTableResizer() {
+                    function define() {
+                        if (!window.Alpine) return;
+                        if (Alpine?.data?.tableResizer) return; // already registered
+
+                        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+                            columnWidths: {},
+                            resizingColumn: null,
+                            startX: 0,
+                            startWidth: 0,
+                            init() {
+                                const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                                this.columnWidths = { ...defaultWidths, ...stored };
+
+                                this.$root.addEventListener('reset-column-widths', () => {
+                                    this.columnWidths = { ...defaultWidths };
+                                    localStorage.removeItem(storageKey);
+                                });
+                            },
+                            startResize(event, column) {
+                                this.resizingColumn = column;
+                                this.startX = event.clientX;
+                                this.startWidth = this.columnWidths[column];
+                                event.preventDefault();
+
+                                const move = (e) => {
+                                    if (!this.resizingColumn) return;
+                                    const newW = this.startWidth + (e.clientX - this.startX);
+                                    this.columnWidths[this.resizingColumn] = Math.max(40, newW);
+                                };
+
+                                const up = () => {
+                                    this.resizingColumn = null;
+                                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                                    window.removeEventListener('mousemove', move);
+                                    window.removeEventListener('mouseup', up);
+                                };
+
+                                window.addEventListener('mousemove', move);
+                                window.addEventListener('mouseup', up);
+                            }
+                        }));
+                    }
+
+                    if (window.Alpine) {
+                        define();
+                    } else {
+                        document.addEventListener('alpine:init', define);
+                    }
+                })();
+            </script>
+        @endonce
         @fluxScripts
     </body>
 </html>

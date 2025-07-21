@@ -1346,11 +1346,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 }
 
                 // Dispatch a success toast notification
-                $this->dispatch('notify', [
-                    'text' => 'ICS record created successfully.',
-                    'variant' => 'success',
-                    'heading' => 'Success!',
-                ]);
+                $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: 'ICS record created successfully.', variant: 'success');
 
                 $this->redirectRoute('admin.inventory.ics.index', navigate: true);
             });
@@ -1359,11 +1355,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             \Log::error('Error creating ICS record: ' . $e->getMessage());
 
             // Dispatch an error toast notification
-            $this->dispatch('notify', [
-                'text' => $e->getMessage(),
-                'variant' => 'danger',
-                'heading' => 'Error',
-            ]);
+            $this->dispatch('notify', id: uniqid(), heading: 'Error', text: $e->getMessage(), variant: 'danger');
         }
     }
 
