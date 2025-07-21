@@ -24,6 +24,8 @@ class AdminUser extends Model
         'view_employees_and_divisions',
         'view_suppliers_and_contracts',
         'view_permissions',
+        'manage_data',
+        'view_logs',
     ];
 
     /**

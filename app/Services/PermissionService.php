@@ -76,6 +76,7 @@ class PermissionService
                 'edit_inventory' => true,
                 'delete_inventory' => true,
                 'view_reports' => true,
+                'view_logs' => true,
             ];
 
             return array_merge($allPermissions, $inventoryPermissions);

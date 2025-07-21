@@ -14,23 +14,19 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
+            UserSeeder::class,
+            DivisionSeeder::class,
+            EmployeeSeeder::class,
+            PrimaryCategorySeeder::class,
+            SecondaryCategorySeeder::class,
+            ItemsCatalogSeeder::class,
+            ItemSpecificationSeeder::class,
+            SupplierAndContractSeeder::class,
+            ContractItemsSeeder::class,
+            IcsNumberSeeder::class,
+            IcsItemBatchSeeder::class,
+            DesktopComputerSeeder::class,
+            AuditLogSeeder::class,
         ]);
-
-        if (! app()->environment('production')) {
-            $this->call([
-                DivisionSeeder::class,
-                UserSeeder::class,
-                EmployeeSeeder::class,
-                PrimaryCategorySeeder::class,
-                SecondaryCategorySeeder::class,
-                ItemsCatalogSeeder::class,
-                ItemSpecificationSeeder::class,
-                SupplierAndContractSeeder::class,
-                ContractItemsSeeder::class,
-                IcsNumberSeeder::class,
-                IcsItemBatchSeeder::class,
-                DesktopComputerSeeder::class,
-            ]);
-        }
     }
 }
