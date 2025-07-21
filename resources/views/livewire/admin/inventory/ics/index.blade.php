@@ -45,6 +45,7 @@ public string $sortColumn = 'ics_number.ics_number';
 public string $sortDirection = 'desc';
 
     public array $openGroups = [];
+    public ?int $highlightedIcsId = null;
 
     #[Computed]
     public function filtersActive(): bool
@@ -94,6 +95,7 @@ public string $sortDirection = 'desc';
         $this->groupBy = session('ics_group_by', 'none');
         $this->viewMode = session('ics_view_mode', 'table');
         $this->density = session('ics_density', 'spacious');
+        $this->highlightedIcsId = session('highlighted_ics');
     }
 
     public function setGroupBy(string $groupBy): void
@@ -587,6 +589,7 @@ public string $sortDirection = 'desc';
                                                             :filterRemarks="$this->filterRemarks"
                                                             :filterInventoryNumber="$this->filterInventoryNumber"
                                                             :show-issued-to="true"
+                                                            :highlightedIcsId="$this->highlightedIcsId"
                                                         />
                                                     @endforeach
                                                 </tbody>
@@ -602,6 +605,7 @@ public string $sortDirection = 'desc';
                                                         :search="$this->search"
                                                         :filterArticle="$this->filterArticle"
                                                         :filterSerialNumber="$this->filterSerialNumber"
+                                                        :highlightedIcsId="$this->highlightedIcsId"
                                                     />
                                                 @endforeach
                                             </div>
@@ -701,6 +705,7 @@ public string $sortDirection = 'desc';
                                                     :filterRemarks="$this->filterRemarks"
                                                     :filterInventoryNumber="$this->filterInventoryNumber"
                                                     :show-issued-to="true"
+                                                    :highlightedIcsId="$this->highlightedIcsId"
                                                 />
                                         @empty
                                             <tr>
@@ -723,6 +728,7 @@ public string $sortDirection = 'desc';
                                     :search="$this->search"
                                     :filterArticle="$this->filterArticle"
                                     :filterSerialNumber="$this->filterSerialNumber"
+                                    :highlightedIcsId="$this->highlightedIcsId"
                                 />
                         @empty
                             <div class="sm:col-span-2 lg:col-span-3">

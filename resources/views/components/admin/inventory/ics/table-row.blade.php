@@ -8,9 +8,21 @@
     'filterRemarks' => '',
     'filterInventoryNumber' => '',
     'showIssuedTo' => true,
+    'highlightedIcsId' => null,
 ])
 
-<tr wire:key="ics-{{ $ics->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+<tr
+    wire:key="ics-{{ $ics->id }}"
+    class="hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors duration-500 ease-in-out"
+    x-data="{ highlighted: false }"
+    x-init="
+        if ({{ $highlightedIcsId ?? 'null' }} === {{ $ics->id }}) {
+            setTimeout(() => { highlighted = true; }, 50);
+            setTimeout(() => { highlighted = false; }, 5000);
+        }
+    "
+    :class="{ 'bg-green-100 dark:bg-green-900/50': highlighted }"
+>
     <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
         <div class="space-y-2">
             <div>

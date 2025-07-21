@@ -1348,6 +1348,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 // Dispatch a success toast notification
                 $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: 'ICS record created successfully.', variant: 'success');
 
+                session()->flash('highlighted_ics', $icsNumber->id);
                 $this->redirectRoute('admin.inventory.ics.index', navigate: true);
             });
         } catch (\Exception $e) {
