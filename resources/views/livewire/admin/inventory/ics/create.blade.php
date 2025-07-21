@@ -1214,15 +1214,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
             'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
             'items_catalog_id' => 'required_without:creating_new_item|nullable|exists:items_catalog,id',
-            'item_specification_id' => 'required|string',
+            'item_specification_id' => 'nullable|string',
             'quantity' => 'required|integer|min:1',
             'estimated_useful_life' => 'nullable|integer|min:1',
             'date_prepared' => 'nullable|date',
             'batches.*.identification_data' => 'nullable|string|max:255',
+            'remarks' => 'nullable|string',
         ];
 
         if ($this->creating_new_supplier) {
             $rules['supplier_search'] = 'required|string|max:255|unique:suppliers,name';
+            $rules['primary_category_id'] = 'required|exists:primary_categories,id';
+            $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
+            $rules['unit_of_measure'] = 'required|string|max:50';
         }
         if ($this->creating_new_contract) {
             $rules['contract_search'] = 'required|string|max:255|unique:contracts,contract_po_ib_number';
@@ -1236,6 +1240,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         if ($this->creating_new_specification) {
             $rules['main_item_brand'] = 'nullable|string|max:255';
             $rules['main_item_model'] = 'nullable|string|max:255';
+            $rules['detailed_specifications'] = 'nullable|string';
         }
         if ($this->creating_new_employee) {
             // Add validation for new employee fields if you add them
@@ -1492,7 +1497,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
                                 @if ($this->items_catalog_id && !$creating_new_item)
                                     <div class="mb-4">
-                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search existing specifications..." required onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" error="item_specification_id" />
+                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search existing specifications..." onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" error="item_specification_id" />
                                         @if ($creating_new_specification)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
