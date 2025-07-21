@@ -180,7 +180,14 @@
         x-on:click="{{ $onFocus }}; $nextTick(() => positionDropdown())"
         x-on:blur="handleBlur()"
         x-on:keydown="handleKeydown($event)"
-    />
+    >
+        <x-slot name="label">
+            {{ $label }}
+            @if ($required)
+                <span class="text-red-500">*</span>
+            @endif
+        </x-slot>
+    </flux:input>
     
     @if($error)
         <x-input-error for="{{ $error }}" class="mt-2" />
