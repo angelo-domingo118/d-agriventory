@@ -1211,14 +1211,17 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $rules = [
             'ics_number' => ['required', 'integer', 'min:1', Rule::unique('ics_number')],
-            'assigned_employee_id' => 'required_without:creating_new_employee|nullable|exists:employees,id',
-            'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
-            'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
-            'items_catalog_id' => 'required_without:creating_new_item|nullable|exists:items_catalog,id',
+            'assigned_employee_id' => 'required_unless:creating_new_employee,true|nullable|exists:employees,id',
+            'supplier_id' => 'required_unless:creating_new_supplier,true|nullable|exists:suppliers,id',
+            'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
+            'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
             'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|min:0',
+            'unit_of_measure' => 'required|string|max:50',
             'estimated_useful_life' => 'nullable|integer|min:1',
-            'date_prepared' => 'nullable|date',
+            'date_prepared' => 'required|date',
+            'date_accepted' => 'required|date',
             'batches.*.identification_data' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
         ];
@@ -1236,7 +1239,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
             $rules['primary_category_id'] = 'required|exists:primary_categories,id';
             $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
-            $rules['unit_of_measure'] = 'required|string|max:50';
         }
         if ($this->creating_new_specification) {
             $rules['main_item_brand'] = 'nullable|string|max:255';
@@ -1256,7 +1258,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['batches.*.components.*.serial_number'] = 'nullable|string|max:255';
         }
 
-        $this->validate($rules);
+        $messages = [
+            'supplier_id.required_unless' => 'Please select a supplier or specify a new one.',
+            'contract_id.required_unless' => 'Please select a contract or specify a new one.',
+            'items_catalog_id.required_unless' => 'Please select an item from the catalog or specify a new one.',
+            'assigned_employee_id.required_unless' => 'Please assign this item to an employee.',
+            'date_prepared.required' => 'The "Date Prepared" field is required.',
+            'date_accepted.required' => 'The "Date Accepted" field is required.',
+            'unit_price.required' => 'The "Unit Cost" field is required.',
+            'unit_of_measure.required' => 'The "Unit of Measure" field is required.',
+        ];
+
+        $this->validate($rules, $messages);
 
         try {
             DB::transaction(function () {
@@ -1323,8 +1336,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'contract_item_id' => $final_contract_item->id,
                     'ics_type' => $icsTypeCode,
                     'quantity' => $this->quantity,
-                    'estimated_useful_life' => $this->estimated_useful_life,
-                    'remarks' => $this->remarks,
+                    'estimated_useful_life' => $this->estimated_useful_life ?: null,
+                    'remarks' => $this->remarks ?: null,
                     'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
                     'date_accepted' => $this->date_accepted ? Carbon::parse($this->date_accepted) : null,
                 ]);
@@ -1368,7 +1381,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 }; ?>
 
-<form wire:submit="store">
+<form wire:submit="store" novalidate>
     <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
@@ -1406,7 +1419,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="p-4">
                         <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                             <div>
-                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
+                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" />
+                                @error('supplier_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
                                 @if ($creating_new_supplier)
                                     <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                         <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1417,7 +1438,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </div>
                             <div>
-                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" />
+                                @error('contract_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
                                 <x-input-error for="contract_search_error" class="mt-2" />
                                 @if ($creating_new_contract)
                                     <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
@@ -1443,7 +1472,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div>
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Catalog</h4>
                                 <div>
-                                    <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" error="items_catalog_id" />
+                                    <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" />
+                                    @error('items_catalog_id')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
                                     @if ($creating_new_item)
                                         <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                             <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1520,7 +1557,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="font-medium">New brand will be used.</span>
                                             </div>
                                         @endif
-                                        <x-input-error for="main_item_brand" class="mt-2" />
                                     </div>
                                     <div>
                                         <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" />
@@ -1532,12 +1568,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="font-medium">New model will be used.</span>
                                             </div>
                                         @endif
-                                        <x-input-error for="main_item_model" class="mt-2" />
                                     </div>
                                 </div>
                                 <div class="mt-4">
                                     <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); }" />
-                                    <x-input-error for="detailed_specifications" class="mt-2" />
                                 </div>
                             </div>
 
@@ -1638,11 +1672,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     @input="updatePrice($event)"
                                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit'); }" />
                                             </div>
-                                            <x-input-error for="unit_price" class="mt-2" />
+                                            @error('unit_price')
+                                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ $message }}</span>
+                                                </div>
+                                            @enderror
                                         </div>
                                     <div>
-                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" error="unit_of_measure" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
-                                        <x-input-error for="unit_of_measure" class="mt-2" />
+                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
+                                        @error('unit_of_measure')
+                                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span>{{ $message }}</span>
+                                            </div>
+                                        @enderror
                                         @if ($creating_new_unit)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1677,7 +1725,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
                     </div>
                     <div class="p-4">
-                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" error="assigned_employee_id" />
+                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                        @error('assigned_employee_id')
+                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                        @enderror
                         @if ($creating_new_employee)
                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1749,7 +1805,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     type="number" 
                                     readonly
                                     tabindex="-1" />
-                                <x-input-error for="ics_number" class="mt-2" />
                             </div>
                             <div x-data="{ 
                                 validateNumber(e) {
@@ -1791,7 +1846,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     @input="formatDate($event)"
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
                                 />
-                                <x-input-error for="date_prepared" class="mt-2" />
                             </div>
 
                             <div>
@@ -1806,7 +1860,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     @input="formatDate($event)"
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
                                 />
-                                <x-input-error for="date_accepted" class="mt-2" />
                             </div>
                         </div>
 
@@ -1965,9 +2018,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                                 </div>
                                                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                                                     <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" required tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
+                                                                    <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.component_type'" class="mt-2" />
                                                                     <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" />
+                                                                    <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.serial_number'" class="mt-2" />
                                                                     <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" />
+                                                                    <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.brand'" class="mt-2" />
                                                                     <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" />
+                                                                    <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.model'" class="mt-2" />
                                                                 </div>
                                                             </div>
                                                         @endforeach
