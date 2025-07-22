@@ -83,35 +83,59 @@ new #[Layout('components.layouts.app')] class extends Component
 
 <div>
     <x-inventory-manager.layout heading="Consumables Management" :subheading="'Manage consumable inventory for ' . $this->division->name">
-        <x-slot name="header">
-            <div class="flex space-x-3">
-                <flux:button 
-                    variant="primary" 
-                    :href="route('inventory-manager.consumables.create')" 
-                    wire:navigate>
-                    Add New Record
-                </flux:button>
+        
+        <!-- Header Actions -->
+        <div class="border-b border-stone-200 pb-4 dark:border-stone-700 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                        Consumables Inventory
+                    </h1>
+                    <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                        Track and manage consumable items for your division
+                    </p>
+                </div>
+                <div class="flex items-center gap-x-4">
+                    <flux:button 
+                        variant="primary" 
+                        :href="route('inventory-manager.consumables.create')" 
+                        wire:navigate>
+                        <flux:icon.plus class="w-4 h-4 mr-2" />
+                        Add New Record
+                    </flux:button>
+                </div>
             </div>
-        </x-slot>
+        </div>
 
         <!-- Search and Filters -->
-        <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg p-6 mb-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <div class="flex-1 max-w-md">
-                    <flux:input 
-                        wire:model.live.debounce.300ms="search" 
-                        placeholder="Search records, items, or remarks..."
-                        icon="magnifying-glass"
-                    />
-                </div>
-                <div class="text-sm text-stone-600 dark:text-stone-400">
-                    Total Records: {{ $this->getRecords()->total() }}
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800 mb-6">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Search & Filters</h3>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-6">
+                    <div class="flex-1 max-w-md">
+                        <flux:input 
+                            wire:model.live.debounce.300ms="search" 
+                            placeholder="Search records, items, or remarks..."
+                            icon="magnifying-glass"
+                        />
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-sm text-stone-600 dark:text-stone-400">
+                            <span class="font-medium">{{ $this->getRecords()->total() }}</span> records found
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Records Table -->
-        <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg">
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Consumable Records</h3>
+                <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">All consumable records for {{ $this->division->name }}</p>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                     <thead class="bg-stone-50 dark:bg-stone-700">
