@@ -1129,20 +1129,28 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedQuantity($value): void
     {
-        $value = (int) $value;
-        if ($value < 1) {
+        // If the input is empty, a decimal, or less than 1, validate it to show an error.
+        if (empty($value) || !ctype_digit((string) $value) || (int) $value < 1) {
+            $this->validateOnly('quantity');
+            // Reset to a valid state to prevent errors, but the message will still show.
             $this->quantity = 1;
-            $value = 1;
+        } else {
+            // Clear validation if the value is valid.
+            $this->resetValidation('quantity');
+            $this->quantity = (int) $value;
         }
-
+    
         $currentCount = count($this->batches);
-
-        if ($value > $currentCount) {
-            for ($i = 0; $i < $value - $currentCount; $i++) {
+    
+        // Adjust batches based on the new valid quantity.
+        $newQuantity = $this->quantity;
+    
+        if ($newQuantity > $currentCount) {
+            for ($i = 0; $i < $newQuantity - $currentCount; $i++) {
                 $this->addBatch();
             }
-        } elseif ($value < $currentCount) {
-            array_splice($this->batches, $value);
+        } elseif ($newQuantity < $currentCount) {
+            array_splice($this->batches, $newQuantity);
         }
     }
 
@@ -1267,6 +1275,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'date_accepted.required' => 'The "Date Accepted" field is required.',
             'unit_price.required' => 'The "Unit Cost" field is required.',
             'unit_of_measure.required' => 'The "Unit of Measure" field is required.',
+            'quantity.min' => 'The quantity must be at least 1.',
+            'quantity.integer' => 'The quantity must be a whole number.',
         ];
 
         $this->validate($rules, $messages);
@@ -1898,6 +1908,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     class="w-full" 
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
                                 />
+                                <x-input-error for="quantity" class="mt-2" />
                             </div>
                             
                             <!-- Global settings for batches -->
