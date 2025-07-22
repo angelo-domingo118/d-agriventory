@@ -108,129 +108,161 @@ new #[Layout('components.layouts.app')] class extends Component
         heading="Create Consumable Record" 
         :subheading="'Add new consumable inventory for ' . $this->division->name">
         
-        <div class="bg-white dark:bg-stone-800 shadow sm:rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <form wire:submit="save">
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                        <div class="sm:col-span-3">
-                            <flux:input 
-                                wire:model="record_number" 
-                                :label="__('Record Number')" 
-                                required
-                                :error="$errors->first('record_number')"
-                            />
-                        </div>
-                        
-                        <div class="sm:col-span-3">
-                            <flux:input 
-                                wire:model="date_received" 
-                                type="date" 
-                                :label="__('Date Received')" 
-                                required
-                                :error="$errors->first('date_received')"
-                            />
-                        </div>
-                        
-                        <div class="sm:col-span-6">
-                            <flux:textarea 
-                                wire:model="remarks" 
-                                :label="__('Remarks')" 
-                                placeholder="Optional notes about this consumable record"
-                                rows="3"
-                                :error="$errors->first('remarks')"
-                            />
-                        </div>
+        <form wire:submit="save" novalidate>
+            <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                            Create New Consumable Record
+                        </h1>
+                        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                            Add consumable items to your division's inventory
+                        </p>
                     </div>
-                    
-                    <!-- Items Section -->
-                    <div class="mt-8">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Items</h3>
-                            <flux:button 
-                                type="button"
-                                variant="ghost" 
-                                wire:click="addItem">
-                                Add Item
-                            </flux:button>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            @foreach($items as $index => $item)
-                            <div class="border border-stone-200 dark:border-stone-700 rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h4 class="font-medium text-stone-800 dark:text-stone-200">Item {{ $index + 1 }}</h4>
-                                    @if(count($items) > 1)
-                                        <flux:button 
-                                            type="button"
-                                            variant="ghost" 
-                                            size="sm"
-                                            wire:click="removeItem({{ $index }})">
-                                            Remove
-                                        </flux:button>
-                                    @endif
-                                </div>
-                                
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                    <div>
-                                        <flux:select 
-                                            wire:model="items.{{ $index }}.item_specification_id"
-                                            :label="__('Item Specification')"
-                                            placeholder="Select an item..."
-                                            :error="$errors->first('items.'.$index.'.item_specification_id')">
-                                            @foreach($this->getItemSpecifications() as $spec)
-                                                <flux:option value="{{ $spec->id }}">
-                                                    {{ $spec->itemCatalog->name }} 
-                                                    @if($spec->brand) - {{ $spec->brand }} @endif
-                                                    @if($spec->model) {{ $spec->model }} @endif
-                                                </flux:option>
-                                            @endforeach
-                                        </flux:select>
+                    <div class="flex items-center gap-x-4">
+                        <flux:button variant="ghost" :href="route('inventory-manager.consumables.index')" wire:navigate>
+                            Cancel
+                        </flux:button>
+                        <flux:button type="submit" variant="primary">
+                            <span wire:loading.remove>Save Record</span>
+                            <span wire:loading>Saving...</span>
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <!-- Column 1: Record Information -->
+                    <div class="space-y-6">
+                        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                            <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Record Information</h3>
+                            </div>
+                            <div class="p-4">
+                                                                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <flux:input 
+                                                wire:model="record_number" 
+                                                :label="__('Record Number')" 
+                                                required
+                                                :error="$errors->first('record_number')"
+                                            />
+                                        </div>
+                                        
+                                        <div>
+                                            <flux:input 
+                                                wire:model="date_received" 
+                                                type="date" 
+                                                :label="__('Date Received')" 
+                                                required
+                                                :error="$errors->first('date_received')"
+                                            />
+                                        </div>
                                     </div>
                                     
                                     <div>
-                                        <flux:input 
-                                            wire:model="items.{{ $index }}.initial_quantity"
-                                            type="number" 
-                                            min="1"
-                                            :label="__('Quantity')" 
-                                            required
-                                            :error="$errors->first('items.'.$index.'.initial_quantity')"
-                                        />
-                                    </div>
-                                    
-                                    <div>
-                                        <flux:input 
-                                            wire:model="items.{{ $index }}.current_quantity"
-                                            type="number" 
-                                            min="0"
-                                            :label="__('Current Quantity')" 
-                                            required
-                                            help="Usually same as initial quantity"
-                                            :error="$errors->first('items.'.$index.'.current_quantity')"
+                                        <flux:textarea 
+                                            wire:model="remarks" 
+                                            :label="__('Remarks')" 
+                                            placeholder="Optional notes about this consumable record..."
+                                            rows="4"
+                                            :error="$errors->first('remarks')"
                                         />
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
                         </div>
                     </div>
-                    
-                    <div class="mt-8 flex justify-end space-x-3">
-                        <flux:button 
-                            variant="ghost" 
-                            :href="route('inventory-manager.consumables.index')" 
-                            wire:navigate>
-                            Cancel
-                        </flux:button>
-                        
-                        <flux:button 
-                            variant="primary" 
-                            type="submit">
-                            Create Record
-                        </flux:button>
+
+                    <!-- Column 2: Items Section -->
+                    <div class="space-y-6 lg:col-span-2">
+                        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                            <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Items</h3>
+                                    <flux:button 
+                                        type="button"
+                                        variant="ghost" 
+                                        size="sm"
+                                        wire:click="addItem">
+                                        <flux:icon.plus class="h-4 w-4 mr-2" />
+                                        Add Item
+                                    </flux:button>
+                                </div>
+                            </div>
+                                                            <div class="space-y-6">
+                                    @foreach($items as $index => $item)
+                                    <div wire:key="item-{{ $index }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50">
+                                        <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
+                                            <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
+                                                    {{ $loop->iteration }}
+                                                </span>
+                                                <span>Item #{{ $loop->iteration }}</span>
+                                            </h4>
+                                            @if(count($items) > 1)
+                                                <flux:button 
+                                                    type="button" 
+                                                    variant="danger" 
+                                                    size="sm" 
+                                                    wire:click="removeItem({{ $index }})">
+                                                    <flux:icon.trash class="h-4 w-4" />
+                                                </flux:button>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="p-4">
+                                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                                <div class="sm:col-span-3">
+                                                    <flux:select 
+                                                        wire:model="items.{{ $index }}.item_specification_id"
+                                                        :label="__('Item Specification')"
+                                                        placeholder="Select an item..."
+                                                        :error="$errors->first('items.'.$index.'.item_specification_id')">
+                                                        @foreach($this->getItemSpecifications() as $spec)
+                                                            <flux:option value="{{ $spec->id }}">
+                                                                {{ $spec->itemCatalog->name }} 
+                                                                @if($spec->brand) - {{ $spec->brand }} @endif
+                                                                @if($spec->model) {{ $spec->model }} @endif
+                                                            </flux:option>
+                                                        @endforeach
+                                                    </flux:select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <flux:input 
+                                                        wire:model="items.{{ $index }}.initial_quantity"
+                                                        type="number" 
+                                                        min="1"
+                                                        :label="__('Initial Quantity')" 
+                                                        required
+                                                        :error="$errors->first('items.'.$index.'.initial_quantity')"
+                                                    />
+                                                </div>
+                                                
+                                                <div>
+                                                    <flux:input 
+                                                        wire:model="items.{{ $index }}.current_quantity"
+                                                        type="number" 
+                                                        min="0"
+                                                        :label="__('Current Quantity')" 
+                                                        required
+                                                        :error="$errors->first('items.'.$index.'.current_quantity')"
+                                                    />
+                                                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Usually same as initial quantity</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                    
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </x-inventory-manager.layout>
 </div>
