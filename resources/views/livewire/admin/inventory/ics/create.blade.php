@@ -1763,10 +1763,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     id="estimated_useful_life_wrapper"
                                     wire:model="estimated_useful_life" 
                                     label="Estimated Useful Life (Years)" 
-                                    placeholder="Optional (e.g. 3, 5)" 
+                                    placeholder="Optional" 
                                     :disabled="$isParItem"
-                                    type="number" 
-                                    min="1"
+                                    type="number"
                                     @input="validateNumber($event)"
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
                             </div>
