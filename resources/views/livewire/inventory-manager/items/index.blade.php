@@ -47,16 +47,35 @@ new #[Layout('components.layouts.app')] class extends Component
 
 <div>
     <x-inventory-manager.layout heading="Items Management" :subheading="'Manage inventory items for ' . $this->division->name">
-        <x-slot name="header">
-            <flux:button 
-                variant="primary" 
-                :href="route('inventory-manager.consumables.create')" 
-                wire:navigate>
-                Add New Item
-            </flux:button>
-        </x-slot>
         
-        <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg">
+        <!-- Header Actions -->
+        <div class="border-b border-stone-200 pb-4 dark:border-stone-700 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                        Inventory Items
+                    </h1>
+                    <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                        Overview of all consumable items in your division
+                    </p>
+                </div>
+                <div class="flex items-center gap-x-4">
+                    <flux:button 
+                        variant="primary" 
+                        :href="route('inventory-manager.consumables.create')" 
+                        wire:navigate>
+                        <flux:icon.plus class="w-4 h-4 mr-2" />
+                        Add New Item
+                    </flux:button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">All Items</h3>
+                <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Complete inventory of consumable items</p>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                     <thead class="bg-stone-50 dark:bg-stone-700">
