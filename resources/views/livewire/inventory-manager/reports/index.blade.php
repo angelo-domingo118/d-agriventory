@@ -72,11 +72,123 @@ new #[Layout('components.layouts.app')] class extends Component
 <div>
     <x-inventory-manager.layout heading="Reports" :subheading="'Inventory reports for ' . $this->division->name">
         
+        <!-- Header Actions -->
+        <div class="border-b border-stone-200 pb-4 dark:border-stone-700 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                        Inventory Reports
+                    </h1>
+                    <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                        Analyze your division's inventory usage and stock levels
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                                <flux:icon.cube class="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">
+                                    Unique Items
+                                </dt>
+                                <dd class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                                    {{ $this->getInventoryReport()->count() }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-green-600 dark:text-green-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">
+                                    Good Stock
+                                </dt>
+                                <dd class="text-2xl font-semibold text-green-600 dark:text-green-400">
+                                    {{ $this->getStockLevelsReport()->where('stock_status', 'good_stock')->count() }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-amber-600 dark:text-amber-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">
+                                    Low Stock
+                                </dt>
+                                <dd class="text-2xl font-semibold text-amber-600 dark:text-amber-400">
+                                    {{ $this->getStockLevelsReport()->where('stock_status', 'low_stock')->count() }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6 text-red-600 dark:text-red-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">
+                                    Out of Stock
+                                </dt>
+                                <dd class="text-2xl font-semibold text-red-600 dark:text-red-400">
+                                    {{ $this->getStockLevelsReport()->where('stock_status', 'out_of_stock')->count() }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Inventory Usage Report -->
-            <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-stone-200 dark:border-stone-700">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
                     <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Inventory Usage Report</h3>
+                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Items ranked by usage percentage</p>
                 </div>
                 <div class="p-6">
                     @if($this->getInventoryReport()->count() > 0)
@@ -107,9 +219,10 @@ new #[Layout('components.layouts.app')] class extends Component
             </div>
 
             <!-- Stock Levels Report -->
-            <div class="bg-white dark:bg-stone-800 shadow-sm rounded-lg">
-                <div class="px-6 py-4 border-b border-stone-200 dark:border-stone-700">
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
                     <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Stock Levels Alert</h3>
+                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Items requiring attention by stock status</p>
                 </div>
                 <div class="p-6">
                     @if($this->getStockLevelsReport()->count() > 0)
@@ -145,37 +258,6 @@ new #[Layout('components.layouts.app')] class extends Component
                     @else
                         <p class="text-center text-stone-600 dark:text-stone-400 py-8">No stock data available.</p>
                     @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="mt-6 bg-white dark:bg-stone-800 shadow-sm rounded-lg p-6">
-            <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200 mb-4">Summary Statistics</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                        {{ $this->getInventoryReport()->count() }}
-                    </p>
-                    <p class="text-sm text-stone-600 dark:text-stone-400">Unique Items</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-green-600">
-                        {{ $this->getStockLevelsReport()->where('stock_status', 'good_stock')->count() }}
-                    </p>
-                    <p class="text-sm text-stone-600 dark:text-stone-400">Good Stock</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-amber-600">
-                        {{ $this->getStockLevelsReport()->where('stock_status', 'low_stock')->count() }}
-                    </p>
-                    <p class="text-sm text-stone-600 dark:text-stone-400">Low Stock</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-2xl font-bold text-red-600">
-                        {{ $this->getStockLevelsReport()->where('stock_status', 'out_of_stock')->count() }}
-                    </p>
-                    <p class="text-sm text-stone-600 dark:text-stone-400">Out of Stock</p>
                 </div>
             </div>
         </div>
