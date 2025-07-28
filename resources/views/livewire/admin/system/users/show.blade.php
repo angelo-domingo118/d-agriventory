@@ -20,7 +20,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         return $this->user->auditLogs()->latest()->paginate(5);
     }
     
-    public function getFriendlyModelName(string $modelClass): string
+    public function getFriendlyModelName(?string $modelClass): string
     {
         $modelMap = [
             'App\\Models\\User' => 'User',
@@ -33,6 +33,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             'App\\Models\\IdrNumber' => 'IDR Number',
         ];
         
+        // If null or empty, return a fallback label
+        if ($modelClass === null) {
+            return __('Unknown');
+        }
+
         return $modelMap[$modelClass] ?? class_basename($modelClass);
     }
 }; ?>
