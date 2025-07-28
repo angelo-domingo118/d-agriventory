@@ -1558,7 +1558,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                                 <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <div>
-                                        <x-autocomplete id="brand_search" wire:model.live="brand_search" wire:suggestions="brand_suggestions" wire:showSuggestions="show_brand_suggestions" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllBrands()" onSelect="$wire.selectBrand" />
+                                        <x-autocomplete id="brand_search" wire:model.live="brand_search" wire:suggestions="brand_suggestions" wire:showSuggestions="show_brand_suggestions" label="Brand" placeholder="e.g., HP, Dell, Samsung" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllBrands()" onSelect="$wire.selectBrand" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-model'); }" />
                                         @if ($creating_new_brand)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1569,7 +1569,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                     </div>
                                     <div>
-                                        <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" />
+                                        <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-detailed-specs'); }" />
                                         @if ($creating_new_model)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
