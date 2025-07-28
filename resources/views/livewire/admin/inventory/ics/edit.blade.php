@@ -323,9 +323,9 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 <div x-data="{ showDeleteModal: @entangle('showDeleteModal'), showTransferModal: @entangle('showTransferModal') }">
     <form wire:submit="update">
-        <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
+        <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
             <div class="flex items-center justify-between">
-                 <div>
+                <div>
                     <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
                         Edit ICS: {{ $icsNumber->ics_number }}
                     </h1>
@@ -334,42 +334,46 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </p>
                 </div>
                 <div class="flex items-center gap-x-4">
+                    <x-action-message class="me-3" on="ics-updated">
+                        {{ __('Record updated successfully.') }}
+                    </x-action-message>
                     <flux:button variant="ghost" :href="route('admin.inventory.ics.show', $icsNumber)" wire:navigate>
                         Cancel
                     </flux:button>
                     <flux:button type="button" variant="filled" @click="$wire.set('showTransferModal', true)">
                         Transfer Item
                     </flux:button>
-                    <flux:button type="submit" variant="primary">
-                        Save Changes
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
+                        <span wire:loading.remove wire:target="update">Save Changes</span>
+                        <span wire:loading wire:target="update">Saving...</span>
                     </flux:button>
                 </div>
             </div>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
-            <!-- Main Content -->
-            <div class="lg:col-span-3">
-                <div class="space-y-8">
+        <div class="mt-6">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                <!-- Column 1: Item & Contract Information -->
+                <div class="space-y-6">
                     <!-- Item & Contract Details -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                             <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3>
                         </div>
-                        <div class="p-6">
-                             <div class="space-y-6">
-                                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-3">
-                                    <div class="sm:col-span-1">
-                                        <flux:select wire:model.live="contract_id" label="Contract" id="contract_id">
+                        <div class="p-4">
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                                    <div>
+                                        <flux:select wire:model.live="contract_id" label="Contract" id="contract_id" required>
                                             <option value="">Select a contract</option>
                                             @foreach($this->allContracts as $contract)
                                                 <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} ({{ $contract->supplier->name }})</option>
                                             @endforeach
                                         </flux:select>
-                                         <x-input-error for="contract_id" class="mt-2" />
+                                        <x-input-error for="contract_id" class="mt-2" />
                                     </div>
-                                    <div class="sm:col-span-1">
-                                        <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id">
+                                    <div>
+                                        <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id" required>
                                             <option value="">Select an item</option>
                                             @if ($this->contractItems)
                                                 @foreach ($this->contractItems as $item)
@@ -379,8 +383,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </flux:select>
                                         <x-input-error for="contract_item_id" class="mt-2" />
                                     </div>
+                                </div>
 
-                                    <div class="sm:col-span-1">
+                                <!-- Pricing Information -->
+                                <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
+                                    <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
+                                    <div>
                                         <flux:input
                                             wire:model="unit_price"
                                             label="Unit Cost"
@@ -392,105 +400,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="text-stone-500">₱</span>
                                             </x-slot:leading>
                                         </flux:input>
+                                        @if($this->unit_price && $this->unit_price >= 50000)
+                                            <div class="mt-2 flex w-full items-center rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-800/20 dark:text-red-400" role="alert">
+                                                <svg class="mr-3 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="font-medium">
+                                                    This item cost requires it to be recorded on a Property Accountability Receipt (PAR), not an ICS.
+                                                </span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                     <!-- Batches & Components -->
-                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches & Components</h3>
-                        </div>
-                        <div class="p-6">
-                            <div class="space-y-6">
-                                <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
-
-                                <div class="space-y-8">
-                                    @foreach ($batches as $batchIndex => $batch)
-                                        @if (!($batch['_destroy'] ?? false))
-                                            <div wire:key="batch-{{ $batchIndex }}" class="rounded-md border border-stone-300 bg-stone-50 p-4 dark:border-stone-600 dark:bg-stone-800/50">
-                                                <div class="flex items-center justify-between border-b border-stone-200 pb-3 dark:border-stone-700">
-                                                    <h4 class="font-semibold text-stone-800 dark:text-stone-200">
-                                                        Batch #{{ $loop->iteration }}
-                                                    </h4>
-                                                    @if ($quantity > 1)
-                                                        <div class="p-2">
-                                                            <button type="button" wire:click.prevent="removeBatch({{ $batchIndex }})" class="rounded-full bg-red-500 p-1.5 text-white shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                                                <x-flux::icon.x-mark class="h-5 w-5" />
-                                                            </button>
-                                                        </div>
-                                                    @endif
-                                                </div>
-
-                                                <div class="mt-4 space-y-4">
-                                                    @foreach ($batch['components'] as $componentIndex => $component)
-                                                        @if (!($component['_destroy'] ?? false))
-                                                            <div wire:key="component-{{ $batchIndex }}-{{ $componentIndex }}" class="relative rounded-md border border-stone-200 bg-white p-4 dark:border-stone-600 dark:bg-stone-700">
-                                                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" />
-                                                                </div>
-                                                                @if (count(array_filter($batch['components'], fn($c) => !($c['_destroy'] ?? false))) > 1)
-                                                                    <div class="absolute -right-2 -top-2">
-                                                                        <button type="button" wire:click.prevent="removeComponent({{ $batchIndex }}, {{ $componentIndex }})" class="rounded-full bg-red-500 p-1 text-white shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                                                                            <x-flux::icon.x-mark class="h-4 w-4" />
-                                                                        </button>
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-
-                                                <div class="mt-4 border-t border-stone-200 pt-3 dark:border-stone-700">
-                                                     <flux:button type="button" variant="ghost" wire:click.prevent="addComponent({{ $batchIndex }})">
-                                                        Add Component
-                                                    </flux:button>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                     <!-- Danger Zone -->
-                    <div class="overflow-hidden rounded-lg border border-red-500 bg-red-50 shadow-sm dark:border-red-600/50 dark:bg-red-900/10">
-                         <div class="border-b border-red-200 p-4 dark:border-red-600/20">
-                            <h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3>
-                        </div>
-                        <div class="p-6">
-                            <p class="text-sm text-red-700 dark:text-red-300">
-                                Deleting this ICS record is a permanent action and cannot be undone. All associated batch and component data will be removed. Please proceed with caution.
-                            </p>
-                             <flux:button type="button" variant="danger" class="mt-4" @click="showDeleteModal = true">
-                                Delete this ICS Record
-                            </flux:button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sidebar Info -->
-            <div class="lg:col-span-1">
-                <div class="space-y-8">
-                    <!-- Custodian Details -->
-                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Custodian Information</h3>
-                        </div>
-                        <div class="p-6">
-                             <flux:select wire:model.live="assigned_employee_id" label="Assign To Employee" id="assigned_employee_id">
-                                <option value="">Select an employee</option>
-                                @foreach($this->allEmployees as $employee)
-                                    <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) selected @endif>
-                                        {{ $employee->name }}
-                                    </option>
-                                @endforeach
-                            </flux:select>
                         </div>
                     </div>
 
@@ -499,7 +421,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                             <h3 class="font-semibold text-stone-800 dark:text-stone-200">Transfer History</h3>
                         </div>
-                        <div class="p-6">
+                        <div class="p-4">
                             @if ($this->icsNumber->transfers->isNotEmpty())
                                 <ul class="space-y-4">
                                     @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
@@ -521,29 +443,207 @@ new #[Layout('components.layouts.app')] class extends Component {
                             @endif
                         </div>
                     </div>
+                </div>
+
+                <!-- Column 2: Employee Assignment & Document Details -->
+                <div class="space-y-6">
+                    <!-- Custodian Information -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
+                        </div>
+                        <div class="p-4">
+                            <flux:select wire:model.live="assigned_employee_id" label="Assign To Employee" id="assigned_employee_id" required>
+                                <option value="">Select an employee</option>
+                                @foreach($this->allEmployees as $employee)
+                                    <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) selected @endif>
+                                        {{ $employee->name }}
+                                    </option>
+                                @endforeach
+                            </flux:select>
+                            <x-input-error for="assigned_employee_id" class="mt-2" />
+                        </div>
+                    </div>
 
                     <!-- Document Details -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                             <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                         </div>
-                        <div class="space-y-6 p-6">
-                             <flux:input wire:model="ics_number" label="ICS Number" required />
-                             <flux:select wire:model="ics_type" label="ICS Type" required>
-                                <option value="SPLV">Small-Value (SPLV)</option>
-                                <option value="SPHV">High-Value (SPHV)</option>
-                            </flux:select>
-                             <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required />
-                             <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
-                             <flux:input wire:model="date_accepted" type="date" label="Date Accepted" />
-                             <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." />
+                        <div class="space-y-4 p-4">
+                            <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                                <div>
+                                    <flux:input wire:model="ics_number" label="ICS Number" required />
+                                    <x-input-error for="ics_number" class="mt-2" />
+                                </div>
+                                <div>
+                                    <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required />
+                                    <x-input-error for="estimated_useful_life" class="mt-2" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <flux:select wire:model="ics_type" label="ICS Type" required>
+                                    <option value="SPLV">Small-Value (SPLV)</option>
+                                    <option value="SPHV">High-Value (SPHV)</option>
+                                </flux:select>
+                                <x-input-error for="ics_type" class="mt-2" />
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                                <div>
+                                    <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                                    <x-input-error for="date_prepared" class="mt-2" />
+                                </div>
+                                <div>
+                                    <flux:input wire:model="date_accepted" type="date" label="Date Accepted" />
+                                    <x-input-error for="date_accepted" class="mt-2" />
+                                </div>
+                            </div>
+
+                            <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." rows="4" />
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="overflow-hidden rounded-lg border border-red-500 bg-red-50 shadow-sm dark:border-red-600/50 dark:bg-red-900/10">
+                        <div class="border-b border-red-200 px-4 py-3 dark:border-red-600/20">
+                            <h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-red-700 dark:text-red-300">
+                                Deleting this ICS record is a permanent action and cannot be undone. All associated batch and component data will be removed.
+                            </p>
+                            <flux:button type="button" variant="danger" class="mt-4" @click="showDeleteModal = true">
+                                Delete this ICS Record
+                            </flux:button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Batches & Components -->
+                <div class="space-y-6 lg:col-span-2 xl:col-span-1">
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="space-y-4">
+                                <div class="w-full">
+                                    <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
+                                    <x-input-error for="quantity" class="mt-2" />
+                                </div>
+
+                                <div class="space-y-6">
+                                    @foreach ($batches as $batchIndex => $batch)
+                                        @if (!($batch['_destroy'] ?? false))
+                                            <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{ expanded: true }">
+                                                <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
+                                                    <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
+                                                            {{ $loop->iteration }}
+                                                        </span>
+                                                        <span>Batch #{{ $loop->iteration }}</span>
+                                                    </h4>
+                                                    <div class="flex items-center space-x-2">
+                                                        <button 
+                                                            type="button" 
+                                                            @click="expanded = !expanded" 
+                                                            class="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 focus:outline-none"
+                                                        >
+                                                            <x-flux::icon.chevron-up x-show="expanded" class="h-5 w-5" />
+                                                            <x-flux::icon.chevron-down x-show="!expanded" class="h-5 w-5" />
+                                                        </button>
+                                                        @if ($quantity > 1)
+                                                            <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
+                                                                <x-flux::icon.trash class="h-4 w-4" />
+                                                            </flux:button>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                
+                                                <div x-show="expanded" class="p-3">
+                                                    <!-- Identification Data -->
+                                                    <div class="mb-4">
+                                                        <flux:input 
+                                                            wire:model="batches.{{ $batchIndex }}.identification_data" 
+                                                            label="Serial Number/Asset Tag" 
+                                                            placeholder="Enter serial number, asset tag or other identifying info" />
+                                                    </div>
+
+                                                    <!-- Components Section -->
+                                                    @if(!empty($batch['components']) && count(array_filter($batch['components'], fn($c) => !($c['_destroy'] ?? false))) > 0)
+                                                        <div x-data="{ showComponents: true }">
+                                                            <div class="border-t border-stone-200 pt-3 dark:border-stone-700">
+                                                                <flux:button 
+                                                                    type="button" 
+                                                                    variant="outline" 
+                                                                    size="sm" 
+                                                                    @click="showComponents = !showComponents"
+                                                                    class="w-full flex justify-between items-center mb-3"
+                                                                >
+                                                                    <span>Batch Components</span>
+                                                                    <span x-show="!showComponents"><x-flux::icon.chevron-down class="h-4 w-4" /></span>
+                                                                    <span x-show="showComponents"><x-flux::icon.chevron-up class="h-4 w-4" /></span>
+                                                                </flux:button>
+                                                            </div>
+                                                            
+                                                            <div x-show="showComponents" class="space-y-4">
+                                                                @foreach ($batch['components'] as $componentIndex => $component)
+                                                                    @if (!($component['_destroy'] ?? false))
+                                                                        <div wire:key="component-{{ $batchIndex }}-{{ $componentIndex }}" class="relative rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-600 dark:bg-stone-700">
+                                                                            <div class="flex justify-between items-center mb-2">
+                                                                                <h5 class="font-medium text-stone-800 dark:text-stone-200">
+                                                                                    Component #{{ $loop->iteration }}
+                                                                                </h5>
+                                                                                @if (count(array_filter($batch['components'], fn($c) => !($c['_destroy'] ?? false))) > 1)
+                                                                                    <flux:button type="button" variant="danger" size="xs" wire:click.prevent="removeComponent({{ $batchIndex }}, {{ $componentIndex }})">
+                                                                                        <x-flux::icon.trash class="h-4 w-4" />
+                                                                                    </flux:button>
+                                                                                @endif
+                                                                            </div>
+                                                                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" />
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                @endforeach
+
+                                                                <div class="text-center">
+                                                                    <flux:button type="button" variant="outline" wire:click.prevent="addComponent({{ $batchIndex }})" class="w-full">
+                                                                        <div class="flex items-center justify-center">
+                                                                            <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                                                            <span>Add Component</span>
+                                                                        </div>
+                                                                    </flux:button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                    
+                                    <div class="text-center">
+                                        <flux:button type="button" variant="outline" wire:click.prevent="$set('quantity', {{ $quantity + 1 }})" class="w-full">
+                                            <div class="flex items-center justify-center">
+                                                <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                                <span>Add Another Batch</span>
+                                            </div>
+                                        </flux:button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </form>
-
 
     <!-- Delete Confirmation Modal -->
     <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
