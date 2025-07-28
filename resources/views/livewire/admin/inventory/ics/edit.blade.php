@@ -1728,29 +1728,85 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
 
-                <!-- Column 3: Batches & Components -->
+                <!-- Column 3: Batches -->
                 <div class="space-y-6 lg:col-span-2 xl:col-span-1">
+                    <!-- Batches & Components -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches</h3>
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">
+                                Batches
+                            </h3>
                         </div>
                         <div class="p-4">
                             <div class="space-y-4">
                                 <div class="w-full">
-                                    <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
+                                    <x-quantity-input 
+                                        id="quantity"
+                                        wire:model.live="quantity" 
+                                        label="Total Quantity / Number of Batches" 
+                                        min="1" 
+                                        required 
+                                        class="w-full" 
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
+                                    />
                                     <x-input-error for="quantity" class="mt-2" />
+                                </div>
+                                
+                                <!-- Global settings for batches -->
+                                <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: true }">
+                                    <div class="flex items-center h-5">
+                                        <input id="auto-serial-numbers" x-model="autoSerialNumbers" type="checkbox" 
+                                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                            @change="$wire.set('batches', $wire.batches.map(batch => {
+                                                if (autoSerialNumbers) {
+                                                    // Add 'Serial Number: ' prefix if it doesn't exist
+                                                    if (!batch.identification_data || batch.identification_data.trim() === '') {
+                                                        batch.identification_data = 'Serial Number: ';
+                                                    }
+                                                } else {
+                                                    // Remove 'Serial Number: ' prefix if it exists
+                                                    if (batch.identification_data && batch.identification_data.startsWith('Serial Number: ')) {
+                                                        if (batch.identification_data === 'Serial Number: ' || batch.identification_data === 'Serial Number:') {
+                                                            batch.identification_data = '';
+                                                        } else {
+                                                            // Preserve any text after the prefix
+                                                            const userInput = batch.identification_data.substring('Serial Number: '.length).trim();
+                                                            batch.identification_data = userInput;
+                                                        }
+                                                    }
+                                                }
+                                                return batch;
+                                            }))"
+                                            @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }"
+                                            checked>
+                                    </div>
+                                    <label for="auto-serial-numbers" class="ms-2 text-sm font-medium text-stone-800 dark:text-stone-200">
+                                        Auto-populate "Serial Number: " field for all batches
+                                    </label>
                                 </div>
 
                                 <div class="space-y-6">
                                     @foreach ($batches as $batchIndex => $batch)
                                         @if (!($batch['_destroy'] ?? false))
-                                            <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{ expanded: true }">
+                                            <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{
+                                                expanded: true,
+                                                setDefaultSerial() {
+                                                    if (document.getElementById('auto-serial-numbers').checked && !@this.get('batches.{{ $batchIndex }}.identification_data')) {
+                                                        @this.set('batches.{{ $batchIndex }}.identification_data', 'Serial Number: ');
+                                                    }
+                                                }
+                                            }" x-init="setDefaultSerial()">
                                                 <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
                                                     <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
                                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
                                                             {{ $loop->iteration }}
                                                         </span>
                                                         <span>Batch #{{ $loop->iteration }}</span>
+                                                        @if ($isDesktopComputer)
+                                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300">
+                                                                Desktop Computer
+                                                            </span>
+                                                        @endif
                                                     </h4>
                                                     <div class="flex items-center space-x-2">
                                                         <button 
@@ -1770,32 +1826,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 </div>
                                                 
                                                 <div x-show="expanded" class="p-3">
-                                                    <!-- Identification Data -->
-                                                    <div class="mb-4">
-                                                        <flux:input 
-                                                            wire:model="batches.{{ $batchIndex }}.identification_data" 
-                                                            label="Serial Number/Asset Tag" 
-                                                            placeholder="Enter serial number, asset tag or other identifying info" />
+                                                    <!-- Identification Data (Serial number, Asset tag, etc.) -->
+                                                    <div>
+                                                        <div class="relative">
+                                                            <flux:input 
+                                                                id="{{ $batchIndex === 0 ? 'serial_number_0' : '' }}"
+                                                                wire:model="batches.{{ $batchIndex }}.identification_data" 
+                                                                label="Serial Number/Asset Tag" 
+                                                                placeholder="Enter serial number, asset tag or other identifying info" 
+                                                                tabindex="{{ 10 + ((int) $batchIndex * 100) }}"
+                                                                @focus="if ($el.value === 'Serial Number: ') { $el.select(); }" />
+                                                        </div>
                                                     </div>
 
-                                                    <!-- Components Section -->
-                                                    @if(!empty($batch['components']) && count(array_filter($batch['components'], fn($c) => !($c['_destroy'] ?? false))) > 0)
-                                                        <div x-data="{ showComponents: true }">
-                                                            <div class="border-t border-stone-200 pt-3 dark:border-stone-700">
-                                                                <flux:button 
-                                                                    type="button" 
-                                                                    variant="outline" 
-                                                                    size="sm" 
-                                                                    @click="showComponents = !showComponents"
-                                                                    class="w-full flex justify-between items-center mb-3"
-                                                                >
-                                                                    <span>Batch Components</span>
-                                                                    <span x-show="!showComponents"><x-flux::icon.chevron-down class="h-4 w-4" /></span>
-                                                                    <span x-show="showComponents"><x-flux::icon.chevron-up class="h-4 w-4" /></span>
-                                                                </flux:button>
-                                                            </div>
-                                                            
-                                                            <div x-show="showComponents" class="space-y-4">
+                                                @if ($isDesktopComputer)
+                                                    <div x-data="{ showComponents: true }">
+                                                        <div class="mt-4 border-t border-stone-200 pt-3 dark:border-stone-700">
+                                                            <flux:button 
+                                                                type="button" 
+                                                                variant="outline" 
+                                                                size="sm" 
+                                                                @click="showComponents = !showComponents"
+                                                                class="w-full flex justify-between items-center"
+                                                            >
+                                                                <span>Batch Components</span>
+                                                                <span x-show="!showComponents"><x-flux::icon.chevron-down class="h-4 w-4" /></span>
+                                                                <span x-show="showComponents"><x-flux::icon.chevron-up class="h-4 w-4" /></span>
+                                                            </flux:button>
+                                                        </div>
+                                                        
+                                                        <div x-show="showComponents" class="mt-3">
+                                                            <div class="space-y-4">
                                                                 @foreach ($batch['components'] as $componentIndex => $component)
                                                                     @if (!($component['_destroy'] ?? false))
                                                                         <div wire:key="component-{{ $batchIndex }}-{{ $componentIndex }}" class="relative rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-600 dark:bg-stone-700">
@@ -1810,32 +1871,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                                                 @endif
                                                                             </div>
                                                                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" />
-                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" />
-                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" />
-                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" required tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
+                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.component_type'" class="mt-2" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" />
+                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.serial_number'" class="mt-2" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" />
+                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.brand'" class="mt-2" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" />
+                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.model'" class="mt-2" />
                                                                             </div>
                                                                         </div>
                                                                     @endif
                                                                 @endforeach
+                                                            </div>
 
-                                                                <div class="text-center">
-                                                                    <flux:button type="button" variant="outline" wire:click.prevent="addComponent({{ $batchIndex }})" class="w-full">
-                                                                        <div class="flex items-center justify-center">
-                                                                            <x-flux::icon.plus class="mr-2 h-4 w-4" />
-                                                                            <span>Add Component</span>
-                                                                        </div>
-                                                                    </flux:button>
-                                                                </div>
+                                                            <div class="mt-4 text-center">
+                                                                <flux:button type="button" variant="outline" wire:click.prevent="addComponent({{ $batchIndex }})" class="w-full">
+                                                                    <div class="flex items-center justify-center">
+                                                                        <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                                                        <span>Add Component</span>
+                                                                    </div>
+                                                                </flux:button>
                                                             </div>
                                                         </div>
-                                                    @endif
+                                                    </div>
+                                                @endif
                                                 </div>
                                             </div>
                                         @endif
                                     @endforeach
                                     
-                                    <div class="text-center">
+                                    <div class="mt-4 text-center">
                                         <flux:button type="button" variant="outline" wire:click.prevent="$set('quantity', {{ $quantity + 1 }})" class="w-full">
                                             <div class="flex items-center justify-center">
                                                 <x-flux::icon.plus class="mr-2 h-4 w-4" />
@@ -1959,6 +2025,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         @this.on('focus-date-accepted', () => focusOn('date_accepted'));
         @this.on('focus-remarks', () => focusOn('remarks'));
         @this.on('focus-quantity', () => focusOn('quantity', true));
+        @this.on('focus-auto-populate', () => focusOn('auto-serial-numbers'));
+        @this.on('focus-serial-number', () => focusOn('serial_number_0'));
         
         // Skip focus on ICS Number input by redirecting immediately to estimated useful life
         const icsField = document.getElementById('ics_number_input');
@@ -1968,6 +2036,20 @@ new #[Layout('components.layouts.app')] class extends Component {
         
         // Automatically focus Supplier field on initial load
         focusOn('supplier_search');
+        
+        // Handle automatically adding serial number prefix to new batches
+        @this.on('batch-added', () => {
+            const autoSerialCheckbox = document.getElementById('auto-serial-numbers');
+            if (autoSerialCheckbox && autoSerialCheckbox.checked) {
+                const batchesLength = @this.batches.length;
+                if (batchesLength > 0) {
+                    const lastBatchIndex = batchesLength - 1;
+                    if (!@this.batches[lastBatchIndex].identification_data) {
+                        @this.set(`batches.${lastBatchIndex}.identification_data`, 'Serial Number: ');
+                    }
+                }
+            }
+        });
     });
 </script>
 @endscript 
