@@ -69,6 +69,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
             Volt::route('idr', 'admin.inventory.idr.index')->name('idr.index');
             Volt::route('idr/{idrNumber}', 'admin.inventory.idr.show')->name('idr.show');
             Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
+            Volt::route('consumables/details', 'admin.inventory.consumables.details')->name('consumables.details');
         });
 
         Route::middleware([HasAdminPermission::class.':create_inventory'])->group(function () {

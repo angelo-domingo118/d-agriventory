@@ -22,25 +22,24 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $filterArticle = '';
 
     // Sorting properties
-    public string $sortColumn = 'division_name';
+    public string $sortColumn = 'item_name';
     public string $sortDirection = 'asc';
 
     // Column visibility properties
     public array $columns;
     public array $columnGroups = [
         'details' => [
-            'label' => 'Division Details',
+            'label' => 'Item Details',
             'columns' => [
-                'division_code' => 'Division Code',
-                'total_items' => 'Total Items',
+                'brand_model' => 'Brand/Model',
+                'specifications' => 'Specifications',
             ],
         ],
         'quantity' => [
-            'label' => 'Quantity Summary',
+            'label' => 'Quantity',
             'columns' => [
-                'total_initial' => 'Total Initial',
-                'total_current' => 'Total Available',
-                'utilization_rate' => 'Utilization Rate',
+                'initial_quantity' => 'Initial Quantity',
+                'unit' => 'Unit',
             ],
         ],
     ];
@@ -56,8 +55,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (! auth()->user()->hasAdminPermission('view_inventory') && ! auth()->user()->isDivisionInventoryManager()) {
             abort(403);
         }
-        $this->view = session('consumables_view_mode', 'table');
-        $this->density = session('consumables_density', 'spacious');
+        $this->view = session('consumables_details_view_mode', 'table');
+        $this->density = session('consumables_details_density', 'spacious');
 
         $defaultColumns = [];
         foreach ($this->columnGroups as $group) {
@@ -65,24 +64,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $defaultColumns[$key] = true;
             }
         }
-        $this->columns = session('consumables_column_visibility', $defaultColumns);
+        $this->columns = session('consumables_details_column_visibility', $defaultColumns);
+
+        // Set filter from URL parameter if provided
+        if (request()->has('filterDivisionId')) {
+            $this->filterDivisionId = (int) request('filterDivisionId');
+        }
     }
 
     public function updatedColumns($value, $key): void
     {
-        session(['consumables_column_visibility' => $this->columns]);
+        session(['consumables_details_column_visibility' => $this->columns]);
     }
 
     public function setView(string $view): void
     {
         $this->view = $view;
-        session(['consumables_view_mode' => $view]);
+        session(['consumables_details_view_mode' => $view]);
     }
 
     public function setDensity(string $density): void
     {
         $this->density = $density;
-        session(['consumables_density' => $density]);
+        session(['consumables_details_density' => $density]);
     }
 
     public function sortBy(string $column): void
@@ -108,63 +112,54 @@ new #[Layout('components.layouts.app')] class extends Component {
         
         $user = auth()->user();
 
-        $query = Division::query()
-            ->leftJoin('consumable_records', 'divisions.id', '=', 'consumable_records.division_id')
-            ->leftJoin('consumable_items', 'consumable_records.id', '=', 'consumable_items.consumable_record_id')
-            ->leftJoin('item_specifications', 'consumable_items.item_specification_id', '=', 'item_specifications.id')
-            ->leftJoin('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
+        $query = ConsumableItem::query()
+            ->join('consumable_records', 'consumable_items.consumable_record_id', '=', 'consumable_records.id')
+            ->join('divisions', 'consumable_records.division_id', '=', 'divisions.id')
+            ->join('item_specifications', 'consumable_items.item_specification_id', '=', 'item_specifications.id')
+            ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
             ->select(
+                'items_catalog.name as item_name',
+                'items_catalog.unit',
+                'item_specifications.id as spec_id',
+                'item_specifications.brand',
+                'item_specifications.model',
+                'item_specifications.detailed_specifications',
                 'divisions.id as division_id',
                 'divisions.name as division_name',
-                'divisions.code as division_code',
-                DB::raw('COUNT(DISTINCT CASE WHEN consumable_items.id IS NOT NULL THEN CONCAT(item_specifications.id, "-", items_catalog.id) END) as total_items'),
-                DB::raw('COALESCE(SUM(consumable_items.initial_quantity), 0) as total_initial_quantity'),
-                DB::raw('COALESCE(SUM(consumable_items.current_quantity), 0) as total_current_quantity'),
-                DB::raw('CASE 
-                    WHEN COALESCE(SUM(consumable_items.initial_quantity), 0) > 0 
-                    THEN ROUND((1 - COALESCE(SUM(consumable_items.current_quantity), 0) / COALESCE(SUM(consumable_items.initial_quantity), 1)) * 100, 2)
-                    ELSE 0 
-                END as utilization_rate')
+                DB::raw('SUM(consumable_items.initial_quantity) as total_initial_quantity'),
+                DB::raw('SUM(consumable_items.current_quantity) as total_current_quantity')
             )
-            ->groupBy('divisions.id', 'divisions.name', 'divisions.code');
+            ->groupBy(
+                'items_catalog.name',
+                'items_catalog.unit',
+                'item_specifications.id',
+                'item_specifications.brand',
+                'item_specifications.model',
+                'item_specifications.detailed_specifications',
+                'divisions.id',
+                'divisions.name'
+            );
 
-        $query->when($this->search, function ($query) use ($lowerSearch) {
-            $query->where(function ($q) use ($lowerSearch) {
-                $q->where(DB::raw('LOWER(divisions.name)'), 'like', '%'.$lowerSearch.'%')
-                    ->orWhere(DB::raw('LOWER(divisions.code)'), 'like', '%'.$lowerSearch.'%')
-                    ->orWhereExists(function ($subquery) use ($lowerSearch) {
-                        $subquery->select(DB::raw(1))
-                            ->from('consumable_records')
-                            ->join('consumable_items', 'consumable_records.id', '=', 'consumable_items.consumable_record_id')
-                            ->join('item_specifications', 'consumable_items.item_specification_id', '=', 'item_specifications.id')
-                            ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
-                            ->whereColumn('consumable_records.division_id', 'divisions.id')
-                            ->where(function ($itemQuery) use ($lowerSearch) {
-                                $itemQuery->where(DB::raw('LOWER(items_catalog.name)'), 'like', '%'.$lowerSearch.'%')
-                                    ->orWhere(DB::raw('LOWER(item_specifications.brand)'), 'like', '%'.$lowerSearch.'%')
-                                    ->orWhere(DB::raw('LOWER(item_specifications.model)'), 'like', '%'.$lowerSearch.'%');
-                            });
-                    });
-            });
-        });
-
-        $query->when($this->filterArticle, function ($query) use ($lowerSearch) {
-            $query->whereExists(function ($subquery) use ($lowerSearch) {
-                $subquery->select(DB::raw(1))
-                    ->from('consumable_records')
-                    ->join('consumable_items', 'consumable_records.id', '=', 'consumable_items.consumable_record_id')
-                    ->join('item_specifications', 'consumable_items.item_specification_id', '=', 'item_specifications.id')
-                    ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
-                    ->whereColumn('consumable_records.division_id', 'divisions.id')
-                    ->where(function ($itemQuery) use ($lowerSearch) {
-                        $itemQuery->where(DB::raw('LOWER(items_catalog.name)'), 'like', '%'.$lowerSearch.'%')
-                            ->orWhere(DB::raw('LOWER(item_specifications.brand)'), 'like', '%'.$lowerSearch.'%')
-                            ->orWhere(DB::raw('LOWER(item_specifications.model)'), 'like', '%'.$lowerSearch.'%');
-                    });
-            });
-        });
-
-        $query->when($this->filterDivisionId, fn ($q) => $q->where('divisions.id', $this->filterDivisionId));
+        $query
+            ->when($this->search, function ($query) use ($lowerSearch) {
+                $query->where(function ($q) use ($lowerSearch) {
+                    $q->where(DB::raw('LOWER(items_catalog.name)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.brand)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.model)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.detailed_specifications)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(divisions.name)'), 'like', '%'.$lowerSearch.'%');
+                });
+            })
+            ->when($this->filterArticle, function ($query, $search) {
+                $lowerSearch = strtolower($search);
+                $query->where(function ($q) use ($lowerSearch) {
+                    $q->where(DB::raw('LOWER(items_catalog.name)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.brand)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.model)'), 'like', '%'.$lowerSearch.'%')
+                        ->orWhere(DB::raw('LOWER(item_specifications.detailed_specifications)'), 'like', '%'.$lowerSearch.'%');
+                });
+            })
+            ->when($this->filterDivisionId, fn ($q) => $q->where('divisions.id', $this->filterDivisionId));
 
         if ($user->isDivisionInventoryManager()) {
             $query->where('divisions.id', $user->divisionInventoryManager->division_id);
@@ -200,15 +195,15 @@ new #[Layout('components.layouts.app')] class extends Component {
 <div x-data="{
     showFilters: @entangle('showFilters'),
     defaultWidths: {
-        division: 350,
-        details: 200,
-        quantity: 300,
+        article: 450,
+        division: 250,
+        quantity: 250,
         actions: 120
     },
     columnWidths: {},
     resetColumnWidths() {
         this.columnWidths = { ...this.defaultWidths };
-        localStorage.removeItem('consumables_column_widths');
+        localStorage.removeItem('consumables_details_column_widths');
     },
     resizingColumn: null,
     startX: 0,
@@ -231,7 +226,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         const mouseUpHandler = () => {
             if (!this.resizingColumn) return;
             this.resizingColumn = null;
-            localStorage.setItem('consumables_column_widths', JSON.stringify(this.columnWidths));
+            localStorage.setItem('consumables_details_column_widths', JSON.stringify(this.columnWidths));
             window.removeEventListener('mousemove', mouseMoveHandler);
             window.removeEventListener('mouseup', mouseUpHandler);
         };
@@ -240,13 +235,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         window.addEventListener('mouseup', mouseUpHandler);
     }
 }" x-init="
-    const storedWidths = JSON.parse(localStorage.getItem('consumables_column_widths') || '{}');
+    const storedWidths = JSON.parse(localStorage.getItem('consumables_details_column_widths') || '{}');
     columnWidths = { ...defaultWidths, ...storedWidths };
 ">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            Consumables by Division
-        </h1>
+        <div class="flex items-center gap-x-4">
+            <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                Detailed Consumables Inventory
+            </h1>
+            <flux:button 
+                variant="ghost" 
+                :href="route('admin.inventory.consumables.index')" 
+                wire:navigate
+                class="text-sm"
+            >
+                <x-flux::icon.arrow-left class="mr-2 h-4 w-4" />
+                Back to Division View
+            </flux:button>
+        </div>
         <div class="flex items-center gap-x-2">
             <div x-data="{ open: false }" class="relative">
                 <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
@@ -335,7 +341,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="p-4">
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="sm:col-span-2 lg:col-span-4">
-                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Items / Description" placeholder="Search for items in divisions..." />
+                        <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." />
                     </div>
                     @if(auth()->user()->isAdmin())
                     <div class="lg:col-span-2">
@@ -360,15 +366,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4 flex items-center justify-between">
         <div class="text-sm text-stone-600 dark:text-stone-400">
             @if ($this->consumables->total() > 0)
-                <span>Showing {{ $this->consumables->firstItem() }} to {{ $this->consumables->lastItem() }} of <strong>{{ $this->consumables->total() }}</strong> divisions.</span>
+                <span>Showing {{ $this->consumables->firstItem() }} to {{ $this->consumables->lastItem() }} of <strong>{{ $this->consumables->total() }}</strong> items.</span>
             @else
-                <span>No divisions found.</span>
+                <span>No items found.</span>
             @endif
         </div>
         <div class="w-full max-w-xs">
             <flux:input
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search divisions..."
+                placeholder="Search anything..."
                 icon="magnifying-glass"
                 clearable
             />
@@ -441,7 +447,22 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
                         <thead class="bg-stone-50 dark:bg-stone-800">
                             <tr>
-                                <th scope="col" :style="`width: ${columnWidths.division}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                <th scope="col" :style="`width: ${columnWidths.article}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
+                                    <div wire:click="sortBy('item_name')" class="flex items-center cursor-pointer">
+                                        Article & Description
+                                        @if($sortColumn === 'item_name')
+                                        @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                        @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                        @endif
+                                        @else
+                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                        @endif
+                                    </div>
+                                    <div @mousedown="startResize($event, 'article')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                </th>
+                                <th scope="col" :style="`width: ${columnWidths.division}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
                                     <div wire:click="sortBy('division_name')" class="flex items-center cursor-pointer">
                                         Division
                                         @if($sortColumn === 'division_name')
@@ -456,24 +477,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                     <div @mousedown="startResize($event, 'division')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" :style="`width: ${columnWidths.details}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                    <div wire:click="sortBy('total_items')" class="flex items-center cursor-pointer">
-                                        Details
-                                        @if($sortColumn === 'total_items')
-                                        @if($sortDirection === 'asc')
-                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
-                                        @else
-                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
-                                        @endif
-                                        @else
-                                        <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                        @endif
-                                    </div>
-                                    <div @mousedown="startResize($event, 'details')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                </th>
                                 <th scope="col" :style="`width: ${columnWidths.quantity}px`" class="relative hidden {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 px-3 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100 lg:table-cell">
                                     <div wire:click="sortBy('total_current_quantity')" class="flex items-center cursor-pointer">
-                                        Inventory Summary
+                                        Quantity
                                         @if($sortColumn === 'total_current_quantity')
                                         @if($sortDirection === 'asc')
                                         <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
@@ -492,41 +498,47 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                            @forelse ($this->consumables as $division)
-                            <tr wire:key="division-{{ $division->division_id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                            @forelse ($this->consumables as $item)
+                            <tr wire:key="consumable-{{ $item->spec_id }}-{{ $item->division_id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                                 <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
                                     <div class="space-y-2">
                                         <div>
-                                            <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($division->division_name, $this->search) !!}</div>
-                                            @if ($this->columns['division_code'] && $densityClasses['show_secondary'] && $division->division_code)
+                                            <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($item->item_name, [$this->search, $this->filterArticle]) !!}</div>
+                                            @if ($this->columns['brand_model'] && $densityClasses['show_secondary'])
+                                            @if ($item->brand || $item->model)
                                             <div class="{{ $densityClasses['text_meta'] }} text-stone-500">
-                                                Code: {!! \App\Helpers\TextHelper::highlight($division->division_code, $this->search) !!}
+                                                {!! \App\Helpers\TextHelper::highlight(collect([$item->brand, $item->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
                                             </div>
                                             @endif
+                                            @endif
                                         </div>
+
+                                        @if ($this->columns['specifications'] && $densityClasses['show_tertiary'] && $item->detailed_specifications)
+                                        <div class="{{ $densityClasses['text_meta'] }}">
+                                            <div class="grid grid-cols-[auto_1fr] gap-x-2">
+                                                <span class="font-semibold uppercase text-stone-500 dark:text-stone-400">Description:</span>
+                                                <p class="text-stone-600 dark:text-stone-300 break-words">
+                                                    {!! \App\Helpers\TextHelper::highlight($item->detailed_specifications, [$this->search, $this->filterArticle]) !!}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
                                 </td>
 
                                 <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
-                                    @if ($this->columns['total_items'])
-                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{{ $division->total_items }} Items</div>
-                                    @endif
-                                    @if ($this->columns['utilization_rate'] && $densityClasses['show_secondary'])
-                                    <div class="mt-1 {{ $densityClasses['text_meta'] }} text-stone-600 dark:text-stone-400">
-                                        <span class="font-medium">Utilization:</span> {{ $division->utilization_rate }}%
-                                    </div>
-                                    @endif
+                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($item->division_name, $this->search) !!}</div>
                                 </td>
 
                                 <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} lg:table-cell border-r border-stone-300 dark:border-stone-700">
-                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{{ number_format($division->total_current_quantity) }} Available</div>
+                                    <div class="font-semibold text-stone-900 dark:text-stone-100">{{ $item->total_current_quantity }} Available</div>
                                     @if($densityClasses['show_secondary'])
                                     <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                        @if($this->columns['total_initial'])
-                                        <div><span class="font-medium">Initial:</span> {{ number_format($division->total_initial_quantity) }}</div>
+                                        @if($this->columns['initial_quantity'])
+                                        <div><span class="font-medium">Initial:</span> {{ $item->total_initial_quantity }}</div>
                                         @endif
-                                        @if($this->columns['total_current'])
-                                        <div><span class="font-medium">Consumed:</span> {{ number_format($division->total_initial_quantity - $division->total_current_quantity) }}</div>
+                                        @if($this->columns['unit'])
+                                        <div><span class="font-medium">Unit:</span> {{ $item->unit }}</div>
                                         @endif
                                     </div>
                                     @endif
@@ -534,15 +546,14 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                                 <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
                                     <div class="flex items-center justify-end gap-x-2">
-                                        <flux:button 
-                                            variant="ghost" 
-                                            :href="route('admin.inventory.consumables.details', ['filterDivisionId' => $division->division_id])" 
-                                            wire:navigate 
-                                            class="!p-2.5" 
-                                            title="View Division Items"
-                                        >
+                                        {{-- TODO: Implement view/details page for individual consumable items. Currently disabled as there's no dedicated page. --}}
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="View (Not yet implemented)">
                                             <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
-                                            View Items
+                                            View
+                                        </flux:button>
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (Not yet implemented)">
+                                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                            Edit
                                         </flux:button>
                                     </div>
                                 </td>
@@ -550,7 +561,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             @empty
                             <tr>
                                 <td colspan="4" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
-                                    No divisions found matching your criteria.
+                                    No consumable items found matching your criteria.
                                 </td>
                             </tr>
                             @endforelse
@@ -561,57 +572,51 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
         @elseif($view === 'card')
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $densityClasses['card_container'] }}">
-            @forelse ($this->consumables as $division)
-            <div wire:key="division-card-{{ $division->division_id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+            @forelse ($this->consumables as $item)
+            <div wire:key="consumable-card-{{ $item->spec_id }}-{{ $item->division_id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
                 <div class="{{ $densityClasses['card_padding'] }}">
                     <div class="flex items-start justify-between">
                         <div class="max-w-xs">
                             <p class="truncate {{ $densityClasses['text_base'] }} font-semibold text-stone-900 dark:text-stone-100">
-                                {!! \App\Helpers\TextHelper::highlight($division->division_name, $this->search) !!}
+                                {!! \App\Helpers\TextHelper::highlight($item->item_name, [$this->search, $this->filterArticle]) !!}
                             </p>
-                            @if ($densityClasses['show_secondary'] && $division->division_code)
+                            @if ($densityClasses['show_secondary'] && ($item->brand || $item->model))
                             <p class="{{ $densityClasses['text_meta'] }} text-stone-500">
-                                Code: {!! \App\Helpers\TextHelper::highlight($division->division_code, $this->search) !!}
+                                {!! \App\Helpers\TextHelper::highlight(collect([$item->brand, $item->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}
                             </p>
                             @endif
                         </div>
-                        <div class="text-right">
-                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                                {{ $division->utilization_rate }}% Used
-                            </span>
-                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Division</p>
+                        <p class="{{ $densityClasses['text_base'] }} font-medium text-stone-800 dark:text-stone-200">{!! \App\Helpers\TextHelper::highlight($item->division_name, $this->search) !!}</p>
                     </div>
 
                     <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 {{ $densityClasses['text_base'] }}">
                         <div>
-                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Items</dt>
-                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $division->total_items }}</dd>
-                        </div>
-                        <div>
                             <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Available</dt>
-                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ number_format($division->total_current_quantity) }}</dd>
+                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $item->total_current_quantity }}</dd>
                         </div>
                         <div>
                             <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Initial</dt>
-                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ number_format($division->total_initial_quantity) }}</dd>
+                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $item->total_initial_quantity }}</dd>
                         </div>
-                        <div>
-                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Consumed</dt>
-                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ number_format($division->total_initial_quantity - $division->total_current_quantity) }}</dd>
+                        <div class="col-span-2">
+                            <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Unit</dt>
+                            <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $item->unit }}</dd>
                         </div>
                     </dl>
                 </div>
                 <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
                     <div class="flex items-center justify-end gap-x-2">
-                        <flux:button 
-                            variant="ghost" 
-                            :href="route('admin.inventory.consumables.details', ['filterDivisionId' => $division->division_id])" 
-                            wire:navigate 
-                            class="!p-2.5" 
-                            title="View Division Items"
-                        >
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="View Details (coming soon)" aria-label="View Details (coming soon)">
                             <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
-                            View Items
+                            View
+                        </flux:button>
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (coming soon)" aria-label="Edit (coming soon)">
+                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                            Edit
                         </flux:button>
                     </div>
                 </div>
@@ -620,7 +625,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="sm:col-span-2 lg:col-span-3">
                 <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
                     <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">No Records Found</h3>
-                    <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No divisions found matching your criteria.</p>
+                    <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500">No consumable items found matching your criteria.</p>
                 </div>
             </div>
             @endforelse
@@ -630,4 +635,4 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4">
         {{ $this->consumables->links() }}
     </div>
-</div>
+</div> 
