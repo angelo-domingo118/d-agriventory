@@ -1190,7 +1190,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'item_search' => 'required|string|max:255',
             'primary_category_id' => 'required|exists:primary_categories,id',
             'secondary_category_id' => 'required|exists:secondary_categories,id',
-            'unit_price' => 'required|numeric|min:0.01',
+            'unit_price' => 'required|numeric|gt:0',
         ]);
 
         // This is complex. When creating a new item, we need a catalog entry,
@@ -1225,7 +1225,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
             'quantity' => 'required|integer|min:1',
-            'unit_price' => 'required|numeric|min:0.01',
+            'unit_price' => 'required|numeric|gt:0',
             'unit_of_measure' => 'required|string|max:50',
             'estimated_useful_life' => 'nullable|integer|min:1',
             'date_prepared' => 'required|date',
@@ -1277,6 +1277,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'unit_of_measure.required' => 'The "Unit of Measure" field is required.',
             'quantity.min' => 'The quantity must be at least 1.',
             'quantity.integer' => 'The quantity must be a whole number.',
+            'unit_price.gt' => 'The "Unit Cost" must be greater than zero.',
         ];
 
         $this->validate($rules, $messages);
