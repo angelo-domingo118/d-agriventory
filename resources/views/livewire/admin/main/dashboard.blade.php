@@ -165,6 +165,128 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function inventoryValueOverTime(): array
+    {
+        return Cache::remember('admin.dashboard.inventory_value_over_time', now()->addMinutes(10), function () {
+            $months = [];
+            $currentDate = now();
+            
+            // Get data for the last 12 months
+            for ($i = 11; $i >= 0; $i--) {
+                $targetDate = $currentDate->copy()->subMonths($i);
+                $monthKey = $targetDate->format('Y-m');
+                $monthLabel = $targetDate->format('M Y');
+                
+                // Calculate ICS value for this month
+                $icsValue = IcsNumber::join('contract_items', 'ics_number.contract_item_id', '=', 'contract_items.id')
+                    ->where('ics_number.created_at', '<=', $targetDate->endOfMonth())
+                    ->sum(DB::raw('ics_number.quantity * contract_items.unit_price'));
+                
+                // Calculate PAR value for this month
+                $parValue = ParNumber::join('contract_items', 'par_number.contract_item_id', '=', 'contract_items.id')
+                    ->where('par_number.created_at', '<=', $targetDate->endOfMonth())
+                    ->sum(DB::raw('par_number.quantity * contract_items.unit_price'));
+                
+                // Calculate IDR value for this month
+                $idrValue = IdrNumber::join('contract_items', 'idr_number.contract_item_id', '=', 'contract_items.id')
+                    ->where('idr_number.created_at', '<=', $targetDate->endOfMonth())
+                    ->sum(DB::raw('idr_number.quantity * contract_items.unit_price'));
+                
+                // Calculate Consumable value for this month
+                $avgPrices = ContractItem::query()
+                    ->select('item_specification_id', DB::raw('AVG(unit_price) as average_price'))
+                    ->groupBy('item_specification_id');
+
+                $consumableValue = DB::table('consumable_items')
+                    ->joinSub($avgPrices, 'avg_prices', function ($join) {
+                        $join->on('consumable_items.item_specification_id', '=', 'avg_prices.item_specification_id');
+                    })
+                    ->join('consumable_records', 'consumable_items.consumable_record_id', '=', 'consumable_records.id')
+                    ->where('consumable_records.created_at', '<=', $targetDate->endOfMonth())
+                    ->sum(DB::raw('consumable_items.current_quantity * avg_prices.average_price'));
+                
+                $totalValue = $icsValue + $parValue + $idrValue + $consumableValue;
+                
+                $months[] = [
+                    'month' => $monthLabel,
+                    'value' => round($totalValue / 1000000, 2), // Convert to millions
+                    'ics' => round($icsValue / 1000000, 2),
+                    'par' => round($parValue / 1000000, 2),
+                    'idr' => round($idrValue / 1000000, 2),
+                    'consumables' => round($consumableValue / 1000000, 2),
+                ];
+            }
+            
+            return $months;
+        });
+    }
+
+    #[Computed]
+    public function categoryDistribution(): array
+    {
+        return Cache::remember('admin.dashboard.category_distribution', now()->addMinutes(10), function () {
+            $categories = PrimaryCategory::all();
+            $data = [];
+            $totalItems = 0;
+            
+            foreach ($categories as $category) {
+                // Count items across all inventory types for this category
+                $icsCount = DB::table('ics_number')
+                    ->join('contract_items', 'ics_number.contract_item_id', '=', 'contract_items.id')
+                    ->join('item_specifications', 'contract_items.item_specification_id', '=', 'item_specifications.id')
+                    ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
+                    ->join('secondary_categories', 'items_catalog.secondary_category_id', '=', 'secondary_categories.id')
+                    ->where('secondary_categories.primary_category_id', $category->id)
+                    ->sum('ics_number.quantity');
+                
+                $parCount = DB::table('par_number')
+                    ->join('contract_items', 'par_number.contract_item_id', '=', 'contract_items.id')
+                    ->join('item_specifications', 'contract_items.item_specification_id', '=', 'item_specifications.id')
+                    ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
+                    ->join('secondary_categories', 'items_catalog.secondary_category_id', '=', 'secondary_categories.id')
+                    ->where('secondary_categories.primary_category_id', $category->id)
+                    ->sum('par_number.quantity');
+                
+                $idrCount = DB::table('idr_number')
+                    ->join('contract_items', 'idr_number.contract_item_id', '=', 'contract_items.id')
+                    ->join('item_specifications', 'contract_items.item_specification_id', '=', 'item_specifications.id')
+                    ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
+                    ->join('secondary_categories', 'items_catalog.secondary_category_id', '=', 'secondary_categories.id')
+                    ->where('secondary_categories.primary_category_id', $category->id)
+                    ->sum('idr_number.quantity');
+                
+                $consumableCount = DB::table('consumable_items')
+                    ->join('item_specifications', 'consumable_items.item_specification_id', '=', 'item_specifications.id')
+                    ->join('items_catalog', 'item_specifications.item_catalog_id', '=', 'items_catalog.id')
+                    ->join('secondary_categories', 'items_catalog.secondary_category_id', '=', 'secondary_categories.id')
+                    ->where('secondary_categories.primary_category_id', $category->id)
+                    ->sum('consumable_items.current_quantity');
+                
+                $categoryTotal = $icsCount + $parCount + $idrCount + $consumableCount;
+                $totalItems += $categoryTotal;
+                
+                if ($categoryTotal > 0) {
+                    $data[] = [
+                        'name' => $category->name,
+                        'count' => $categoryTotal,
+                        'code' => $category->code,
+                    ];
+                }
+            }
+            
+            // Calculate percentages
+            foreach ($data as &$item) {
+                $item['percentage'] = $totalItems > 0 ? round(($item['count'] / $totalItems) * 100, 1) : 0;
+            }
+            
+            // Sort by count descending
+            usort($data, fn($a, $b) => $b['count'] <=> $a['count']);
+            
+            return $data;
+        });
+    }
+
+    #[Computed]
     public function divisionInventory(): array
     {
         return Cache::remember('admin.dashboard.division_inventory', now()->addMinutes(5), function () {
@@ -524,25 +646,260 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div>
         <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">Analytics & Reports</h2>
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <!-- TODO: [TICKET-XYZ] Implement chart functionality. -->
             <!-- Chart 1: Inventory Value Over Time -->
             <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300">Inventory Value Over Time</h3>
-                <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                    <p class="text-stone-500 dark:text-stone-400">Chart will be displayed here</p>
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Inventory Value Over Time</h3>
+                <div class="relative">
+                    <!-- Line Chart Container -->
+                    <div id="line-chart" class="h-64 relative">
+                        <canvas id="line-chart-canvas" class="w-full h-full"></canvas>
+                        <!-- Chart Legend -->
+                        <div class="flex flex-wrap justify-center mt-3 gap-4 text-xs">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                                <span class="text-stone-600 dark:text-stone-400">Total Value</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                                <span class="text-stone-600 dark:text-stone-400">ICS</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></div>
+                                <span class="text-stone-600 dark:text-stone-400">PAR</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-purple-500 rounded-full mr-1"></div>
+                                <span class="text-stone-600 dark:text-stone-400">IDR</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                                <span class="text-stone-600 dark:text-stone-400">Consumables</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- TODO: [TICKET-XYZ] Implement chart functionality. -->
             <!-- Chart 2: Item Distribution by Category -->
             <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300">Item Distribution by Category</h3>
-                <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                    <p class="text-stone-500 dark:text-stone-400">Pie chart will be displayed here</p>
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Item Distribution by Category</h3>
+                <div class="flex items-center justify-center">
+                    <!-- Donut Chart Container -->
+                    <div id="donut-chart" class="relative">
+                        <canvas id="donut-chart-canvas" width="200" height="200"></canvas>
+                        <!-- Center Text -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-stone-800 dark:text-stone-200" id="total-items">{{ array_sum(array_column($this->categoryDistribution, 'count')) }}</div>
+                                <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Legend -->
+                    <div class="ml-6 space-y-2">
+                        @foreach($this->categoryDistribution as $index => $category)
+                            <div class="flex items-center text-sm">
+                                <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'][$index % 8] }}"></div>
+                                <span class="text-stone-700 dark:text-stone-300">{{ $category['name'] }}</span>
+                                <span class="ml-auto text-stone-500 dark:text-stone-400">{{ $category['percentage'] }}%</span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Custom Styles and Scripts for Charts -->
+    <style>
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .chart-tooltip.show {
+            opacity: 1;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Line Chart Data
+            const lineChartData = @json($this->inventoryValueOverTime);
+            
+            // Category Distribution Data
+            const categoryData = @json($this->categoryDistribution);
+            
+            // Draw Line Chart
+            function drawLineChart() {
+                const canvas = document.getElementById('line-chart-canvas');
+                const ctx = canvas.getContext('2d');
+                const container = canvas.parentElement;
+                
+                // Set canvas size
+                canvas.width = container.clientWidth;
+                canvas.height = 256;
+                
+                const padding = 60;
+                const chartWidth = canvas.width - (padding * 2);
+                const chartHeight = canvas.height - (padding * 2);
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (lineChartData.length === 0) return;
+                
+                // Find max value for scaling
+                const maxValue = Math.max(...lineChartData.map(d => Math.max(d.value, d.ics, d.par, d.idr, d.consumables)));
+                const minValue = 0;
+                
+                // Draw grid lines and labels
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-200') || '#e5e7eb';
+                ctx.lineWidth = 1;
+                ctx.font = '12px system-ui';
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-500') || '#6b7280';
+                
+                // Vertical grid lines and month labels
+                for (let i = 0; i <= lineChartData.length - 1; i++) {
+                    const x = padding + (i * chartWidth / (lineChartData.length - 1));
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, padding + chartHeight);
+                    ctx.stroke();
+                    
+                    // Month labels
+                    ctx.textAlign = 'center';
+                    ctx.fillText(lineChartData[i].month, x, canvas.height - 20);
+                }
+                
+                // Horizontal grid lines and value labels
+                const gridLines = 5;
+                for (let i = 0; i <= gridLines; i++) {
+                    const y = padding + (i * chartHeight / gridLines);
+                    const value = maxValue - (i * maxValue / gridLines);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(padding + chartWidth, y);
+                    ctx.stroke();
+                    
+                    // Value labels
+                    ctx.textAlign = 'right';
+                    ctx.fillText('₱' + value.toFixed(1) + 'M', padding - 10, y + 4);
+                }
+                
+                // Draw lines
+                const lines = [
+                    { key: 'value', color: '#3B82F6', width: 3 },
+                    { key: 'ics', color: '#10B981', width: 2 },
+                    { key: 'par', color: '#F59E0B', width: 2 },
+                    { key: 'idr', color: '#8B5CF6', width: 2 },
+                    { key: 'consumables', color: '#EF4444', width: 2 }
+                ];
+                
+                lines.forEach(line => {
+                    ctx.strokeStyle = line.color;
+                    ctx.lineWidth = line.width;
+                    ctx.beginPath();
+                    
+                    lineChartData.forEach((data, index) => {
+                        const x = padding + (index * chartWidth / (lineChartData.length - 1));
+                        const y = padding + chartHeight - ((data[line.key] / maxValue) * chartHeight);
+                        
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    
+                    ctx.stroke();
+                    
+                    // Draw points
+                    if (line.key === 'value') {
+                        ctx.fillStyle = line.color;
+                        lineChartData.forEach((data, index) => {
+                            const x = padding + (index * chartWidth / (lineChartData.length - 1));
+                            const y = padding + chartHeight - ((data[line.key] / maxValue) * chartHeight);
+                            
+                            ctx.beginPath();
+                            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                            ctx.fill();
+                        });
+                    }
+                });
+            }
+            
+            // Draw Donut Chart
+            function drawDonutChart() {
+                const canvas = document.getElementById('donut-chart-canvas');
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const outerRadius = 80;
+                const innerRadius = 50;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (categoryData.length === 0) return;
+                
+                const total = categoryData.reduce((sum, item) => sum + item.count, 0);
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+                
+                let currentAngle = -Math.PI / 2; // Start from top
+                
+                categoryData.forEach((item, index) => {
+                    const sliceAngle = (item.count / total) * 2 * Math.PI;
+                    const color = colors[index % colors.length];
+                    
+                    // Draw slice
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, outerRadius, currentAngle, currentAngle + sliceAngle);
+                    ctx.arc(centerX, centerY, innerRadius, currentAngle + sliceAngle, currentAngle, true);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    currentAngle += sliceAngle;
+                });
+            }
+            
+            // Initial draw
+            drawLineChart();
+            drawDonutChart();
+            
+            // Redraw on window resize
+            window.addEventListener('resize', function() {
+                setTimeout(() => {
+                    drawLineChart();
+                    drawDonutChart();
+                }, 100);
+            });
+            
+            // Redraw when Livewire updates
+            window.addEventListener('livewire:load', function() {
+                drawLineChart();
+                drawDonutChart();
+            });
+            
+            document.addEventListener('livewire:update', function() {
+                setTimeout(() => {
+                    drawLineChart();
+                    drawDonutChart();
+                }, 100);
+            });
+        });
+    </script>
 
     <!-- Tabs -->
     <div class="border-b border-stone-200 dark:border-stone-700">
