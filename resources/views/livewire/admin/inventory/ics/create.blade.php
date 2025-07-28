@@ -1393,7 +1393,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <form wire:submit="store" novalidate>
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
+    <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
@@ -1418,18 +1418,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-4">
-        <!-- Main Content -->
-        <div class="lg:col-span-3">
-            <div class="space-y-8">
-                <!-- Supplier & Contract Details -->
+    <div class="mt-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <!-- Column 1: Item Information -->
+            <div class="space-y-6">
+                <!-- Supplier & Contract Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract Information</h3>
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
                     </div>
-                    <div class="p-6">
-                        <div class="space-y-6">
-                            <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                             <div>
                                 <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" />
                                 @error('supplier_id')
@@ -1472,15 +1471,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Item & Contract Details -->
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
-            </div>
-            <div class="p-6">
+                <!-- Item Information Section -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
+                    </div>
+                    <div class="p-4">
                         <div class="space-y-4">
                             <!-- Item Catalog Selection -->
                             <div>
@@ -1731,15 +1728,176 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
             </div>
 
+            <!-- Column 2: Supplier, Contract, and Details -->
+            <div class="space-y-6">
+                <!-- Employee Assignment Section -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
+                    </div>
+                    <div class="p-4">
+                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                        @error('assigned_employee_id')
+                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                        @enderror
+                        @if ($creating_new_employee)
+                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                </svg>
+                                <span class="font-medium">New employee will be created upon saving.</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
 
+                <!-- Document Details -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800"
+                    x-data="{
+                        formatDate(event) {
+                            let value = event.target.value.replace(/\D/g, '');
+                            if (value.length > 8) {
+                                value = value.substring(0, 8);
+                            }
 
+                            let month = value.substring(0, 2);
+                            let day = value.substring(2, 4);
+                            let year = value.substring(4, 8);
 
+                            if (month.length === 2) {
+                                let monthInt = parseInt(month, 10);
+                                if (monthInt > 12) month = '12';
+                                else if (monthInt === 0) month = '01';
+                            }
+
+                            if (day.length === 2 && month.length === 2) {
+                                let dayInt = parseInt(day, 10);
+                                let monthInt = parseInt(month, 10);
+                                let yearInt = year.length === 4 ? parseInt(year, 10) : new Date().getFullYear();
+                                
+                                let maxDaysInMonth = new Date(yearInt, monthInt, 0).getDate();
+
+                                if (dayInt > maxDaysInMonth) {
+                                    day = maxDaysInMonth.toString();
+                                } else if (dayInt === 0) {
+                                    day = '01';
+                                }
+                            }
+                            
+                            value = month + day + year;
+                            
+                            let formattedValue = '';
+                            if (value.length > 4) {
+                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}/${value.substring(4, 8)}`;
+                            } else if (value.length > 2) {
+                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}`;
+                            } else {
+                                formattedValue = value;
+                            }
+
+                            event.target.value = formattedValue;
+                        }
+                    }">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
+                    </div>
+                    <div class="space-y-4 p-4">
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input 
+                                    id="ics_number_input"
+                                    wire:model.blur="ics_number" 
+                                    label="ICS Number (Auto-generated)" 
+                                    type="number" 
+                                    readonly
+                                    tabindex="-1" />
+                            </div>
+                            <div x-data="{ 
+                                validateNumber(e) {
+                                    // Remove non-numeric characters
+                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
+                                    // Always update the Livewire property
+                                    $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
+                                }
+                            }">
+                                <x-quantity-input 
+                                    id="estimated_useful_life_wrapper"
+                                    wire:model="estimated_useful_life" 
+                                    label="Estimated Useful Life (Years)" 
+                                    placeholder="Optional" 
+                                    :disabled="$isParItem"
+                                    type="number"
+                                    @input="validateNumber($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
+                            <div class="relative">
+                                <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input
+                                    id="date_prepared"
+                                    wire:model.blur="date_prepared"
+                                    type="text"
+                                    label="Date Prepared"
+                                    placeholder="MM/DD/YYYY"
+                                    :disabled="$isParItem"
+                                    tabindex="513"
+                                    @input="formatDate($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
+                                />
+                            </div>
+
+                            <div>
+                                <flux:input
+                                    id="date_accepted"
+                                    wire:model.blur="date_accepted"
+                                    type="text"
+                                    label="Date Accepted"
+                                    placeholder="MM/DD/YYYY"
+                                    :disabled="$isParItem"
+                                    tabindex="514"
+                                    @input="formatDate($event)"
+                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
+                                />
+                            </div>
+                        </div>
+
+                        <flux:textarea 
+                            id="remarks"
+                            wire:model="remarks" 
+                            label="Remarks" 
+                            placeholder="Add any notes or remarks here..." 
+                            :disabled="$isParItem" 
+                            tabindex="515" 
+                            rows="10" 
+                            @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Batches -->
+            <div class="space-y-6 lg:col-span-2 xl:col-span-1">
                 <!-- Batches & Components -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches & Components</h3>
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">
+                            Batches
+                        </h3>
                     </div>
-                    <div class="p-6">
+                    <div class="p-4">
                         <div class="space-y-4">
                             <div class="w-full">
                                 <x-quantity-input 
@@ -1909,168 +2067,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar Info -->
-        <div class="lg:col-span-1">
-            <div class="space-y-8">
-                <!-- Employee Assignment -->
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
-                    </div>
-                    <div class="p-6">
-                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
-                        @error('assigned_employee_id')
-                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
-                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                                </svg>
-                                <span>{{ $message }}</span>
-                            </div>
-                        @enderror
-                        @if ($creating_new_employee)
-                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                </svg>
-                                <span class="font-medium">New employee will be created upon saving.</span>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Document Details -->
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800"
-                    x-data="{
-                        formatDate(event) {
-                            let value = event.target.value.replace(/\D/g, '');
-                            if (value.length > 8) {
-                                value = value.substring(0, 8);
-                            }
-
-                            let month = value.substring(0, 2);
-                            let day = value.substring(2, 4);
-                            let year = value.substring(4, 8);
-
-                            if (month.length === 2) {
-                                let monthInt = parseInt(month, 10);
-                                if (monthInt > 12) month = '12';
-                                else if (monthInt === 0) month = '01';
-                            }
-
-                            if (day.length === 2 && month.length === 2) {
-                                let dayInt = parseInt(day, 10);
-                                let monthInt = parseInt(month, 10);
-                                let yearInt = year.length === 4 ? parseInt(year, 10) : new Date().getFullYear();
-                                
-                                let maxDaysInMonth = new Date(yearInt, monthInt, 0).getDate();
-
-                                if (dayInt > maxDaysInMonth) {
-                                    day = maxDaysInMonth.toString();
-                                } else if (dayInt === 0) {
-                                    day = '01';
-                                }
-                            }
-                            
-                            value = month + day + year;
-                            
-                            let formattedValue = '';
-                            if (value.length > 4) {
-                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}/${value.substring(4, 8)}`;
-                            } else if (value.length > 2) {
-                                formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}`;
-                            } else {
-                                formattedValue = value;
-                            }
-
-                            event.target.value = formattedValue;
-                        }
-                    }">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
-                    </div>
-                    <div class="space-y-6 p-6">
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-                            <div>
-                                <flux:input 
-                                    id="ics_number_input"
-                                    wire:model.blur="ics_number" 
-                                    label="ICS Number (Auto-generated)" 
-                                    type="number" 
-                                    readonly
-                                    tabindex="-1" />
-                            </div>
-                            <div x-data="{ 
-                                validateNumber(e) {
-                                    // Remove non-numeric characters
-                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
-                                    // Always update the Livewire property
-                                    $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
-                                }
-                            }">
-                                <x-quantity-input 
-                                    id="estimated_useful_life_wrapper"
-                                    wire:model="estimated_useful_life" 
-                                    label="Estimated Useful Life (Years)" 
-                                    placeholder="Optional" 
-                                    :disabled="$isParItem"
-                                    type="number"
-                                    @input="validateNumber($event)"
-                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
-                            <div class="relative">
-                                <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-                            <div>
-                                <flux:input
-                                    id="date_prepared"
-                                    wire:model.blur="date_prepared"
-                                    type="text"
-                                    label="Date Prepared"
-                                    placeholder="MM/DD/YYYY"
-                                    :disabled="$isParItem"
-                                    tabindex="513"
-                                    @input="formatDate($event)"
-                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
-                                />
-                            </div>
-
-                            <div>
-                                <flux:input
-                                    id="date_accepted"
-                                    wire:model.blur="date_accepted"
-                                    type="text"
-                                    label="Date Accepted"
-                                    placeholder="MM/DD/YYYY"
-                                    :disabled="$isParItem"
-                                    tabindex="514"
-                                    @input="formatDate($event)"
-                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
-                                />
-                            </div>
-                        </div>
-
-                        <flux:textarea 
-                            id="remarks"
-                            wire:model="remarks" 
-                            label="Remarks" 
-                            placeholder="Add any notes or remarks here..." 
-                            :disabled="$isParItem" 
-                            tabindex="515" 
-                            rows="10" 
-                            @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
-                        />
                     </div>
                 </div>
             </div>
