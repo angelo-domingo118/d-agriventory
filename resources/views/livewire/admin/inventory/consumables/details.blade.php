@@ -546,15 +546,42 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                                 <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
                                     <div class="flex items-center justify-end gap-x-2">
-                                        {{-- TODO: Implement view/details page for individual consumable items. Currently disabled as there's no dedicated page. --}}
-                                        <flux:button variant="ghost" class="!p-2.5" disabled title="View (Not yet implemented)">
+                                        @php
+                                            $consumableRecord = \App\Models\ConsumableRecord::where('division_id', $item->division_id)
+                                                ->whereHas('items.specification', function($query) use ($item) {
+                                                    $query->where('id', $item->spec_id);
+                                                })
+                                                ->first();
+                                        @endphp
+                                        @if($consumableRecord)
+                                        <flux:button 
+                                            variant="ghost" 
+                                            class="!p-2.5" 
+                                            :href="route('admin.inventory.consumables.show', $consumableRecord)" 
+                                            wire:navigate
+                                            title="View Details">
                                             <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
                                             View
                                         </flux:button>
-                                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (Not yet implemented)">
+                                        <flux:button 
+                                            variant="ghost" 
+                                            class="!p-2.5" 
+                                            :href="route('admin.inventory.consumables.edit', $consumableRecord)" 
+                                            wire:navigate
+                                            title="Edit Record">
                                             <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                             Edit
                                         </flux:button>
+                                        @else
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="Record not found">
+                                            <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                                            View
+                                        </flux:button>
+                                        <flux:button variant="ghost" class="!p-2.5" disabled title="Record not found">
+                                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                            Edit
+                                        </flux:button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -610,14 +637,44 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
                 <div class="border-t border-stone-200 bg-stone-50 {{ $densityClasses['card_footer_padding'] }} dark:border-stone-700 dark:bg-stone-800/50">
                     <div class="flex items-center justify-end gap-x-2">
-                        <flux:button variant="ghost" class="!p-2.5" disabled title="View Details (coming soon)" aria-label="View Details (coming soon)">
+                        @php
+                            $consumableRecord = \App\Models\ConsumableRecord::where('division_id', $item->division_id)
+                                ->whereHas('items.specification', function($query) use ($item) {
+                                    $query->where('id', $item->spec_id);
+                                })
+                                ->first();
+                        @endphp
+                        @if($consumableRecord)
+                        <flux:button 
+                            variant="ghost" 
+                            class="!p-2.5" 
+                            :href="route('admin.inventory.consumables.show', $consumableRecord)" 
+                            wire:navigate
+                            title="View Details" 
+                            aria-label="View Details">
                             <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
                             View
                         </flux:button>
-                        <flux:button variant="ghost" class="!p-2.5" disabled title="Edit (coming soon)" aria-label="Edit (coming soon)">
+                        <flux:button 
+                            variant="ghost" 
+                            class="!p-2.5" 
+                            :href="route('admin.inventory.consumables.edit', $consumableRecord)" 
+                            wire:navigate
+                            title="Edit Record" 
+                            aria-label="Edit Record">
                             <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                             Edit
                         </flux:button>
+                        @else
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="Record not found" aria-label="Record not found">
+                            <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                            View
+                        </flux:button>
+                        <flux:button variant="ghost" class="!p-2.5" disabled title="Record not found" aria-label="Record not found">
+                            <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                            Edit
+                        </flux:button>
+                        @endif
                     </div>
                 </div>
             </div>

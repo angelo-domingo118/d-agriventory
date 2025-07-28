@@ -70,6 +70,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
             Volt::route('idr/{idrNumber}', 'admin.inventory.idr.show')->name('idr.show');
             Volt::route('consumables', 'admin.inventory.consumables.index')->name('consumables.index');
             Volt::route('consumables/details', 'admin.inventory.consumables.details')->name('consumables.details');
+            Volt::route('consumables/{record}', 'admin.inventory.consumables.show')->name('consumables.show');
         });
 
         Route::middleware([HasAdminPermission::class.':create_inventory'])->group(function () {
@@ -82,6 +83,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->gr
             Volt::route('ics/{icsNumber}/edit', 'admin.inventory.ics.edit')->name('ics.edit');
             Volt::route('par/{parNumber}/edit', 'admin.inventory.par.edit')->name('par.edit');
             Volt::route('idr/{idrNumber}/edit', 'admin.inventory.idr.edit')->name('idr.edit');
+            Volt::route('consumables/{record}/edit', 'admin.inventory.consumables.edit')->name('consumables.edit');
         });
     });
 
