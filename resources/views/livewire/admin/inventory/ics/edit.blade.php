@@ -4,6 +4,11 @@ use App\Models\Contract;
 use App\Models\ContractItem;
 use App\Models\Employee;
 use App\Models\IcsNumber;
+use App\Models\ItemsCatalog;
+use App\Models\ItemSpecification;
+use App\Models\SecondaryCategory;
+use App\Models\PrimaryCategory;
+use App\Models\Supplier;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -18,7 +23,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     // Form state
     public string $ics_number = '';
+    public ?int $supplier_id = null;
     public ?int $contract_id = null;
+    public ?int $items_catalog_id = null;
+    public ?string $item_specification_id = null;
     public ?int $contract_item_id = null;
     public ?int $assigned_employee_id = null;
     public string $ics_type = 'SPLV';
@@ -28,14 +36,79 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $date_accepted = null;
     public ?string $remarks = null;
 
+    // New fields for main item
+    public ?string $main_item_brand = null;
+    public ?string $main_item_model = null;
+    public ?string $detailed_specifications = null;
+    public ?string $main_item_serial_number = null;
+
+    // Category fields for new items
+    public ?int $primary_category_id = null;
+    public ?int $secondary_category_id = null;
+    public ?string $unit_of_measure = '';
+
     // Display only property
     public ?float $unit_price = 0.0;
+    public bool $isParItem = false;
+    public bool $isDesktopComputer = false;
 
     // Transfer state
     public ?int $transfer_to_employee_id = null;
     public string $transfer_date = '';
 
     public array $batches = [];
+
+    // Auto-complete data
+    public string $supplier_search = '';
+    public array $supplier_suggestions = [];
+    public bool $show_supplier_suggestions = false;
+    public ?string $selected_supplier_name = null;
+    public bool $creating_new_supplier = false;
+
+    public string $contract_search = '';
+    public array $contract_suggestions = [];
+    public bool $show_contract_suggestions = false;
+    public ?string $selected_contract_name = null;
+    public bool $creating_new_contract = false;
+
+    public string $item_search = '';
+    public array $item_suggestions = [];
+    public bool $show_item_suggestions = false;
+    public ?string $selected_item_name = null;
+    public bool $creating_new_item = false;
+
+    public string $specification_search = '';
+    public array $specification_suggestions = [];
+    public bool $show_specification_suggestions = false;
+    public ?string $selected_specification_name = null;
+    public bool $creating_new_specification = false;
+
+    public string $employee_search = '';
+    public array $employee_suggestions = [];
+    public bool $show_employee_suggestions = false;
+    public ?string $selected_employee_name = null;
+    public bool $creating_new_employee = false;
+
+    // Unit of measure autocomplete
+    public string $unit_search = '';
+    public array $unit_suggestions = [];
+    public bool $show_unit_suggestions = false;
+    public ?string $selected_unit = null;
+    public bool $creating_new_unit = false;
+
+    // Brand autocomplete
+    public string $brand_search = '';
+    public array $brand_suggestions = [];
+    public bool $show_brand_suggestions = false;
+    public ?string $selected_brand = null;
+    public bool $creating_new_brand = false;
+
+    // Model autocomplete
+    public string $model_search = '';
+    public array $model_suggestions = [];
+    public bool $show_model_suggestions = false;
+    public ?string $selected_model = null;
+    public bool $creating_new_model = false;
 
     public Collection $allContracts;
     public Collection $allEmployees;
@@ -46,15 +119,60 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
 
-        $this->icsNumber = $icsNumber->load('itemBatches.components');
+        $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee');
         $this->fill($icsNumber->toArray()); // Pre-fill form from the model
         $this->date_prepared = $icsNumber->date_prepared->format('Y-m-d');
         $this->date_accepted = $icsNumber->date_accepted?->format('Y-m-d');
         $this->quantity = $icsNumber->itemBatches->count();
 
-        // Manually set contract_id for the dependent dropdown
+        // Initialize autocomplete fields with existing data
         if ($this->icsNumber->contractItem) {
-            $this->contract_id = $this->icsNumber->contractItem->contract_id;
+            $contractItem = $this->icsNumber->contractItem;
+            $this->contract_id = $contractItem->contract_id;
+            $this->contract_item_id = $contractItem->id;
+            $this->unit_price = $contractItem->unit_price;
+
+            if ($contractItem->contract) {
+                $this->supplier_id = $contractItem->contract->supplier_id;
+                $this->supplier_search = $contractItem->contract->supplier->name ?? '';
+                $this->selected_supplier_name = $contractItem->contract->supplier->name ?? '';
+                $this->contract_search = $contractItem->contract->contract_po_ib_number;
+                $this->selected_contract_name = $contractItem->contract->contract_po_ib_number;
+            }
+
+            if ($contractItem->itemSpecification) {
+                $spec = $contractItem->itemSpecification;
+                $this->item_specification_id = $spec->id;
+                $this->main_item_brand = $spec->brand;
+                $this->main_item_model = $spec->model;
+                $this->detailed_specifications = $spec->detailed_specifications;
+                $this->brand_search = $spec->brand ?? '';
+                $this->selected_brand = $spec->brand ?? '';
+                $this->model_search = $spec->model ?? '';
+                $this->selected_model = $spec->model ?? '';
+
+                if ($spec->itemCatalog) {
+                    $catalog = $spec->itemCatalog;
+                    $this->items_catalog_id = $catalog->id;
+                    $this->item_search = $catalog->name;
+                    $this->selected_item_name = $catalog->name;
+                    $this->unit_of_measure = $catalog->unit;
+                    $this->unit_search = $catalog->unit;
+                    $this->selected_unit = $catalog->unit;
+
+                    if ($catalog->secondaryCategory) {
+                        $this->secondary_category_id = $catalog->secondary_category_id;
+                        if ($catalog->secondaryCategory->primaryCategory) {
+                            $this->primary_category_id = $catalog->secondaryCategory->primary_category_id;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($this->icsNumber->assignedEmployee) {
+            $this->employee_search = $this->icsNumber->assignedEmployee->name;
+            $this->selected_employee_name = $this->icsNumber->assignedEmployee->name;
         }
 
         // Pre-load data for select dropdowns
@@ -89,7 +207,639 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->updatedQuantity($this->icsNumber->quantity);
         }
 
+        // Update item type based on unit price
+        $this->updateItemType();
+
         $this->transfer_date = now()->format('Y-m-d');
+    }
+
+    // Supplier autocomplete methods
+    public function updatedSupplierSearch($value): void
+    {
+        $this->searchSuppliers($value);
+    }
+
+    public function showAllSuppliers(): void
+    {
+        $this->searchSuppliers($this->supplier_search);
+        if (count($this->supplier_suggestions) > 0) {
+            $this->show_supplier_suggestions = true;
+        }
+    }
+
+    public function searchSuppliers($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $suppliers = Supplier::orderBy('name')->get();
+            $this->supplier_suggestions = $suppliers->map(function ($supplier) {
+                return ['id' => $supplier->id, 'name' => $supplier->name, 'type' => 'existing'];
+            })->toArray();
+        } else {
+            $suppliers = Supplier::whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->orderBy('name')
+                ->get();
+
+            $this->supplier_suggestions = $suppliers->map(function ($supplier) {
+                return ['id' => $supplier->id, 'name' => $supplier->name, 'type' => 'existing'];
+            })->toArray();
+
+            $exactExists = collect($this->supplier_suggestions)->contains(function ($supplier) use ($query) {
+                return strtolower($supplier['name']) === strtolower($query);
+            });
+            
+            if (!$exactExists && strlen(trim($query)) >= 2) {
+                array_unshift($this->supplier_suggestions, [
+                    'id' => 'new',
+                    'name' => $query,
+                    'type' => 'new'
+                ]);
+            }
+        }
+
+        $this->show_supplier_suggestions = count($this->supplier_suggestions) > 0;
+    }
+
+    public function selectSupplier($supplierData): void
+    {
+        if ($supplierData['type'] === 'existing') {
+            $this->supplier_id = $supplierData['id'];
+            $this->supplier_search = $supplierData['name'];
+            $this->selected_supplier_name = $supplierData['name'];
+            $this->creating_new_supplier = false;
+        } elseif ($supplierData['type'] === 'new') {
+            $this->supplier_id = null;
+            $this->supplier_search = $supplierData['name'];
+            $this->selected_supplier_name = $supplierData['name'] . ' (new)';
+            $this->creating_new_supplier = true;
+        }
+
+        $this->show_supplier_suggestions = false;
+        $this->resetContractData();
+        $this->dispatch('focus-contract');
+    }
+
+    // Contract autocomplete methods
+    public function updatedContractSearch($value): void
+    {
+        $this->searchContracts($value);
+
+        if (!preg_match('/^[a-zA-Z0-9-]*$/', $value)) {
+            $this->addError('contract_search_error', 'Contract number can only contain letters, numbers, and hyphens.');
+        } else {
+            $this->resetValidation('contract_search_error');
+        }
+    }
+
+    public function showAllContracts(): void
+    {
+        $this->searchContracts($this->contract_search);
+        if (count($this->contract_suggestions) > 0) {
+            $this->show_contract_suggestions = true;
+        }
+    }
+
+    public function searchContracts($query): void
+    {
+        if (!$this->supplier_id && !$this->creating_new_supplier) {
+            $this->contract_suggestions = [];
+            $this->show_contract_suggestions = false;
+            return;
+        }
+
+        if ($this->creating_new_supplier) {
+            if (strlen(trim($query)) >= 2) {
+                $this->contract_suggestions = [['id' => 'new', 'name' => $query, 'type' => 'new']];
+            } else {
+                $this->contract_suggestions = [];
+            }
+            $this->show_contract_suggestions = count($this->contract_suggestions) > 0;
+            return;
+        }
+
+        if (strlen(trim($query)) === 0) {
+            $contracts = $this->supplier_id ? Contract::where('supplier_id', $this->supplier_id)->orderBy('contract_po_ib_number')->get() : collect();
+        } else {
+            $contracts = $this->supplier_id ? Contract::where('supplier_id', $this->supplier_id)
+                ->whereRaw('LOWER(contract_po_ib_number) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->orderBy('contract_po_ib_number')
+                ->get() : collect();
+        }
+
+        $this->contract_suggestions = $contracts->map(function ($contract) {
+            return [
+                'id' => $contract->id,
+                'name' => $contract->contract_po_ib_number,
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $exactExists = collect($this->contract_suggestions)->contains(function ($contract) use ($query) {
+            return strtolower($contract['name']) === strtolower($query);
+        });
+
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->contract_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+
+        $this->show_contract_suggestions = count($this->contract_suggestions) > 0;
+    }
+
+    public function selectContract($contractData): void
+    {
+        if ($contractData['type'] === 'existing') {
+            $this->contract_id = $contractData['id'];
+            $this->contract_search = $contractData['name'];
+            $this->selected_contract_name = $contractData['name'];
+            $this->creating_new_contract = false;
+        } elseif ($contractData['type'] === 'new') {
+            $this->contract_id = null;
+            $this->contract_search = $contractData['name'];
+            $this->selected_contract_name = $contractData['name'] . ' (new)';
+            $this->creating_new_contract = true;
+        }
+
+        $this->show_contract_suggestions = false;
+        $this->resetItemData();
+        $this->dispatch('focus-item');
+    }
+
+    // Item autocomplete methods
+    public function updatedItemSearch($value): void
+    {
+        $this->searchItems($value);
+    }
+
+    public function showAllItems(): void
+    {
+        $this->searchItems($this->item_search);
+        if (count($this->item_suggestions) > 0) {
+            $this->show_item_suggestions = true;
+        }
+    }
+
+    public function searchItems($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $items = ItemsCatalog::orderBy('name')->limit(20)->get();
+        } else {
+            $items = ItemsCatalog::where('name', 'like', '%' . $query . '%')
+                ->orderBy('name')
+                ->limit(20)
+                ->get();
+        }
+
+        $this->item_suggestions = $items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'unit' => $item->unit,
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $exactExists = collect($this->item_suggestions)->contains(function ($item) use ($query) {
+            return strtolower($item['name']) === strtolower($query);
+        });
+
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->item_suggestions, [
+                'id' => 'new',
+                'name' => "Create new item catalog: \"{$query}\"",
+                'description' => 'This will create a new entry in the item catalog.',
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_item_suggestions = count($this->item_suggestions) > 0;
+    }
+
+    public function selectItem($itemData): void
+    {
+        if ($itemData['type'] === 'existing') {
+            $this->items_catalog_id = $itemData['id'];
+            $this->item_search = $itemData['name'];
+            $this->selected_item_name = $itemData['name'];
+            
+            $itemCatalog = ItemsCatalog::find($itemData['id']);
+            if ($itemCatalog) {
+                $this->unit_of_measure = $itemCatalog->unit;
+                $this->unit_search = $itemCatalog->unit;
+                $this->selected_unit = $itemCatalog->unit;
+                $this->primary_category_id = $itemCatalog->secondaryCategory->primary_category_id ?? null;
+                $this->secondary_category_id = $itemCatalog->secondary_category_id;
+            }
+            
+            $this->creating_new_item = false;
+            $this->creating_new_unit = false;
+            $this->dispatch('focus-specification');
+
+        } elseif ($itemData['type'] === 'new') {
+            preg_match('/"([^"]+)"/', $itemData['name'], $matches);
+            $newItemName = $matches[1] ?? $this->item_search;
+
+            $this->items_catalog_id = null;
+            $this->item_search = $newItemName;
+            $this->selected_item_name = $newItemName . ' (new)';
+            $this->creating_new_item = true;
+            $this->creating_new_specification = true;
+            $this->item_specification_id = 'new';
+
+            $this->main_item_brand = null;
+            $this->main_item_model = null;
+            $this->detailed_specifications = null;
+            $this->unit_of_measure = '';
+            $this->unit_search = '';
+            $this->selected_unit = '';
+            $this->primary_category_id = null;
+            $this->secondary_category_id = null;
+            
+            $this->dispatch('focus-primary-category');
+        }
+        
+        $this->show_item_suggestions = false;
+        $this->updateItemType();
+    }
+
+    // Employee autocomplete methods
+    public function updatedEmployeeSearch($value): void
+    {
+        $this->searchEmployees($value);
+    }
+
+    public function showAllEmployees(): void
+    {
+        $this->searchEmployees($this->employee_search);
+        if (count($this->employee_suggestions) > 0) {
+            $this->show_employee_suggestions = true;
+        }
+    }
+
+    public function searchEmployees($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $employees = Employee::with('division', 'position')->orderBy('name')->get();
+        } else {
+            $employees = Employee::with('division', 'position')
+                ->where(function ($q) use ($query) {
+                    $q->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
+                })
+                ->orderBy('name')
+                ->get();
+        }
+
+        $this->employee_suggestions = $employees->map(function ($employee) {
+            $description_parts = [];
+            if ($employee->division) {
+                $description_parts[] = $employee->division->name;
+            }
+            if ($employee->position) {
+                $description_parts[] = $employee->position->title;
+            }
+
+            return [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'description' => implode(' / ', $description_parts),
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $exactExists = collect($this->employee_suggestions)->contains(function ($employee) use ($query) {
+            return strtolower($employee['name']) === strtolower($query);
+        });
+
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->employee_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+
+        $this->show_employee_suggestions = count($this->employee_suggestions) > 0;
+    }
+
+    public function selectEmployee($employeeData): void
+    {
+        if ($employeeData['type'] === 'existing') {
+            $this->assigned_employee_id = $employeeData['id'];
+            $this->employee_search = $employeeData['name'];
+            $this->selected_employee_name = $employeeData['name'];
+            $this->creating_new_employee = false;
+        } elseif ($employeeData['type'] === 'new') {
+            $this->assigned_employee_id = null;
+            $this->employee_search = $employeeData['name'];
+            $this->selected_employee_name = $employeeData['name'] . ' (new)';
+            $this->creating_new_employee = true;
+        }
+
+        $this->show_employee_suggestions = false;
+        $this->dispatch('focus-estimated-useful-life');
+    }
+
+    // Unit of measure autocomplete methods
+    public function updatedUnitSearch($value): void
+    {
+        $this->searchUnits($value);
+    }
+
+    public function showAllUnits(): void
+    {
+        $this->searchUnits($this->unit_search);
+        if (count($this->unit_suggestions) > 0) {
+            $this->show_unit_suggestions = true;
+        }
+    }
+
+    public function searchUnits($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $units = ItemsCatalog::select('unit')
+                ->distinct()
+                ->orderBy('unit')
+                ->pluck('unit')
+                ->toArray();
+        } else {
+            $units = ItemsCatalog::select('unit')
+                ->whereRaw('LOWER(unit) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('unit')
+                ->pluck('unit')
+                ->toArray();
+        }
+        
+        $this->unit_suggestions = array_map(function($unit) {
+            return [
+                'id' => $unit,
+                'name' => $unit,
+                'type' => 'existing'
+            ];
+        }, $units);
+        
+        $exactExists = collect($this->unit_suggestions)->contains(function ($unit) use ($query) {
+            return strtolower($unit['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->unit_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_unit_suggestions = count($this->unit_suggestions) > 0;
+    }
+
+    public function selectUnit($unitData): void
+    {
+        if ($unitData['type'] === 'existing') {
+            $this->unit_of_measure = $unitData['name'];
+            $this->unit_search = $unitData['name'];
+            $this->selected_unit = $unitData['name'];
+            $this->creating_new_unit = false;
+        } elseif ($unitData['type'] === 'new') {
+            $this->unit_of_measure = $unitData['name'];
+            $this->unit_search = $unitData['name'];
+            $this->selected_unit = $unitData['name'] . ' (new)';
+            $this->creating_new_unit = true;
+        }
+        
+        $this->show_unit_suggestions = false;
+        $this->dispatch('focus-employee');
+    }
+
+    // Brand autocomplete methods
+    public function updatedBrandSearch($value): void
+    {
+        $this->searchBrands($value);
+    }
+
+    public function showAllBrands(): void
+    {
+        $this->searchBrands($this->brand_search);
+        if (count($this->brand_suggestions) > 0) {
+            $this->show_brand_suggestions = true;
+        }
+    }
+
+    public function searchBrands($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $brands = ItemSpecification::select('brand')
+                ->whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->distinct()
+                ->orderBy('brand')
+                ->pluck('brand')
+                ->toArray();
+        } else {
+            $brands = ItemSpecification::select('brand')
+                ->whereNotNull('brand')
+                ->where('brand', '!=', '')
+                ->whereRaw('LOWER(brand) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('brand')
+                ->pluck('brand')
+                ->toArray();
+        }
+        
+        $this->brand_suggestions = array_map(function($brand) {
+            return [
+                'id' => $brand,
+                'name' => $brand,
+                'type' => 'existing'
+            ];
+        }, $brands);
+        
+        $exactExists = collect($this->brand_suggestions)->contains(function ($brand) use ($query) {
+            return strtolower($brand['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->brand_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_brand_suggestions = count($this->brand_suggestions) > 0;
+    }
+
+    public function selectBrand($brandData): void
+    {
+        if ($brandData['type'] === 'existing') {
+            $this->main_item_brand = $brandData['name'];
+            $this->brand_search = $brandData['name'];
+            $this->selected_brand = $brandData['name'];
+            $this->creating_new_brand = false;
+        } elseif ($brandData['type'] === 'new') {
+            $this->main_item_brand = $brandData['name'];
+            $this->brand_search = $brandData['name'];
+            $this->selected_brand = $brandData['name'] . ' (new)';
+            $this->creating_new_brand = true;
+        }
+        
+        $this->show_brand_suggestions = false;
+        $this->dispatch('focus-model');
+    }
+
+    // Model autocomplete methods
+    public function updatedModelSearch($value): void
+    {
+        $this->searchModels($value);
+    }
+
+    public function showAllModels(): void
+    {
+        $this->searchModels($this->model_search);
+        if (count($this->model_suggestions) > 0) {
+            $this->show_model_suggestions = true;
+        }
+    }
+
+    public function searchModels($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $models = ItemSpecification::select('model')
+                ->whereNotNull('model')
+                ->where('model', '!=', '')
+                ->distinct()
+                ->orderBy('model')
+                ->pluck('model')
+                ->toArray();
+        } else {
+            $models = ItemSpecification::select('model')
+                ->whereNotNull('model')
+                ->where('model', '!=', '')
+                ->whereRaw('LOWER(model) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->distinct()
+                ->orderBy('model')
+                ->pluck('model')
+                ->toArray();
+        }
+        
+        $this->model_suggestions = array_map(function($model) {
+            return [
+                'id' => $model,
+                'name' => $model,
+                'type' => 'existing'
+            ];
+        }, $models);
+        
+        $exactExists = collect($this->model_suggestions)->contains(function ($model) use ($query) {
+            return strtolower($model['name']) === strtolower($query);
+        });
+        
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->model_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+        
+        $this->show_model_suggestions = count($this->model_suggestions) > 0;
+    }
+
+    public function selectModel($modelData): void
+    {
+        if ($modelData['type'] === 'existing') {
+            $this->main_item_model = $modelData['name'];
+            $this->model_search = $modelData['name'];
+            $this->selected_model = $modelData['name'];
+            $this->creating_new_model = false;
+        } elseif ($modelData['type'] === 'new') {
+            $this->main_item_model = $modelData['name'];
+            $this->model_search = $modelData['name'];
+            $this->selected_model = $modelData['name'] . ' (new)';
+            $this->creating_new_model = true;
+        }
+        
+        $this->show_model_suggestions = false;
+        $this->dispatch('focus-detailed-specs');
+    }
+
+    // Helper methods
+    private function resetContractData(): void
+    {
+        $this->contract_id = null;
+        $this->contract_search = '';
+        $this->selected_contract_name = null;
+        $this->contract_suggestions = [];
+        $this->show_contract_suggestions = false;
+        $this->resetItemData();
+    }
+
+    private function resetItemData(): void
+    {
+        $this->contract_item_id = null;
+        $this->items_catalog_id = null;
+        $this->item_specification_id = null;
+        $this->item_search = '';
+        $this->selected_item_name = null;
+        $this->creating_new_item = false;
+        $this->item_suggestions = [];
+        $this->show_item_suggestions = false;
+
+        $this->specification_search = '';
+        $this->specification_suggestions = [];
+        $this->show_specification_suggestions = false;
+        $this->selected_specification_name = null;
+        $this->creating_new_specification = false; 
+
+        $this->unit_price = 0;
+        $this->isDesktopComputer = false;
+        $this->isParItem = false;
+        $this->main_item_brand = null;
+        $this->main_item_model = null;
+        $this->detailed_specifications = null;
+        $this->unit_of_measure = '';
+        $this->unit_search = '';
+        $this->selected_unit = '';
+        $this->creating_new_unit = false;
+        
+        $this->brand_search = '';
+        $this->brand_suggestions = [];
+        $this->show_brand_suggestions = false;
+        $this->selected_brand = null;
+        $this->creating_new_brand = false;
+        
+        $this->model_search = '';
+        $this->model_suggestions = [];
+        $this->show_model_suggestions = false;
+        $this->selected_model = null;
+        $this->creating_new_model = false;
+        
+        $this->primary_category_id = null;
+        $this->secondary_category_id = null;
+    }
+
+    private function updateItemType(): void
+    {
+        $this->isDesktopComputer = str_contains(strtoupper($this->selected_item_name ?? ''), 'DESKTOP COMPUTER');
+        
+        if ($this->unit_price >= 50000) {
+            $this->isParItem = true;
+            $this->ics_type = 'Not applicable - Item requires PAR (₱50,000 or more)';
+        } elseif ($this->unit_price > 5000) {
+            $this->isParItem = false;
+            $this->ics_type = 'SPHV - ₱5,001 to ₱49,999';
+        } else {
+            $this->isParItem = false;
+            $this->ics_type = 'SPLV - ₱5,000 or less';
+        }
+    }
+
+    public function updateItemTypeFromPrice($price): void
+    {
+        $this->unit_price = $price;
+        $this->updateItemType();
     }
 
     #[Computed]
@@ -105,7 +855,24 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $item = $this->selectedContractItem;
         $this->unit_price = $item?->unit_price ?? 0.0;
-        $this->ics_type = ($this->unit_price ?? 0) > 50000 ? 'SPHV' : 'SPLV';
+        $this->updateItemType();
+    }
+
+    public function updatedUnitPrice(): void
+    {
+        $this->updateItemType();
+    }
+
+    #[Computed]
+    public function contractItems()
+    {
+        if (!$this->contract_id) {
+            return collect();
+        }
+
+        return ContractItem::where('contract_id', $this->contract_id)
+            ->with('itemSpecification.itemCatalog:id,name')
+            ->get();
     }
 
     public function updatedQuantity($value): void
@@ -212,25 +979,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->icsNumber->load('transfers.fromEmployee', 'transfers.toEmployee');
     }
 
-    #[Computed]
-    public function contractItems()
-    {
-        if (!$this->contract_id) {
-            return collect();
-        }
 
-        return ContractItem::where('contract_id', $this->contract_id)
-            ->with('itemSpecification.itemCatalog:id,name') // Eager load only necessary columns
-            ->get();
-    }
 
     public function update(): void
     {
-        $validated = $this->validate([
+        $rules = [
             'ics_number' => ['required', 'string', 'max:255', Rule::unique('ics_number', 'ics_number')->ignore($this->icsNumber->id)],
-            'contract_id' => ['required', 'integer', Rule::exists('contracts', 'id')],
-            'contract_item_id' => ['required', 'integer', Rule::exists('contract_items', 'id')],
-            'assigned_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
+            'assigned_employee_id' => 'required_unless:creating_new_employee,true|nullable|exists:employees,id',
+            'supplier_id' => 'required_unless:creating_new_supplier,true|nullable|exists:suppliers,id',
+            'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
+            'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
+            'item_specification_id' => 'nullable|string',
             'ics_type' => ['required', 'string', Rule::in(['SPLV', 'SPHV'])],
             'quantity' => ['required', 'integer', 'min:1', function ($attribute, $value, $fail) {
                 $activeBatches = count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false)));
@@ -238,7 +997,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                     $fail("The quantity ($value) must match the number of active batches ($activeBatches).");
                 }
             }],
-            'estimated_useful_life' => ['required', 'integer', 'min:1'],
+            'unit_price' => 'required|numeric|gt:0',
+            'unit_of_measure' => 'required|string|max:50',
+            'estimated_useful_life' => ['nullable', 'integer', 'min:1'],
             'date_prepared' => ['required', 'date'],
             'date_accepted' => ['nullable', 'date', 'after_or_equal:date_prepared'],
             'remarks' => ['nullable', 'string'],
@@ -246,53 +1007,168 @@ new #[Layout('components.layouts.app')] class extends Component {
             'batches.*.components.*.brand' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.model' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.serial_number' => ['nullable', 'string', 'max:255'],
-        ]);
+        ];
 
-        DB::transaction(function () use ($validated) {
-            // 1. Update the main IcsNumber record
-            $this->icsNumber->update($validated);
+        if ($this->creating_new_supplier) {
+            $rules['supplier_search'] = 'required|string|max:255|unique:suppliers,name';
+            $rules['primary_category_id'] = 'required|exists:primary_categories,id';
+            $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
+            $rules['unit_of_measure'] = 'required|string|max:50';
+        }
+        if ($this->creating_new_contract) {
+            $rules['contract_search'] = 'required|string|max:255|unique:contracts,contract_po_ib_number';
+        }
+        if ($this->creating_new_item) {
+            $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
+            $rules['primary_category_id'] = 'required|exists:primary_categories,id';
+            $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
+        }
+        if ($this->creating_new_specification) {
+            $rules['main_item_brand'] = 'nullable|string|max:255';
+            $rules['main_item_model'] = 'nullable|string|max:255';
+            $rules['detailed_specifications'] = 'nullable|string';
+        }
+        if ($this->creating_new_employee) {
+            $rules['employee_search'] = 'required|string|max:255';
+        }
+        
+        if ($this->isDesktopComputer) {
+            $rules['batches.*.components.*.component_type'] = 'required|string|max:255';
+            $rules['batches.*.components.*.brand'] = 'nullable|string|max:255';
+            $rules['batches.*.components.*.model'] = 'nullable|string|max:255';
+            $rules['batches.*.components.*.serial_number'] = 'nullable|string|max:255';
+        }
 
-            $activeBatchIds = [];
-            foreach ($this->batches as $batchData) {
-                // 2. Handle batch creation/update
-                $batch = null;
-                if (!($batchData['_destroy'] ?? false)) {
-                    $batch = $this->icsNumber->itemBatches()->updateOrCreate(
-                        ['id' => $batchData['id'] ?? null],
-                        ['identification_data' => $batchData['identification_data'] ?? null]
-                    );
-                    $activeBatchIds[] = $batch->id;
+        $messages = [
+            'supplier_id.required_unless' => 'Please select a supplier or specify a new one.',
+            'contract_id.required_unless' => 'Please select a contract or specify a new one.',
+            'items_catalog_id.required_unless' => 'Please select an item from the catalog or specify a new one.',
+            'assigned_employee_id.required_unless' => 'Please assign this item to an employee.',
+            'date_prepared.required' => 'The "Date Prepared" field is required.',
+            'date_accepted.required' => 'The "Date Accepted" field is required.',
+            'unit_price.required' => 'The "Unit Cost" field is required.',
+            'unit_of_measure.required' => 'The "Unit of Measure" field is required.',
+            'quantity.min' => 'The quantity must be at least 1.',
+            'quantity.integer' => 'The quantity must be a whole number.',
+            'unit_price.gt' => 'The "Unit Cost" must be greater than zero.',
+        ];
 
-                    $activeComponentIds = [];
-                    foreach ($batchData['components'] as $componentData) {
-                        // 3. Handle component creation/update
-                        if (!($componentData['_destroy'] ?? false)) {
-                            // Only save if there's some data
-                            if ($componentData['component_type'] || $componentData['serial_number'] || $componentData['brand'] || $componentData['model']) {
-                                $component = $batch->components()->updateOrCreate(
-                                    ['id' => $componentData['id'] ?? null],
-                                    [
-                                        'component_type' => $componentData['component_type'],
-                                        'brand' => $componentData['brand'],
-                                        'model' => $componentData['model'],
-                                        'serial_number' => $componentData['serial_number'],
-                                    ]
-                                );
-                                $activeComponentIds[] = $component->id;
+        $validated = $this->validate($rules, $messages);
+
+        try {
+            DB::transaction(function () use ($validated) {
+                if ($this->creating_new_supplier) {
+                    $newSupplier = Supplier::create(['name' => $this->supplier_search]);
+                    $this->supplier_id = $newSupplier->id;
+                }
+
+                if ($this->creating_new_contract) {
+                    $newContract = Contract::create([
+                        'contract_po_ib_number' => $this->contract_search,
+                        'supplier_id' => $this->supplier_id,
+                        'po_date' => now(),
+                    ]);
+                    $this->contract_id = $newContract->id;
+                }
+
+                if ($this->creating_new_employee) {
+                    $newEmployee = Employee::create([
+                        'name' => $this->employee_search,
+                        'employee_number' => 'EMP-' . str_pad(Employee::count() + 1, 4, '0', STR_PAD_LEFT),
+                    ]);
+                    $this->assigned_employee_id = $newEmployee->id;
+                }
+
+                $spec_id = $this->item_specification_id;
+                $catalog_id = $this->items_catalog_id;
+
+                if ($this->creating_new_item) {
+                     $newItem = ItemsCatalog::create([
+                        'name' => $this->item_search,
+                        'secondary_category_id' => $this->secondary_category_id,
+                        'unit' => $this->unit_of_measure,
+                        'code' => 'new-' . time(),
+                    ]);
+                    $catalog_id = $newItem->id;
+                }
+
+                if ($this->creating_new_specification) {
+                    $newSpec = ItemSpecification::create([
+                        'item_catalog_id' => $catalog_id,
+                        'brand' => $this->main_item_brand,
+                        'model' => $this->main_item_model,
+                        'detailed_specifications' => $this->detailed_specifications,
+                    ]);
+                    $spec_id = $newSpec->id;
+                }
+
+                // Find or update ContractItem
+                $final_contract_item = ContractItem::updateOrCreate(
+                    ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
+                    ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
+                );
+
+                // Extract the code from the descriptive string
+                $icsTypeCode = strtok($this->ics_type, ' ');
+
+                // 1. Update the main IcsNumber record
+                $this->icsNumber->update([
+                    'ics_number' => $validated['ics_number'],
+                    'assigned_employee_id' => $this->assigned_employee_id,
+                    'contract_item_id' => $final_contract_item->id,
+                    'ics_type' => $icsTypeCode,
+                    'quantity' => $validated['quantity'],
+                    'estimated_useful_life' => $validated['estimated_useful_life'],
+                    'remarks' => $validated['remarks'],
+                    'date_prepared' => $validated['date_prepared'],
+                    'date_accepted' => $validated['date_accepted'],
+                ]);
+
+                $activeBatchIds = [];
+                foreach ($this->batches as $batchData) {
+                    // 2. Handle batch creation/update
+                    $batch = null;
+                    if (!($batchData['_destroy'] ?? false)) {
+                        $batch = $this->icsNumber->itemBatches()->updateOrCreate(
+                            ['id' => $batchData['id'] ?? null],
+                            ['identification_data' => $batchData['identification_data'] ?? null]
+                        );
+                        $activeBatchIds[] = $batch->id;
+
+                        $activeComponentIds = [];
+                        foreach ($batchData['components'] as $componentData) {
+                            // 3. Handle component creation/update
+                            if (!($componentData['_destroy'] ?? false)) {
+                                // Only save if there's some data
+                                if ($componentData['component_type'] || $componentData['serial_number'] || $componentData['brand'] || $componentData['model']) {
+                                    $component = $batch->components()->updateOrCreate(
+                                        ['id' => $componentData['id'] ?? null],
+                                        [
+                                            'component_type' => $componentData['component_type'],
+                                            'brand' => $componentData['brand'],
+                                            'model' => $componentData['model'],
+                                            'serial_number' => $componentData['serial_number'],
+                                        ]
+                                    );
+                                    $activeComponentIds[] = $component->id;
+                                }
                             }
                         }
+                        // 4. Delete components marked for destruction in this batch
+                        $batch->components()->whereNotIn('id', $activeComponentIds)->delete();
                     }
-                    // 4. Delete components marked for destruction in this batch
-                    $batch->components()->whereNotIn('id', $activeComponentIds)->delete();
                 }
-            }
-            // 5. Delete batches marked for destruction
-            $this->icsNumber->itemBatches()->whereNotIn('id', $activeBatchIds)->delete();
-        });
+                // 5. Delete batches marked for destruction
+                $this->icsNumber->itemBatches()->whereNotIn('id', $activeBatchIds)->delete();
+            });
 
-        $this->dispatch('ics-updated');
-        session()->flash('success', "ICS record {$this->icsNumber->ics_number} updated successfully.");
-        $this->redirect(route('admin.inventory.ics.show', $this->icsNumber), navigate: true);
+            $this->dispatch('ics-updated');
+            session()->flash('success', "ICS record {$this->icsNumber->ics_number} updated successfully.");
+            $this->redirect(route('admin.inventory.ics.show', $this->icsNumber), navigate: true);
+        } catch (\Exception $e) {
+            \Log::error('Error updating ICS record: ' . $e->getMessage());
+            session()->flash('error', 'An error occurred while updating the record: ' . $e->getMessage());
+        }
     }
 
     public function destroy(): void
@@ -353,64 +1229,244 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         <div class="mt-6">
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                <!-- Column 1: Item & Contract Information -->
+                <!-- Column 1: Item Information -->
                 <div class="space-y-6">
-                    <!-- Item & Contract Details -->
+                    <!-- Supplier & Contract Section -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3>
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
                         </div>
                         <div class="p-4">
-                            <div class="space-y-6">
-                                <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
-                                    <div>
-                                        <flux:select wire:model.live="contract_id" label="Contract" id="contract_id" required>
-                                            <option value="">Select a contract</option>
-                                            @foreach($this->allContracts as $contract)
-                                                <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} ({{ $contract->supplier->name }})</option>
-                                            @endforeach
-                                        </flux:select>
-                                        <x-input-error for="contract_id" class="mt-2" />
-                                    </div>
-                                    <div>
-                                        <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id" required>
-                                            <option value="">Select an item</option>
-                                            @if ($this->contractItems)
-                                                @foreach ($this->contractItems as $item)
-                                                    <option value="{{ $item->id }}">{{ $item->itemSpecification->itemCatalog->name }}</option>
-                                                @endforeach
-                                            @endif
-                                        </flux:select>
-                                        <x-input-error for="contract_item_id" class="mt-2" />
-                                    </div>
+                            <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                                <div>
+                                    <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" />
+                                    @error('supplier_id')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                    @if ($creating_new_supplier)
+                                        <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                            <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                            </svg>
+                                            <span class="font-medium">New supplier will be created upon saving.</span>
+                                        </div>
+                                    @endif
                                 </div>
+                                <div>
+                                    <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" />
+                                    @error('contract_id')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                    <x-input-error for="contract_search_error" class="mt-2" />
+                                    @if ($creating_new_contract)
+                                        <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                            <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                            </svg>
+                                            <span class="font-medium">New contract will be created upon saving.</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <!-- Pricing Information -->
-                                <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
-                                    <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
+                    <!-- Item Information Section -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="space-y-4">
+                                <!-- Item Catalog Selection -->
+                                <div>
+                                    <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Catalog</h4>
                                     <div>
-                                        <flux:input
-                                            wire:model="unit_price"
-                                            label="Unit Cost"
-                                            id="unit_cost"
-                                            type="text"
-                                            :disabled="true"
-                                        >
-                                            <x-slot:leading>
-                                                <span class="text-stone-500">₱</span>
-                                            </x-slot:leading>
-                                        </flux:input>
-                                        @if($this->unit_price && $this->unit_price >= 50000)
-                                            <div class="mt-2 flex w-full items-center rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-800/20 dark:text-red-400" role="alert">
-                                                <svg class="mr-3 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                                        <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" />
+                                        @error('items_catalog_id')
+                                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                                                 </svg>
-                                                <span class="font-medium">
-                                                    This item cost requires it to be recorded on a Property Accountability Receipt (PAR), not an ICS.
-                                                </span>
+                                                <span>{{ $message }}</span>
+                                            </div>
+                                        @enderror
+                                        @if ($creating_new_item)
+                                            <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                                <span class="font-medium">New item catalog will be created upon saving.</span>
                                             </div>
                                         @endif
                                     </div>
+                                </div>
+
+                                <!-- Item Specifications Section -->
+                                <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
+                                    <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
+                                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                                        <div>
+                                            <x-autocomplete id="brand_search" wire:model.live="brand_search" wire:suggestions="brand_suggestions" wire:showSuggestions="show_brand_suggestions" label="Brand" placeholder="e.g., HP, Dell, Samsung" onFocus="$wire.showAllBrands()" onSelect="$wire.selectBrand" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-model'); }" />
+                                            @if ($creating_new_brand)
+                                                <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                    </svg>
+                                                    <span class="font-medium">New brand will be used.</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-detailed-specs'); }" />
+                                            @if ($creating_new_model)
+                                                <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                    </svg>
+                                                    <span class="font-medium">New model will be used.</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." rows="3" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); }" />
+                                    </div>
+                                </div>
+
+                                <!-- Pricing Section -->
+                                <div class="border-t border-stone-200 pt-4 dark:border-stone-700">
+                                    <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Pricing Information</h4>
+                                    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                                        <div>
+                                            <label for="unit_cost" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">Unit Cost</label>
+                                            <div class="relative" x-data="{
+                                                formattedValue: '',
+                                                rawValue: 0,
+                                                
+                                                init() {
+                                                    if ($wire.unit_price !== null && $wire.unit_price !== undefined) {
+                                                        this.rawValue = $wire.unit_price;
+                                                        this.updateFormattedValue();
+                                                    }
+                                                    
+                                                    $watch('$wire.unit_price', (value) => {
+                                                        if (value !== this.rawValue) {
+                                                            this.rawValue = value;
+                                                            this.updateFormattedValue();
+                                                        }
+                                                    });
+                                                },
+                                                
+                                                updateFormattedValue() {
+                                                    this.formattedValue = this.rawValue.toLocaleString('en-US', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    });
+                                                },
+                                                
+                                                updatePrice(event) {
+                                                    const cursorPos = event.target.selectionStart;
+                                                    
+                                                    let value = event.target.value.replace(/[^0-9.]/g, '');
+                                                    
+                                                    const decimalPoints = value.match(/\./g);
+                                                    if (decimalPoints && decimalPoints.length > 1) {
+                                                        const firstDecimalPos = value.indexOf('.');
+                                                        value = value.substring(0, firstDecimalPos + 1) + 
+                                                               value.substring(firstDecimalPos + 1).replace(/\./g, '');
+                                                    }
+                                                    
+                                                    if (value.includes('.')) {
+                                                        const parts = value.split('.');
+                                                        if (parts[1].length > 2) {
+                                                            parts[1] = parts[1].substring(0, 2);
+                                                            value = parts.join('.');
+                                                        }
+                                                    }
+                                                    
+                                                    this.rawValue = parseFloat(value) || 0;
+                                                    
+                                                    const oldFormatted = this.formattedValue;
+                                                    this.updateFormattedValue();
+                                                    
+                                                    $wire.set('unit_price', this.rawValue);
+                                                    $wire.updateItemTypeFromPrice(this.rawValue);
+                                                    
+                                                    this.$nextTick(() => {
+                                                        const oldCommas = (oldFormatted.match(/,/g) || []).length;
+                                                        const newCommas = (this.formattedValue.match(/,/g) || []).length;
+                                                        const commaDiff = newCommas - oldCommas;
+                                                        
+                                                        try {
+                                                            event.target.setSelectionRange(
+                                                                Math.max(0, cursorPos + commaDiff), 
+                                                                Math.max(0, cursorPos + commaDiff)
+                                                            );
+                                                        } catch (e) {
+                                                            // Ignore errors with cursor position
+                                                        }
+                                                    });
+                                                }
+                                            }">
+                                                <flux:input 
+                                                    id="unit_cost" 
+                                                    x-model="formattedValue"
+                                                    type="text" 
+                                                    inputmode="decimal" 
+                                                    placeholder="e.g., 1500.00"
+                                                    @input="updatePrice($event)"
+                                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit'); }" />
+                                            </div>
+                                            @error('unit_price')
+                                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ $message }}</span>
+                                                </div>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
+                                            @error('unit_of_measure')
+                                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ $message }}</span>
+                                                </div>
+                                            @enderror
+                                            @if ($creating_new_unit)
+                                                <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                                    </svg>
+                                                    <span class="font-medium">New unit of measure will be used.</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if ($isParItem)
+                                        <div class="mt-4 flex w-full items-center rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-800/20 dark:text-red-400" role="alert">
+                                            <svg class="mr-3 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span class="font-medium">
+                                                The unit cost of ₱{{ number_format($this->unit_price, 2) }} for this item requires it to be recorded on a Property Accountability Receipt (PAR), not an ICS.
+                                            </span>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -447,61 +1503,162 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 <!-- Column 2: Employee Assignment & Document Details -->
                 <div class="space-y-6">
-                    <!-- Custodian Information -->
+                    <!-- Employee Assignment Section -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                             <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
                         </div>
                         <div class="p-4">
-                            <flux:select wire:model.live="assigned_employee_id" label="Assign To Employee" id="assigned_employee_id" required>
-                                <option value="">Select an employee</option>
-                                @foreach($this->allEmployees as $employee)
-                                    <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) selected @endif>
-                                        {{ $employee->name }}
-                                    </option>
-                                @endforeach
-                            </flux:select>
-                            <x-input-error for="assigned_employee_id" class="mt-2" />
+                            <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                            @error('assigned_employee_id')
+                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>{{ $message }}</span>
+                                </div>
+                            @enderror
+                            @if ($creating_new_employee)
+                                <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                    </svg>
+                                    <span class="font-medium">New employee will be created upon saving.</span>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
                     <!-- Document Details -->
-                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800"
+                        x-data="{
+                            formatDate(event) {
+                                let value = event.target.value.replace(/\D/g, '');
+                                if (value.length > 8) {
+                                    value = value.substring(0, 8);
+                                }
+
+                                let month = value.substring(0, 2);
+                                let day = value.substring(2, 4);
+                                let year = value.substring(4, 8);
+
+                                if (month.length === 2) {
+                                    let monthInt = parseInt(month, 10);
+                                    if (monthInt > 12) month = '12';
+                                    else if (monthInt === 0) month = '01';
+                                }
+
+                                if (day.length === 2 && month.length === 2) {
+                                    let dayInt = parseInt(day, 10);
+                                    let monthInt = parseInt(month, 10);
+                                    let yearInt = year.length === 4 ? parseInt(year, 10) : new Date().getFullYear();
+                                    
+                                    let maxDaysInMonth = new Date(yearInt, monthInt, 0).getDate();
+
+                                    if (dayInt > maxDaysInMonth) {
+                                        day = maxDaysInMonth.toString();
+                                    } else if (dayInt === 0) {
+                                        day = '01';
+                                    }
+                                }
+                                
+                                value = month + day + year;
+                                
+                                let formattedValue = '';
+                                if (value.length > 4) {
+                                    formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}/${value.substring(4, 8)}`;
+                                } else if (value.length > 2) {
+                                    formattedValue = `${value.substring(0, 2)}/${value.substring(2, 4)}`;
+                                } else {
+                                    formattedValue = value;
+                                }
+
+                                event.target.value = formattedValue;
+                            }
+                        }">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                             <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                         </div>
                         <div class="space-y-4 p-4">
                             <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                                 <div>
-                                    <flux:input wire:model="ics_number" label="ICS Number" required />
+                                    <flux:input 
+                                        id="ics_number_input"
+                                        wire:model.blur="ics_number" 
+                                        label="ICS Number" 
+                                        required
+                                        tabindex="-1" />
                                     <x-input-error for="ics_number" class="mt-2" />
                                 </div>
-                                <div>
-                                    <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" required />
+                                <div x-data="{ 
+                                    validateNumber(e) {
+                                        e.target.value = e.target.value.replace(/[^\d]/g, '');
+                                        $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
+                                    }
+                                }">
+                                    <x-quantity-input 
+                                        id="estimated_useful_life_wrapper"
+                                        wire:model="estimated_useful_life" 
+                                        label="Estimated Useful Life (Years)" 
+                                        placeholder="Optional" 
+                                        :disabled="$isParItem"
+                                        type="number"
+                                        @input="validateNumber($event)"
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
                                     <x-input-error for="estimated_useful_life" class="mt-2" />
                                 </div>
                             </div>
 
                             <div>
-                                <flux:select wire:model="ics_type" label="ICS Type" required>
-                                    <option value="SPLV">Small-Value (SPLV)</option>
-                                    <option value="SPHV">High-Value (SPHV)</option>
-                                </flux:select>
+                                <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
+                                <div class="relative">
+                                    <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
+                                </div>
                                 <x-input-error for="ics_type" class="mt-2" />
                             </div>
 
                             <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                                 <div>
-                                    <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                                    <flux:input
+                                        id="date_prepared"
+                                        wire:model.blur="date_prepared"
+                                        type="text"
+                                        label="Date Prepared"
+                                        placeholder="MM/DD/YYYY"
+                                        :disabled="$isParItem"
+                                        tabindex="513"
+                                        @input="formatDate($event)"
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
+                                    />
                                     <x-input-error for="date_prepared" class="mt-2" />
                                 </div>
+
                                 <div>
-                                    <flux:input wire:model="date_accepted" type="date" label="Date Accepted" />
+                                    <flux:input
+                                        id="date_accepted"
+                                        wire:model.blur="date_accepted"
+                                        type="text"
+                                        label="Date Accepted"
+                                        placeholder="MM/DD/YYYY"
+                                        :disabled="$isParItem"
+                                        tabindex="514"
+                                        @input="formatDate($event)"
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
+                                    />
                                     <x-input-error for="date_accepted" class="mt-2" />
                                 </div>
                             </div>
 
-                            <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." rows="4" />
+                            <flux:textarea 
+                                id="remarks"
+                                wire:model="remarks" 
+                                label="Remarks" 
+                                placeholder="Add any notes or remarks here..." 
+                                :disabled="$isParItem" 
+                                tabindex="515" 
+                                rows="10" 
+                                @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
+                            />
                         </div>
                     </div>
 
@@ -687,4 +1844,52 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </x-slot:footer>
     </flux:modal>
-</div> 
+</div>
+
+@script
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        const focusOn = (elementId, inner = false) => {
+            setTimeout(() => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    if (inner) {
+                        const input = element.querySelector('input, textarea');
+                        if (input) {
+                            input.focus();
+                            return;
+                        }
+                    }
+                    element.focus();
+                }
+            }, 0);
+        };
+
+        @this.on('focus-contract', () => focusOn('contract_search'));
+        @this.on('focus-item', () => focusOn('item_search'));
+        @this.on('focus-specification', () => focusOn('specification_search'));
+        @this.on('focus-employee', () => focusOn('employee_search'));
+        @this.on('focus-primary-category', () => focusOn('primary_category_search'));
+        @this.on('focus-secondary-category', () => focusOn('secondary_category_search'));
+        @this.on('focus-brand', () => focusOn('brand_search'));
+        @this.on('focus-model', () => focusOn('model_search'));
+        @this.on('focus-detailed-specs', () => focusOn('detailed_specifications'));
+        @this.on('focus-unit-cost', () => focusOn('unit_cost'));
+        @this.on('focus-unit', () => focusOn('unit_search_pricing'));
+        @this.on('focus-estimated-useful-life', () => focusOn('estimated_useful_life_wrapper', true));
+        @this.on('focus-date-prepared', () => focusOn('date_prepared'));
+        @this.on('focus-date-accepted', () => focusOn('date_accepted'));
+        @this.on('focus-remarks', () => focusOn('remarks'));
+        @this.on('focus-quantity', () => focusOn('quantity', true));
+        
+        // Skip focus on ICS Number input by redirecting immediately to estimated useful life
+        const icsField = document.getElementById('ics_number_input');
+        if (icsField) {
+            icsField.addEventListener('focus', () => focusOn('estimated_useful_life_wrapper', true));
+        }
+        
+        // Automatically focus Supplier field on initial load
+        focusOn('supplier_search');
+    });
+</script>
+@endscript 
