@@ -26,7 +26,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?int $estimated_useful_life = 1;
     public string $date_prepared = '';
     public ?string $date_accepted = null;
-    public string $remarks = '';
+    public ?string $remarks = null;
 
     // Display only property
     public ?float $unit_price = 0.0;
