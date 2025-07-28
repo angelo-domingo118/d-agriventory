@@ -120,10 +120,15 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee');
-        $this->fill($icsNumber->toArray()); // Pre-fill form from the model
-        $this->date_prepared = $icsNumber->date_prepared->format('Y-m-d');
-        $this->date_accepted = $icsNumber->date_accepted?->format('Y-m-d');
-        $this->quantity = $icsNumber->itemBatches->count();
+        $this->loadOriginalData();
+    }
+
+    private function loadOriginalData(): void
+    {
+        $this->fill($this->icsNumber->toArray()); // Pre-fill form from the model
+        $this->date_prepared = $this->icsNumber->date_prepared->format('Y-m-d');
+        $this->date_accepted = $this->icsNumber->date_accepted?->format('Y-m-d');
+        $this->quantity = $this->icsNumber->itemBatches->count();
 
         // Initialize autocomplete fields with existing data
         if ($this->icsNumber->contractItem) {
@@ -183,7 +188,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->allEmployees = Employee::orderBy('name')
             ->get(['id', 'name']);
 
+        // Reset all "creating new" flags and suggestions
+        $this->resetCreationFlags();
+
         // Populate batches for editing
+        $this->batches = [];
         foreach ($this->icsNumber->itemBatches as $batch) {
             $components = $batch->components->map(fn($c) => $c->toArray())->all();
             if (empty($components)) {
@@ -211,6 +220,53 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->updateItemType();
 
         $this->transfer_date = now()->format('Y-m-d');
+    }
+
+    private function resetCreationFlags(): void
+    {
+        $this->creating_new_supplier = false;
+        $this->creating_new_contract = false;
+        $this->creating_new_item = false;
+        $this->creating_new_specification = false;
+        $this->creating_new_employee = false;
+        $this->creating_new_unit = false;
+        $this->creating_new_brand = false;
+        $this->creating_new_model = false;
+
+        // Reset suggestion arrays and flags
+        $this->supplier_suggestions = [];
+        $this->show_supplier_suggestions = false;
+        $this->contract_suggestions = [];
+        $this->show_contract_suggestions = false;
+        $this->item_suggestions = [];
+        $this->show_item_suggestions = false;
+        $this->specification_suggestions = [];
+        $this->show_specification_suggestions = false;
+        $this->employee_suggestions = [];
+        $this->show_employee_suggestions = false;
+        $this->unit_suggestions = [];
+        $this->show_unit_suggestions = false;
+        $this->brand_suggestions = [];
+        $this->show_brand_suggestions = false;
+        $this->model_suggestions = [];
+        $this->show_model_suggestions = false;
+    }
+
+    public function resetForm(): void
+    {
+        // Reload the original model data from database
+        $this->icsNumber->refresh();
+        $this->icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee');
+        
+        // Reset all form data to original values
+        $this->loadOriginalData();
+        
+        // Clear any validation errors
+        $this->resetValidation();
+        
+        // Dispatch event to notify user
+        $this->dispatch('form-reset');
+        session()->flash('success', 'Form has been reset to original values.');
     }
 
     // Supplier autocomplete methods
@@ -1194,6 +1250,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             \Illuminate\Support\Facades\Log::error('Error deleting ICS record: ' . $e->getMessage());
             session()->flash('error', 'An unexpected error occurred while deleting the record.');
         }
+        
+        $this->showDeleteModal = false;
     }
 }; ?>
 
@@ -1213,11 +1271,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-action-message class="me-3" on="ics-updated">
                         {{ __('Record updated successfully.') }}
                     </x-action-message>
+                    <x-action-message class="me-3" on="form-reset">
+                        {{ __('Form reset to original values.') }}
+                    </x-action-message>
                     <flux:button variant="ghost" :href="route('admin.inventory.ics.show', $icsNumber)" wire:navigate>
                         Cancel
                     </flux:button>
-                    <flux:button type="button" variant="filled" @click="$wire.set('showTransferModal', true)">
-                        Transfer Item
+                    <flux:button type="button" variant="filled" wire:click="resetForm" wire:loading.attr="disabled" wire:target="resetForm">
+                        <span wire:loading.remove wire:target="resetForm">Reset</span>
+                        <span wire:loading wire:target="resetForm">Resetting...</span>
+                    </flux:button>
+                    <flux:button type="button" variant="danger" @click="showDeleteModal = true">
+                        Delete
                     </flux:button>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
@@ -1661,21 +1726,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                             />
                         </div>
                     </div>
-
-                    <!-- Danger Zone -->
-                    <div class="overflow-hidden rounded-lg border border-red-500 bg-red-50 shadow-sm dark:border-red-600/50 dark:bg-red-900/10">
-                        <div class="border-b border-red-200 px-4 py-3 dark:border-red-600/20">
-                            <h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3>
-                        </div>
-                        <div class="p-4">
-                            <p class="text-sm text-red-700 dark:text-red-300">
-                                Deleting this ICS record is a permanent action and cannot be undone. All associated batch and component data will be removed.
-                            </p>
-                            <flux:button type="button" variant="danger" class="mt-4" @click="showDeleteModal = true">
-                                Delete this ICS Record
-                            </flux:button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Column 3: Batches & Components -->
@@ -1806,16 +1856,44 @@ new #[Layout('components.layouts.app')] class extends Component {
     <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
         <x-slot:content>
             <div class="p-4">
-                <p class="text-sm text-stone-600 dark:text-stone-400">
-                    Are you sure you want to delete this item? This action cannot be undone.
-                </p>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Delete ICS Record</h3>
+                        <p class="mt-2 text-sm text-stone-600 dark:text-stone-400">
+                            Are you sure you want to delete ICS record <strong>{{ $icsNumber->ics_number }}</strong>? 
+                            This action cannot be undone and will permanently remove all associated batch and component data.
+                        </p>
+                        <div class="mt-3 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-red-700 dark:text-red-300">
+                                        <strong>Warning:</strong> This is a permanent action that cannot be reversed.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </x-slot:content>
 
         <x-slot:footer>
             <div class="flex justify-end gap-x-4">
                 <flux:button variant="ghost" wire:click="$set('showDeleteModal', false)">Cancel</flux:button>
-                <flux:button variant="danger" wire:click="destroy">Delete</flux:button>
+                <flux:button variant="danger" wire:click="destroy" wire:loading.attr="disabled" wire:target="destroy">
+                    <span wire:loading.remove wire:target="destroy">Delete Record</span>
+                    <span wire:loading wire:target="destroy">Deleting...</span>
+                </flux:button>
             </div>
         </x-slot:footer>
     </flux:modal>
