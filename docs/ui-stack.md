@@ -127,8 +127,15 @@ $save = function () {
 D'Agriventory uses Tailwind CSS 4 with Oxide engine for enhanced performance and simplified configuration.
 
 **Configuration**: [`vite.config.js`](../vite.config.js) includes `@tailwindcss/vite` plugin
-**Documentation**: [Tailwind CSS v4 Alpha](https://tailwindcss.com/docs/v4-alpha)
-**Component Library**: [Flux UI Documentation](https://flux-ui.com/docs)
+
+### Documentation Links
+
+- **Tailwind CSS v4**: [Official v4 Alpha Documentation](https://tailwindcss.com/docs/v4-alpha)
+- **Flux UI**: [Component Library Documentation](https://flux-ui.com/docs)
+- **Livewire 3**: [Framework Documentation](https://livewire.laravel.com/docs)
+- **Volt**: [Single-File Components Guide](https://livewire.laravel.com/docs/volt)
+- **Alpine.js**: [Getting Started Guide](https://alpinejs.dev/start-here)
+- **Vite**: [Build Tool Documentation](https://vitejs.dev/guide/)
 
 ### custom-utilities
 

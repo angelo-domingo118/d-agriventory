@@ -214,3 +214,25 @@ FROM information_schema.tables
 WHERE table_schema = 'd-agriventory'
 ORDER BY (data_length + index_length) DESC;
 ```
+
+## documentation-links
+
+### Database and Migration Documentation
+
+- **Laravel Migrations**: [Database Migrations Guide](https://laravel.com/docs/12.x/migrations) - Schema management
+- **Laravel Eloquent**: [Eloquent ORM Documentation](https://laravel.com/docs/12.x/eloquent) - Database modeling
+- **Database Seeding**: [Laravel Seeding Guide](https://laravel.com/docs/12.x/seeding) - Populating databases
+- **Query Builder**: [Laravel Query Builder](https://laravel.com/docs/12.x/queries) - Database queries
+
+### MySQL-Specific Resources
+
+- **MySQL 8.0**: [Official MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/) - Complete MySQL reference
+- **MySQL Performance**: [MySQL Performance Tuning](https://dev.mysql.com/doc/refman/8.0/en/optimization.html) - Optimization guide
+- **MySQL JSON Functions**: [JSON Function Reference](https://dev.mysql.com/doc/refman/8.0/en/json-functions.html) - JSON data handling
+- **MySQL Backup**: [MySQL Backup and Recovery](https://dev.mysql.com/doc/refman/8.0/en/backup-and-recovery.html) - Data protection
+
+### Database Administration
+
+- **Laravel Database Configuration**: [Database Configuration](https://laravel.com/docs/12.x/database#configuration) - Connection setup
+- **Database Transactions**: [Laravel Transactions](https://laravel.com/docs/12.x/database#database-transactions) - ACID operations
+- **Database Events**: [Eloquent Events](https://laravel.com/docs/12.x/eloquent#events) - Model lifecycle hooks

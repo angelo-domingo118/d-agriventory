@@ -183,8 +183,23 @@ class InventoryItem extends Model
 
 **Why?** Prevents mass assignment vulnerabilities and makes intentions explicit for security audits.
 
-## further-reading
+## documentation-links
 
-- [Larasoft SOP – Naming](https://sops.larasoft.io/)
-- [Alexey Mezenin Laravel Best Practices](https://github.com/alexeymezenin/laravel-best-practices)
-- [Laravel Documentation – Eloquent](https://laravel.com/docs/eloquent)
+### PHP and Laravel Standards
+
+- **PSR-12**: [PHP-FIG PSR-12 Coding Standard](https://www.php-fig.org/psr/psr-12/) - Official PHP coding style
+- **Laravel Conventions**: [Laravel Documentation](https://laravel.com/docs/12.x) - Framework conventions
+- **Laravel Pint**: [Laravel Pint Documentation](https://laravel.com/docs/12.x/pint) - Code formatting tool
+- **Eloquent ORM**: [Eloquent Documentation](https://laravel.com/docs/12.x/eloquent) - Database modeling
+
+### Livewire-Specific Guidelines
+
+- **Livewire 3**: [Livewire Documentation](https://livewire.laravel.com/docs) - Component development
+- **Volt Components**: [Volt Documentation](https://livewire.laravel.com/docs/volt) - Single-file components
+- **Livewire Best Practices**: [Livewire Guidelines](https://livewire.laravel.com/docs/quickstart) - Development patterns
+
+### Additional Resources
+
+- **Laravel Best Practices**: [Alexey Mezenin's Laravel Best Practices](https://github.com/alexeymezenin/laravel-best-practices) - Community guidelines
+- **PHP Best Practices**: [PHP The Right Way](https://phptherightway.com/) - Modern PHP development
+- **Clean Code**: [Clean Code Principles](https://blog.cleancoder.com/) - General programming practices

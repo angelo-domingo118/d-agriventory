@@ -8,20 +8,20 @@ The system replaces the legacy MS Access-based inventory management with a moder
 
 ## tech-stack
 
-| Component | Technology | Version | Purpose |
-|-----------|------------|---------|---------|
-| **Backend Framework** | Laravel | 12.0 | Core application logic and API |
-| **Frontend Components** | Livewire | 3.x | Dynamic UI without JavaScript |
-| **Single-File Components** | Volt | 1.7 | Simplified Livewire components |
-| **CSS Framework** | Tailwind CSS | 4.0 | Utility-first styling |
-| **Component Library** | Flux UI | 2.1 | Pre-built interface components |
-| **JavaScript** | Alpine.js | 3.14 | Lightweight interactivity |
-| **Build Tool** | Vite | 6.0 | Asset bundling and HMR |
-| **Testing Framework** | Pest | 3.8 | Modern PHP testing |
-| **Browser Testing** | Laravel Dusk | 8.3 | End-to-end automation |
-| **Database** | MySQL | 8.0+ | Primary data storage |
-| **PDF Generation** | DomPDF | 3.1 | Report generation |
-| **Code Standards** | Laravel Pint | 1.18 | Automated formatting |
+| Component | Technology | Version | Purpose | Documentation |
+|-----------|------------|---------|---------|---------------|
+| **Backend Framework** | Laravel | 12.0 | Core application logic and API | [Laravel 12.x Docs](https://laravel.com/docs/12.x) |
+| **Frontend Components** | Livewire | 3.x | Dynamic UI without JavaScript | [Livewire 3 Docs](https://livewire.laravel.com/docs) |
+| **Single-File Components** | Volt | 1.7 | Simplified Livewire components | [Volt Documentation](https://livewire.laravel.com/docs/volt) |
+| **CSS Framework** | Tailwind CSS | 4.0 | Utility-first styling | [Tailwind CSS v4 Alpha](https://tailwindcss.com/docs/v4-alpha) |
+| **Component Library** | Flux UI | 2.1 | Pre-built interface components | [Flux UI Documentation](https://flux-ui.com/docs) |
+| **JavaScript** | Alpine.js | 3.14 | Lightweight interactivity | [Alpine.js Documentation](https://alpinejs.dev/start-here) |
+| **Build Tool** | Vite | 6.0 | Asset bundling and HMR | [Vite Documentation](https://vitejs.dev/guide/) |
+| **Testing Framework** | Pest | 3.8 | Modern PHP testing | [Pest Documentation](https://pestphp.com/docs) |
+| **Browser Testing** | Laravel Dusk | 8.3 | End-to-end automation | [Laravel Dusk Docs](https://laravel.com/docs/12.x/dusk) |
+| **Database** | MySQL | 8.0+ | Primary data storage | [MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/) |
+| **PDF Generation** | DomPDF | 3.1 | Report generation | [DomPDF Documentation](https://github.com/dompdf/dompdf) |
+| **Code Standards** | Laravel Pint | 1.18 | Automated formatting | [Laravel Pint Docs](https://laravel.com/docs/12.x/pint) |
 
 ## directory-structure
 

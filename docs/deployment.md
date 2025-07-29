@@ -416,10 +416,14 @@ php artisan key:generate
 
 ### Getting Help
 
-1. Check Laravel documentation: https://laravel.com/docs
-2. Review application logs for specific error messages
-3. Use Laravel's debug mode temporarily (set `APP_DEBUG=true`) to see detailed errors
-4. Consult the project's GitHub issues or create a new one
+1. **Laravel Documentation**: [Official Laravel 12.x Docs](https://laravel.com/docs/12.x)
+2. **Deployment Guide**: [Laravel Deployment Documentation](https://laravel.com/docs/12.x/deployment)
+3. **Server Configuration**: [Laravel Server Requirements](https://laravel.com/docs/12.x/installation#server-requirements)
+4. **Vite Asset Bundling**: [Laravel Vite Documentation](https://laravel.com/docs/12.x/vite)
+5. **Database**: [Laravel Database Documentation](https://laravel.com/docs/12.x/database)
+6. **Review application logs** for specific error messages
+7. **Use Laravel's debug mode** temporarily (set `APP_DEBUG=true`) to see detailed errors
+8. **Consult the project's GitHub issues** or create a new one
 
 ## Security Considerations
 

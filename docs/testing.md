@@ -229,3 +229,24 @@ class InventoryItemFactory extends Factory
 ### database-transactions
 
 Tests automatically wrap each test in a database transaction and rollback changes, ensuring test isolation without affecting the database state between tests.
+
+## documentation-links
+
+### Testing Framework Documentation
+
+- **Pest PHP**: [Official Pest Documentation](https://pestphp.com/docs) - Modern PHP testing framework
+- **Laravel Testing**: [Laravel Testing Guide](https://laravel.com/docs/12.x/testing) - Laravel's built-in testing features
+- **Laravel Dusk**: [Browser Testing Documentation](https://laravel.com/docs/12.x/dusk) - End-to-end browser automation
+- **PHPUnit**: [PHPUnit Documentation](https://phpunit.de/documentation.html) - Underlying testing framework
+
+### Database Testing
+
+- **Database Testing**: [Laravel Database Testing](https://laravel.com/docs/12.x/database-testing) - Testing with databases
+- **Model Factories**: [Eloquent Factories](https://laravel.com/docs/12.x/eloquent-factories) - Generating test data
+- **Database Seeding**: [Database Seeding Guide](https://laravel.com/docs/12.x/seeding) - Populating test databases
+
+### Advanced Testing Topics
+
+- **HTTP Testing**: [Laravel HTTP Tests](https://laravel.com/docs/12.x/http-tests) - Testing API endpoints
+- **Console Testing**: [Artisan Command Testing](https://laravel.com/docs/12.x/console-tests) - Testing CLI commands
+- **Mocking**: [Laravel Mocking Guide](https://laravel.com/docs/12.x/mocking) - Test doubles and mocks

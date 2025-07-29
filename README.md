@@ -77,11 +77,11 @@ php artisan schedule:work
 
 ## tech-stack
 
-- **Backend**: Laravel 12, PHP 8.2+
-- **Frontend**: Livewire 3, Volt, Tailwind CSS 4, Flux UI, Alpine.js
-- **Database**: MySQL 8.0+ (Required - uses MySQL-specific features)
-- **Testing**: Pest (unit/feature), Dusk (browser)
-- **Build**: Vite 6, Concurrently
+- **Backend**: [Laravel 12](https://laravel.com/docs/12.x), [PHP 8.2+](https://www.php.net/manual/en/)
+- **Frontend**: [Livewire 3](https://livewire.laravel.com/docs), [Volt](https://livewire.laravel.com/docs/volt), [Tailwind CSS 4](https://tailwindcss.com/docs/v4-alpha), [Flux UI](https://flux-ui.com/docs), [Alpine.js](https://alpinejs.dev/start-here)
+- **Database**: [MySQL 8.0+](https://dev.mysql.com/doc/refman/8.0/en/) (Required - uses MySQL-specific features)
+- **Testing**: [Pest](https://pestphp.com/docs) (unit/feature), [Laravel Dusk](https://laravel.com/docs/12.x/dusk) (browser)
+- **Build**: [Vite 6](https://vitejs.dev/guide/), [Concurrently](https://www.npmjs.com/package/concurrently)
 
 ## key-features
 
