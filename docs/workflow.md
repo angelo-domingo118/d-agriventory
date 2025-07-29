@@ -54,8 +54,8 @@ composer test
 # Parallel testing (faster execution)
 php artisan test --parallel
 
-# Browser tests
-php artisan dusk
+# Run specific test files
+php artisan test --filter=UserTest
 
 # Code formatting
 ./vendor/bin/pint
@@ -121,7 +121,7 @@ Brief description of what this PR accomplishes.
 
 ## Testing
 - [ ] Unit tests added/updated
-- [ ] Browser tests verified
+- [ ] Feature tests verified
 - [ ] Manual testing completed
 
 ## Database Changes

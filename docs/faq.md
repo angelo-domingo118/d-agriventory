@@ -79,22 +79,7 @@ php artisan config:show database --env=testing
 php artisan migrate --env=testing
 ```
 
-### q5-dusk-browser-tests-failing
 
-**Q: Dusk browser tests timing out or failing?**
-
-**A:** Chrome driver and environment configuration:
-
-```bash
-# Update Chrome driver
-php artisan dusk:chrome-driver
-
-# Run Dusk with debugging
-php artisan dusk --browse
-
-# Check if Chrome is accessible
-google-chrome --version
-```
 
 ## cache-and-performance
 

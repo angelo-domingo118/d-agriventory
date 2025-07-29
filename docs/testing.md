@@ -1,6 +1,6 @@
 # Testing Guide
 
-Comprehensive testing strategy using Pest for unit/feature tests and Laravel Dusk for browser automation in D'Agriventory.
+Comprehensive testing strategy using Pest for unit/feature tests in D'Agriventory.
 
 ## testing-philosophy
 
@@ -94,77 +94,7 @@ php artisan test --parallel
 ./vendor/bin/pest --watch
 ```
 
-## dusk-browser-tests
 
-### setup-requirements
-
-```bash
-# Install Chrome driver
-php artisan dusk:install
-
-# Run browser tests
-php artisan dusk
-
-# Run specific browser test
-php artisan dusk tests/Browser/AdminLoginTest.php
-```
-
-### example-browser-tests
-
-```php
-// tests/Browser/AdminLoginTest.php
-
-test('admin can login and access dashboard', function () {
-    $admin = User::factory()->admin()->create([
-        'email' => 'admin@example.com',
-        'password' => bcrypt('password'),
-    ]);
-    
-    $this->browse(function (Browser $browser) {
-        $browser->visit('/login')
-            ->type('email', 'admin@example.com')
-            ->type('password', 'password')
-            ->press('Log In')
-            ->assertPathIs('/admin/dashboard')
-            ->assertSee('Welcome, Admin');
-    });
-});
-
-test('user can create inventory item through UI', function () {
-    $admin = User::factory()->admin()->create();
-    $category = PrimaryCategory::factory()->create();
-    
-    $this->browse(function (Browser $browser) use ($admin, $category) {
-        $browser->loginAs($admin)
-            ->visit('/admin/inventory/items/create')
-            ->type('name', 'Desktop Computer')
-            ->type('description', 'High-performance workstation')
-            ->select('category_id', $category->id)
-            ->type('cost', '45000.00')
-            ->press('Create Item')
-            ->assertSee('Item created successfully')
-            ->assertPathIs('/admin/inventory/items');
-    });
-});
-```
-
-### advanced-browser-interactions
-
-```php
-test('user can filter inventory items', function () {
-    $admin = User::factory()->admin()->create();
-    InventoryItem::factory()->count(10)->create();
-    
-    $this->browse(function (Browser $browser) use ($admin) {
-        $browser->loginAs($admin)
-            ->visit('/admin/inventory/items')
-            ->type('search', 'Computer')
-            ->waitForText('Showing filtered results')
-            ->assertSee('Desktop Computer')
-            ->assertDontSee('Office Chair');
-    });
-});
-```
 
 ## parallel-testing
 
@@ -236,7 +166,6 @@ Tests automatically wrap each test in a database transaction and rollback change
 
 - **Pest PHP**: [Official Pest Documentation](https://pestphp.com/docs) - Modern PHP testing framework
 - **Laravel Testing**: [Laravel Testing Guide](https://laravel.com/docs/12.x/testing) - Laravel's built-in testing features
-- **Laravel Dusk**: [Browser Testing Documentation](https://laravel.com/docs/12.x/dusk) - End-to-end browser automation
 - **PHPUnit**: [PHPUnit Documentation](https://phpunit.de/documentation.html) - Underlying testing framework
 
 ### Database Testing
