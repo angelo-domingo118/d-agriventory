@@ -19,7 +19,8 @@ Complete index of D'Agriventory documentation with brief descriptions for quick 
 
 8. **[docs/ui-stack.md](docs/ui-stack.md)** - Livewire 3 fundamentals, Volt component structure, and Tailwind configuration
 9. **[docs/testing.md](docs/testing.md)** - Pest unit testing, Dusk browser automation, and parallel test execution
-10. **[docs/faq.md](docs/faq.md)** - Ten most common questions covering cache clearing and local development
+10. **[docs/erd.md](docs/erd.md)** - Complete database schema with mermaid diagram and interactive SVG alternative
+11. **[docs/faq.md](docs/faq.md)** - Ten most common questions covering cache clearing and local development
 
 ## navigation-tips
 
