@@ -19,6 +19,8 @@ The D'Agriventory database is designed around three core inventory management sy
 
 ## Database Schema
 
+> **Alternative Visualization**: For a more detailed and interactive view of the database schema, you can also view the [`erd.drawio.svg`](./erd.drawio.svg) file, which can be opened in [draw.io](https://app.diagrams.net/) for editing or viewed directly in any SVG-compatible viewer.
+
 ```mermaid
 erDiagram
     %% ========================================================================
