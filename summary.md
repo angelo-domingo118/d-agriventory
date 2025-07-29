@@ -14,13 +14,14 @@ Complete index of D'Agriventory documentation with brief descriptions for quick 
 5. **[docs/coding-standards.md](docs/coding-standards.md)** - PSR-12 baseline, Laravel naming conventions, and code examples
 6. **[docs/workflow.md](docs/workflow.md)** - Daily CLI commands, git-flow procedures, and pull request checklist
 7. **[docs/database.md](docs/database.md)** - Migration patterns, seeding procedures, and backup strategies
+8. **[docs/laragon.md](docs/laragon.md)** - Laragon installation & local setup guide (Windows alternative to XAMPP)
 
 ## technical-guides
 
-8. **[docs/ui-stack.md](docs/ui-stack.md)** - Livewire 3 fundamentals, Volt component structure, and Tailwind configuration
-9. **[docs/testing.md](docs/testing.md)** - Pest unit testing, Dusk browser automation, and parallel test execution
-10. **[docs/erd.md](docs/erd.md)** - Complete database schema with mermaid diagram and interactive SVG alternative
-11. **[docs/faq.md](docs/faq.md)** - Ten most common questions covering cache clearing and local development
+9. **[docs/ui-stack.md](docs/ui-stack.md)** - Livewire 3 fundamentals, Volt component structure, and Tailwind configuration
+10. **[docs/testing.md](docs/testing.md)** - Pest unit testing, Dusk browser automation, and parallel test execution
+11. **[docs/erd.md](docs/erd.md)** - Complete database schema with mermaid diagram and interactive SVG alternative
+12. **[docs/faq.md](docs/faq.md)** - Ten most common questions covering cache clearing and local development
 
 ## navigation-tips
 
