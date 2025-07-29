@@ -110,7 +110,3 @@ php artisan schedule:work
 - 💬 [Discussions](../../discussions)
 
 ---
-
-Built with ❤️ for DA-CAR Regional Office, Baguio City
-
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/angelo-domingo118/d-agriventory?utm_source=oss&utm_medium=github&utm_campaign=angelo-domingo118%2Fd-agriventory&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
