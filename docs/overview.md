@@ -415,3 +415,24 @@ d-agriventory/
 ## compliance-features
 
 The system implements government inventory standards through structured workflows, mandatory approval processes, comprehensive audit logging, and standardised reporting formats required for government accountability and transparency.
+
+## database-schema
+
+The system's database architecture is built around three core inventory management systems with comprehensive relationship mapping and audit capabilities. The schema supports:
+
+- **Multi-System Integration**: ICS, PAR, and IDR systems with shared procurement and cataloging infrastructure
+- **Organizational Hierarchy**: Complete mapping of divisions, positions, and employee relationships
+- **Procurement Traceability**: Full chain from suppliers through contracts to individual item assignments
+- **Component-Level Tracking**: Detailed tracking of complex equipment components and serial numbers
+- **Transfer Management**: Complete audit trail of property transfers between employees
+- **Soft Delete Protection**: Non-destructive deletion preserving historical data integrity
+
+For a detailed view of all database entities, relationships, and field explanations, see the [Entity-Relationship Diagram](erd.md) which provides comprehensive documentation of the database structure including:
+
+- **25+ interconnected entities** covering all aspects of inventory management
+- **Detailed field explanations** for every database column
+- **Relationship mapping** showing how data flows through the system
+- **Business rule documentation** explaining the purpose of each entity
+- **Data integrity constraints** ensuring system reliability
+
+The ERD serves as the definitive reference for understanding how D'Agriventory stores and relates inventory data across all organizational levels and inventory systems.
