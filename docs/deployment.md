@@ -101,8 +101,9 @@ Your production server needs:
 - **Document root** must point to the `public` directory (security requirement)
 
 ### Database
-- **MySQL 8.0+** (Required - PostgreSQL and other databases are not supported)
-- This application uses MySQL-specific features for data retrieval
+- **MySQL 8.0+** (Strongly recommended for production)
+- This application is optimized for MySQL and uses MySQL-specific features
+- SQLite may work for development but has limitations (numeric sorting, performance)
 - Separate database for production (never use development database)
 
 ### System Tools

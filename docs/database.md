@@ -2,7 +2,18 @@
 
 Database migration patterns, seeding procedures, and backup strategies for D'Agriventory's MySQL-based architecture.
 
-> **⚠️ MySQL Required**: This application strictly requires MySQL 8.0+ as it uses MySQL-specific features for data retrieval, JSON functions, and advanced querying that are not available in SQLite, PostgreSQL, or other database systems.
+> **⚠️ Database Compatibility**: This application is optimized for MySQL 8.0+ and uses MySQL-specific features for enhanced performance and functionality. While partial SQLite support is included for development purposes, some features may not work correctly:
+> 
+> **MySQL-specific features used:**
+> - `CAST(...AS UNSIGNED)` for numeric sorting of ICS/PAR numbers
+> - `CONCAT_WS()` and `DATE_FORMAT()` functions (with SQLite alternatives provided)
+> - Advanced indexing and performance optimizations
+> 
+> **SQLite limitations:**
+> - Numeric sorting may not work correctly for ICS/PAR numbers
+> - Some advanced queries may fail or perform poorly
+> 
+> **Recommendation:** Use MySQL 8.0+ for production deployments.
 
 ## migration-rules
 
@@ -62,6 +73,71 @@ $table->foreignId('division_id')
 ```
 
 **Why explicit cascades?** Prevents orphaned records and makes deletion behaviour predictable for data integrity.
+
+## database-compatibility
+
+### Current Status
+
+The D'Agriventory application includes database driver detection code that attempts to support both MySQL and SQLite, but the implementation is **incomplete**. While some effort was made to provide cross-database compatibility, certain MySQL-specific features are used without SQLite alternatives.
+
+### MySQL-Specific Features
+
+The following MySQL-specific features are used throughout the application:
+
+1. **`CAST(...AS UNSIGNED)` for Numeric Sorting**
+   ```php
+   // Found in: resources/views/livewire/admin/inventory/ics/index.blade.php:240
+   $query->orderBy(DB::raw('CAST(ics_number.ics_number AS UNSIGNED)'), $this->sortDirection);
+   ```
+   - **Purpose**: Sorts ICS numbers numerically instead of alphabetically
+   - **SQLite Alternative**: Would need `CAST(...AS INTEGER)`
+   - **Impact**: Sorting of ICS/PAR numbers will be incorrect in SQLite
+
+2. **String Concatenation Functions** ✅ *Has SQLite support*
+   ```php
+   // MySQL: CONCAT_WS('-', ics_number.ics_type, ics_number.ics_number, DATE_FORMAT(...))
+   // SQLite: ics_number.ics_type || '-' || ics_number.ics_number || '-' || STRFTIME(...)
+   ```
+
+3. **Date Formatting Functions** ✅ *Has SQLite support*
+   ```php
+   // MySQL: DATE_FORMAT(ics_number.date_accepted, '%m-%Y')
+   // SQLite: STRFTIME('%m-%Y', ics_number.date_accepted)
+   ```
+
+### For Developers: Fixing SQLite Compatibility
+
+If you want to complete the SQLite support, you would need to:
+
+1. **Fix the CAST issue** by adding database driver detection:
+   ```php
+   $dbDriver = DB::connection()->getDriverName();
+   $castExpression = $dbDriver === 'sqlite' 
+       ? 'CAST(ics_number.ics_number AS INTEGER)'
+       : 'CAST(ics_number.ics_number AS UNSIGNED)';
+   $query->orderBy(DB::raw($castExpression), $this->sortDirection);
+   ```
+
+2. **Update all similar instances** in:
+   - `resources/views/livewire/admin/inventory/ics/create.blade.php`
+   - Any other files using `CAST(...AS UNSIGNED)`
+
+3. **Test thoroughly** with SQLite to ensure all functionality works
+
+### Production Recommendations
+
+- **Use MySQL 8.0+** for all production deployments
+- **SQLite is acceptable** for local development and testing only
+- **Consider PostgreSQL support** if needed (would require additional work)
+
+### Configuration Notes
+
+The default database configuration in `config/database.php` is set to SQLite:
+```php
+'default' => env('DB_CONNECTION', 'sqlite'),
+```
+
+This suggests the application was intended to support SQLite, but the implementation was never completed.
 
 ## seeding-order
 

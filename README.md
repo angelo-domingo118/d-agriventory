@@ -11,10 +11,10 @@ Before installing D'Agriventory, ensure you have the following software installe
 - **PHP 8.2+** with required extensions (BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML)
 - **Composer** (PHP dependency manager)
 - **Node.js 18+** with npm (for frontend asset compilation)
-- **MySQL 8.0+** (Required - other databases not supported)
+- **MySQL 8.0+** (Recommended - see database compatibility notes below)
 - **Git** (for version control)
 
-> **⚠️ MySQL Required**: This application strictly requires MySQL as it uses MySQL-specific features for data retrieval that are not available in SQLite, PostgreSQL, or other database systems.
+> **⚠️ Database Compatibility**: This application is optimized for MySQL 8.0+ and uses some MySQL-specific features (like `CAST(...AS UNSIGNED)` for numeric sorting). While the application includes partial SQLite support for development, some functionality may not work correctly with SQLite. **MySQL is strongly recommended for production use.**
 
 ### Quick Install Prerequisites
 
@@ -114,7 +114,7 @@ php artisan schedule:work
 
 - **Backend**: [Laravel 12](https://laravel.com/docs/12.x), [PHP 8.2+](https://www.php.net/manual/en/)
 - **Frontend**: [Livewire 3](https://livewire.laravel.com/docs), [Volt](https://livewire.laravel.com/docs/volt), [Tailwind CSS 4](https://tailwindcss.com/docs/v4-alpha), [Flux UI](https://flux-ui.com/docs), [Alpine.js](https://alpinejs.dev/start-here)
-- **Database**: [MySQL 8.0+](https://dev.mysql.com/doc/refman/8.0/en/) (Required - uses MySQL-specific features)
+- **Database**: [MySQL 8.0+](https://dev.mysql.com/doc/refman/8.0/en/) (Recommended - partial SQLite support available)
 - **Testing**: [Pest](https://pestphp.com/docs) (unit/feature)
 - **Build**: [Vite 6](https://vitejs.dev/guide/), [Concurrently](https://www.npmjs.com/package/concurrently)
 

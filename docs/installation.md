@@ -11,10 +11,10 @@ Before starting, ensure your system meets these requirements:
 - **PHP 8.2 or higher** with required extensions
 - **Composer** (PHP dependency manager) 
 - **Node.js 18.0 or higher** with npm
-- **MySQL 8.0 or higher** (Required - other databases not supported)
+- **MySQL 8.0 or higher** (Recommended - see database compatibility notes)
 - **Git** (for version control)
 
-> **⚠️ MySQL Required**: This application strictly requires MySQL as it uses MySQL-specific features for data retrieval that are not available in SQLite, PostgreSQL, or other database systems.
+> **⚠️ Database Compatibility**: This application is optimized for MySQL 8.0+ and uses some MySQL-specific features. While partial SQLite support is available for development, some functionality may not work correctly with SQLite. **MySQL is strongly recommended for production use.**
 
 ## Quick Install (Recommended)
 
