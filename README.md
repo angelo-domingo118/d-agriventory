@@ -97,9 +97,12 @@ php artisan schedule:work
 - [Development Workflow](docs/workflow.md)
 - [Coding Standards](docs/coding-standards.md)
 - [Database Guide](docs/database.md)
+- [Entity Relationship Diagram](docs/erd.md)
+- [Laragon Setup Guide](docs/laragon.md)
 - [UI Stack Guide](docs/ui-stack.md)
 - [Testing Guide](docs/testing.md)
 - [Production Deployment](docs/deployment.md)
+- [CodeRabbit AI Reviews](docs/coderabbit.md)
 - [FAQ](docs/faq.md)
 - [Contributing](CONTRIBUTING.md)
 
