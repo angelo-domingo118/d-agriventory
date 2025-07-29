@@ -101,7 +101,8 @@ Your production server needs:
 - **Document root** must point to the `public` directory (security requirement)
 
 ### Database
-- **MySQL 8.0+** or **PostgreSQL 13+**
+- **MySQL 8.0+** (Required - PostgreSQL and other databases are not supported)
+- This application uses MySQL-specific features for data retrieval
 - Separate database for production (never use development database)
 
 ### System Tools
@@ -131,7 +132,7 @@ On your production server, clone your repository:
 cd /var/www
 
 # Clone your repository
-git clone https://github.com/your-username/d-agriventory.git
+git clone https://github.com/angelo-domingo118/d-agriventory.git
 cd d-agriventory
 ```
 
@@ -166,7 +167,7 @@ APP_URL=https://your-domain.com
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=dagriventory_prod
+DB_DATABASE=d-agriventory
 DB_USERNAME=your_db_user
 DB_PASSWORD=your_secure_password
 

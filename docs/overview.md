@@ -4,7 +4,7 @@ D'Agriventory serves as the central inventory management platform for the Depart
 
 ## purpose
 
-The system digitises traditional paper-based inventory processes for agricultural assets across the Cordillera region. Built to comply with Philippine government protocols, it manages three core inventory systems: ICS (Inventory Custodian Slip), PAR (Property Acknowledgment Receipt), and IDR (Inventory and Inspection of Deliveries and Receipts). The platform serves regional administrators and division inventory managers with role-based access control, comprehensive audit trails, and automated reporting capabilities.
+The system replaces the legacy MS Access-based inventory management with a modern web-based solution for agricultural assets across the Cordillera region. Built to comply with government standards, it manages three core inventory systems: ICS (Inventory Custodian Slip), PAR (Property Acknowledgment Receipt), and IDR (Inventory and Inspection of Deliveries and Receipts). The platform serves regional administrators and division inventory managers with role-based access control, comprehensive audit trails, and automated report generation capabilities that were not possible with their previous MS Access setup.
 
 ## tech-stack
 
@@ -71,4 +71,4 @@ d-agriventory/
 
 ## compliance-features
 
-The system implements Philippine government inventory standards through structured workflows, mandatory approval processes, comprehensive audit logging, and standardised reporting formats required for government accountability and transparency.
+The system implements government inventory standards through structured workflows, mandatory approval processes, comprehensive audit logging, and standardised reporting formats required for government accountability and transparency.

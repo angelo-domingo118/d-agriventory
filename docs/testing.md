@@ -4,7 +4,7 @@ Comprehensive testing strategy using Pest for unit/feature tests and Laravel Dus
 
 ## testing-philosophy
 
-All tests run against a dedicated MySQL database (`d_agriventory_testing`) to ensure consistency with production environments. Tests cover business logic, user interactions, and integration points to maintain system reliability and prevent regressions during development.
+All tests run against a dedicated MySQL database (`d-agriventory-testing`) to ensure consistency with production environments. Tests cover business logic, user interactions, and integration points to maintain system reliability and prevent regressions during development.
 
 ## pest-framework
 

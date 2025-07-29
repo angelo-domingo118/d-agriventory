@@ -2,6 +2,8 @@
 
 Database migration patterns, seeding procedures, and backup strategies for D'Agriventory's MySQL-based architecture.
 
+> **⚠️ MySQL Required**: This application strictly requires MySQL 8.0+ as it uses MySQL-specific features for data retrieval, JSON functions, and advanced querying that are not available in SQLite, PostgreSQL, or other database systems.
+
 ## migration-rules
 
 ### naming-conventions
@@ -117,7 +119,7 @@ public function run(): void
 # save as: scripts/backup-database.sh
 
 DATE=$(date +%Y%m%d_%H%M%S)
-DB_NAME="d_agriventory"
+DB_NAME="d-agriventory"
 BACKUP_DIR="/var/backups/mysql"
 BACKUP_FILE="${BACKUP_DIR}/${DB_NAME}_${DATE}.sql"
 
@@ -188,7 +190,7 @@ echo "Database restored from: $BACKUP_FILE"
 
 ```bash
 # Check database size and performance
-mysql -e "SELECT table_name, ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)' FROM information_schema.TABLES WHERE table_schema = 'd_agriventory' ORDER BY (data_length + index_length) DESC;"
+mysql -e "SELECT table_name, ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)' FROM information_schema.TABLES WHERE table_schema = 'd-agriventory' ORDER BY (data_length + index_length) DESC;"
 
 # Optimise tables
 php artisan db:optimize
@@ -209,6 +211,6 @@ WHERE time > 30;
 SELECT table_name, 
        ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
 FROM information_schema.tables
-WHERE table_schema = 'd_agriventory'
+WHERE table_schema = 'd-agriventory'
 ORDER BY (data_length + index_length) DESC;
 ```

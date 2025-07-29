@@ -70,7 +70,7 @@ mysql -h127.0.0.1 -u[username] -p[password] [database_name]
 ```bash
 # Create test database
 mysql -u root -p
-> CREATE DATABASE d_agriventory_testing;
+> CREATE DATABASE `d-agriventory-testing`;
 
 # Verify test environment
 php artisan config:show database --env=testing
