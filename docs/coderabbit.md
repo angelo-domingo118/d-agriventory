@@ -35,7 +35,7 @@ code --install-extension coderabbit.coderabbit-vscode
 2. Click the **CodeRabbit** icon (or run *CodeRabbit: Start Review* from the Command Palette).
 3. Wait a few seconds; inline comments will appear next to problematic lines.
 4. Hover a comment and choose **Apply Suggested Change** to accept.
-5. For complex fixes, click **Fix with AI** – the prompt is copied to your clipboard; paste it into Cursor’s Agent (⌥ + C by default) and iterate.
+5. For complex fixes, click **Fix with AI** – the prompt is copied to your clipboard; paste it into Cursor’s or Github Agent and iterate.
 
 > See the full walkthrough: [egghead.io – Local AI Code Reviews with the CodeRabbit Extension in Cursor](https://egghead.io/local-ai-code-reviews-with-the-code-rabbit-extension-in-cursor~d5472)
 
