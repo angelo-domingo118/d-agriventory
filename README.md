@@ -128,13 +128,13 @@ php artisan schedule:work
 ## documentation
 
 - [Complete Documentation Summary](summary.md)
-- [Prerequisites Installation Guide](docs/installation.md) - Detailed setup instructions for PHP, Composer, Node.js, MySQL
+- [Prerequisites Installation Guide](docs/installation.md)
 - [Project Overview](docs/overview.md)
 - [Development Workflow](docs/workflow.md)
 - [Coding Standards](docs/coding-standards.md)
 - [Database Guide](docs/database.md)
 - [Entity Relationship Diagram](docs/erd.md)
-- [Laragon Setup Guide](docs/laragon.md) - Windows development environment
+- [Laragon Setup Guide](docs/laragon.md) 
 - [UI Stack Guide](docs/ui-stack.md)
 - [Testing Guide](docs/testing.md)
 - [Production Deployment](docs/deployment.md)
