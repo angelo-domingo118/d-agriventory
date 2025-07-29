@@ -1,14 +1,14 @@
 <?php
 
 use App\Models\AdminUser;
-use App\Models\User;
-use App\Models\Division;
-use App\Models\ConsumableRecord;
 use App\Models\ConsumableItem;
-use App\Models\ItemSpecification;
+use App\Models\ConsumableRecord;
+use App\Models\Division;
 use App\Models\ItemsCatalog;
-use App\Models\SecondaryCategory;
+use App\Models\ItemSpecification;
 use App\Models\PrimaryCategory;
+use App\Models\SecondaryCategory;
+use App\Models\User;
 
 test('admin can view consumables grouped by division', function () {
     // Create admin user
@@ -79,7 +79,7 @@ test('division inventory manager sees only their division data', function () {
     $user = User::factory()->create();
     $division = Division::factory()->create(['name' => 'Manager Division']);
     $otherDivision = Division::factory()->create(['name' => 'Other Division']);
-    
+
     $user->divisionInventoryManager()->create(['division_id' => $division->id]);
 
     // Create consumable data for both divisions
@@ -107,4 +107,4 @@ test('division inventory manager sees only their division data', function () {
     $response->assertOk()
         ->assertSee('Manager Division')
         ->assertDontSee('Other Division');
-}); 
+});

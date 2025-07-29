@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\ConsumableRecord;
 use App\Models\ConsumableItem;
+use App\Models\ConsumableRecord;
 use App\Models\Division;
 use App\Models\ItemSpecification;
 use Carbon\Carbon;
@@ -21,6 +21,7 @@ class ConsumableSeeder extends Seeder
         $divisions = Division::all();
         if ($divisions->isEmpty()) {
             $this->command->warn('No divisions found. Please run DivisionSeeder first.');
+
             return;
         }
 
@@ -44,8 +45,8 @@ class ConsumableSeeder extends Seeder
         $recordsToCreate = rand(3, 8); // 3-8 records per division
 
         for ($i = 1; $i <= $recordsToCreate; $i++) {
-            $recordNumber = 'CR-' . $division->code . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
-            
+            $recordNumber = 'CR-'.$division->code.'-'.str_pad($i, 3, '0', STR_PAD_LEFT);
+
             $record = ConsumableRecord::create([
                 'record_number' => $recordNumber,
                 'division_id' => $division->id,
@@ -59,7 +60,7 @@ class ConsumableSeeder extends Seeder
 
             for ($j = 0; $j < $itemsToAdd; $j++) {
                 $spec = $itemSpecifications->random();
-                
+
                 // Avoid duplicating specifications in the same record
                 if (in_array($spec->id, $usedSpecifications)) {
                     continue;
@@ -103,7 +104,7 @@ class ConsumableSeeder extends Seeder
             ], [
                 'unit' => $item['unit'],
                 'secondary_category_id' => 1, // Assuming first category exists
-                'code' => strtoupper(substr(str_replace(' ', '', $item['name']), 0, 6)) . rand(100, 999),
+                'code' => strtoupper(substr(str_replace(' ', '', $item['name']), 0, 6)).rand(100, 999),
             ]);
 
             // Create specification
@@ -139,14 +140,14 @@ class ConsumableSeeder extends Seeder
         $minPercentage = 40;
         $maxPercentage = 100;
         $percentage = rand($minPercentage, $maxPercentage) / 100;
-        
+
         $currentQuantity = (int) ($initialQuantity * $percentage);
-        
+
         // Sometimes make items completely out of stock (5% chance)
         if (rand(1, 100) <= 5) {
             $currentQuantity = 0;
         }
-        
+
         return max(0, $currentQuantity);
     }
 

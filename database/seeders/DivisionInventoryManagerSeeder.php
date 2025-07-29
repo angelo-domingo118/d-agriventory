@@ -20,15 +20,16 @@ class DivisionInventoryManagerSeeder extends Seeder
         $divisions = Division::all();
         if ($divisions->isEmpty()) {
             $this->command->warn('No divisions found. Please run DivisionSeeder first.');
+
             return;
         }
 
         foreach ($divisions as $division) {
             // Create a user for inventory manager
             $user = User::create([
-                'name' => $division->name . ' Inventory Manager',
-                'username' => 'manager_' . strtolower($division->code),
-                'email' => 'manager.' . strtolower($division->code) . '@example.com',
+                'name' => $division->name.' Inventory Manager',
+                'username' => 'manager_'.strtolower($division->code),
+                'email' => 'manager.'.strtolower($division->code).'@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]);

@@ -20,7 +20,7 @@ class AuditLogSeeder extends Seeder
         $tables = [
             'users', 'employees', 'divisions', 'items_catalog', 'item_specifications',
             'suppliers', 'contracts', 'contract_items', 'ics_number', 'par_number',
-            'idr_number', 'consumable_records', 'consumable_items'
+            'idr_number', 'consumable_records', 'consumable_items',
         ];
         $actions = ['CREATE', 'UPDATE', 'DELETE'];
 
@@ -87,7 +87,7 @@ class AuditLogSeeder extends Seeder
 
     private function generateSampleData(string $table, string $type): array
     {
-        $baseData = match($table) {
+        $baseData = match ($table) {
             'users' => [
                 'name' => $type === 'old' ? 'John Doe' : 'John Updated',
                 'email' => $type === 'old' ? 'john@example.com' : 'john.updated@example.com',
@@ -124,7 +124,7 @@ class AuditLogSeeder extends Seeder
 
     private function getModelName(string $table): string
     {
-        return match($table) {
+        return match ($table) {
             'users' => 'User',
             'employees' => 'Employee',
             'divisions' => 'Division',
