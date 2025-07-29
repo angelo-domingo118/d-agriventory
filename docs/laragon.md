@@ -19,6 +19,8 @@
 * 1 GB free disk space
 * Administrator privileges (first-time install only)
 
+> **Alternative**: If you prefer manual installation of individual components, see our [Prerequisites Installation Guide](installation.md) for detailed instructions.
+
 ## Installation Steps
 
 1. **Download Laragon**  

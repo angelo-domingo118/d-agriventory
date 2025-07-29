@@ -140,7 +140,7 @@ sail npm run dev
 ```
 
 **Local Development - Choose when:**
-- Already have PHP/MySQL/Node.js installed locally
+- Already have PHP/MySQL/Node.js installed locally (see [Prerequisites Installation Guide](installation.md))
 - Prefer faster performance (no Docker overhead)
 - Simpler debugging and IDE integration
 
