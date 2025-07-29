@@ -22,6 +22,7 @@ Complete index of D'Agriventory documentation with brief descriptions for quick 
 10. **[docs/testing.md](docs/testing.md)** - Pest unit testing, Dusk browser automation, and parallel test execution
 11. **[docs/erd.md](docs/erd.md)** - Complete database schema with mermaid diagram and interactive SVG alternative
 12. **[docs/faq.md](docs/faq.md)** - Ten most common questions covering cache clearing and local development
+13. **[docs/coderabbit.md](docs/coderabbit.md)** - Integrating CodeRabbit extension for AI-driven local code reviews
 
 ## navigation-tips
 
