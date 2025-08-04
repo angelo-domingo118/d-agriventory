@@ -55,9 +55,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Get current chart data
         $inventoryData = $this->inventoryValueOverTime;
         $categoryData = $this->categoryDistribution;
+        $systemBreakdownData = $this->inventorySystemBreakdown;
+        $topSuppliersData = $this->topSuppliersSpending;
+        $assetsExpiryData = $this->assetsExpiryTimeline;
         
         // Generate checksum for change detection
-        $currentChecksum = md5(serialize([$inventoryData, $categoryData]));
+        $currentChecksum = md5(serialize([
+            $inventoryData, 
+            $categoryData, 
+            $systemBreakdownData, 
+            $topSuppliersData,
+            $assetsExpiryData
+        ]));
         
         // Emit events to initialize charts
         $this->dispatch('initializeLineChart', [
@@ -70,6 +79,21 @@ new #[Layout('components.layouts.app')] class extends Component {
             'data' => $categoryData
         ]);
         
+        $this->dispatch('initializeInventorySystemChart', [
+            'chartId' => 'inventory-system-chart-canvas',
+            'data' => $systemBreakdownData
+        ]);
+        
+        $this->dispatch('initializeTopSuppliersChart', [
+            'chartId' => 'top-suppliers-chart-canvas',
+            'data' => $topSuppliersData
+        ]);
+        
+        $this->dispatch('initializeAssetsExpiryChart', [
+            'chartId' => 'assets-expiry-chart-canvas',
+            'data' => $assetsExpiryData
+        ]);
+        
         $this->chartDataChecksum = $currentChecksum;
     }
     
@@ -78,9 +102,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         // Get current chart data
         $inventoryData = $this->inventoryValueOverTime;
         $categoryData = $this->categoryDistribution;
+        $systemBreakdownData = $this->inventorySystemBreakdown;
+        $topSuppliersData = $this->topSuppliersSpending;
+        $assetsExpiryData = $this->assetsExpiryTimeline;
         
         // Generate checksum for change detection
-        $currentChecksum = md5(serialize([$inventoryData, $categoryData]));
+        $currentChecksum = md5(serialize([
+            $inventoryData, 
+            $categoryData, 
+            $systemBreakdownData, 
+            $topSuppliersData,
+            $assetsExpiryData
+        ]));
         
         // Only update if data has changed
         if ($this->chartDataChecksum !== $currentChecksum) {
@@ -92,6 +125,21 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->dispatch('updateDoughnutChart', [
                 'chartId' => 'donut-chart-canvas',
                 'data' => $categoryData
+            ]);
+            
+            $this->dispatch('updateInventorySystemChart', [
+                'chartId' => 'inventory-system-chart-canvas',
+                'data' => $systemBreakdownData
+            ]);
+            
+            $this->dispatch('updateTopSuppliersChart', [
+                'chartId' => 'top-suppliers-chart-canvas',
+                'data' => $topSuppliersData
+            ]);
+            
+            $this->dispatch('updateAssetsExpiryChart', [
+                'chartId' => 'assets-expiry-chart-canvas',
+                'data' => $assetsExpiryData
             ]);
             
             $this->chartDataChecksum = $currentChecksum;
@@ -285,6 +333,59 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function inventorySystemBreakdown(): array
+    {
+        return Cache::remember('admin.dashboard.inventory_system_breakdown', now()->addMinutes(10), function () {
+            // Get ICS data
+            $icsQuantity = IcsNumber::sum('quantity');
+            $icsValue = IcsNumber::calculateTotalValue();
+            
+            // Get PAR data
+            $parQuantity = ParNumber::sum('quantity');
+            $parValue = ParNumber::calculateTotalValue();
+            
+            // Get IDR data
+            $idrQuantity = IdrNumber::sum('quantity');
+            $idrValue = IdrNumber::calculateTotalValue();
+            
+            // Get Consumables data
+            $consumableQuantity = ConsumableItem::sum('current_quantity');
+            $consumableValue = ConsumableItem::calculateTotalValue();
+            
+            return [
+                [
+                    'system' => 'ICS',
+                    'name' => 'Inventory Custodian Slip',
+                    'quantity' => $icsQuantity,
+                    'value' => $icsValue,
+                    'color' => '#10B981', // Green
+                ],
+                [
+                    'system' => 'PAR',
+                    'name' => 'Property Acknowledgment Receipt',
+                    'quantity' => $parQuantity,
+                    'value' => $parValue,
+                    'color' => '#F59E0B', // Yellow
+                ],
+                [
+                    'system' => 'IDR',
+                    'name' => 'Inventory Delivery Receipt',
+                    'quantity' => $idrQuantity,
+                    'value' => $idrValue,
+                    'color' => '#8B5CF6', // Purple
+                ],
+                [
+                    'system' => 'Consumables',
+                    'name' => 'Consumable Items',
+                    'quantity' => $consumableQuantity,
+                    'value' => $consumableValue,
+                    'color' => '#EF4444', // Red
+                ],
+            ];
+        });
+    }
+
+    #[Computed]
     public function categoryDistribution()
     {
         return Cache::remember('admin.dashboard.category_distribution', now()->addMinutes(10), function () {
@@ -466,6 +567,40 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function topSuppliersSpending(): array
+    {
+        return Cache::remember('admin.dashboard.top_suppliers_spending', now()->addMinutes(10), function () {
+            return Supplier::with(['contracts.contractItems' => function ($query) {
+                $query->withCount(['icsNumbers as items_count' => function ($q) {
+                    $q->select(DB::raw('sum(quantity)'));
+                }, 'parNumbers as items_count_par' => function ($q) {
+                    $q->select(DB::raw('sum(quantity)'));
+                }, 'idrNumbers as items_count_idr' => function ($q) {
+                    $q->select(DB::raw('sum(quantity)'));
+                }]);
+            }])->get()->map(function ($supplier) {
+                $totalSpent = 0;
+                $totalItems = 0;
+
+                foreach ($supplier->contracts as $contract) {
+                    foreach ($contract->contractItems as $item) {
+                        $quantity = $item->items_count + $item->items_count_par + $item->items_count_idr;
+                        $totalSpent += $quantity * $item->unit_price;
+                        $totalItems += $quantity;
+                    }
+                }
+
+                return [
+                    'name' => $supplier->name,
+                    'total_spent' => $totalSpent,
+                    'total_items' => $totalItems,
+                    'contracts_count' => $supplier->contracts->count(),
+                ];
+            })->sortByDesc('total_spent')->take(10)->values()->toArray();
+        });
+    }
+
+    #[Computed]
     public function supplierSpending()
     {
         return Cache::remember('admin.dashboard.supplier_spending', now()->addMinutes(5), function () {
@@ -496,6 +631,41 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'contracts_count' => $supplier->contracts->count(),
                 ];
             })->sortByDesc('total_spent')->values();
+        });
+    }
+
+    #[Computed]
+    public function assetsExpiryTimeline(): array
+    {
+        return Cache::remember('admin.dashboard.assets_expiry_timeline', now()->addMinutes(10), function () {
+            $months = [];
+            $currentDate = now();
+            
+            // Get data for the next 12 months
+            for ($i = 0; $i < 12; $i++) {
+                $targetDate = $currentDate->copy()->addMonths($i);
+                $monthStart = $targetDate->startOfMonth();
+                $monthEnd = $targetDate->endOfMonth();
+                $monthLabel = $targetDate->format('M Y');
+                
+                // Calculate ICS items expiring in this month
+                $driver = DB::connection()->getDriverName();
+                $expiryDateRaw = $driver === 'sqlite' 
+                    ? "date(date_prepared, '+' || estimated_useful_life || ' years')" 
+                    : "DATE_ADD(date_prepared, INTERVAL estimated_useful_life YEAR)";
+                
+                $expiringCount = IcsNumber::whereRaw("$expiryDateRaw BETWEEN ? AND ?", [
+                    $monthStart->toDateString(), 
+                    $monthEnd->toDateString()
+                ])->count();
+                
+                $months[] = [
+                    'month' => $monthLabel,
+                    'count' => $expiringCount,
+                ];
+            }
+            
+            return $months;
         });
     }
 
@@ -777,7 +947,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     <!-- Analytics Placeholders -->
     <div>
         <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">Analytics & Reports</h2>
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
             <!-- Chart 1: Inventory Value Over Time -->
             <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
                 <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Inventory Value Over Time</h3>
@@ -833,6 +1003,54 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="text-lg font-bold text-stone-800 dark:text-stone-200">{{ $this->categoryDistribution->sum('count') }}</div>
                             <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 3: Inventory System Breakdown -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Inventory System Breakdown</h3>
+                <div class="relative">
+                    <!-- Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="h-64 relative">
+                        <canvas id="inventory-system-chart-canvas" class="w-full h-full"></canvas>
+                    </div>
+                    <!-- Chart Legend -->
+                    <div class="flex flex-wrap justify-center mt-3 gap-4 text-xs">
+                        @foreach($this->inventorySystemBreakdown as $system)
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 rounded-full mr-1" style="background-color: {{ $system['color'] }}"></div>
+                                <span class="text-stone-600 dark:text-stone-400">{{ $system['system'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 4: Top Suppliers Spending -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Top Suppliers Spending</h3>
+                <div class="relative">
+                    <!-- Horizontal Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="h-64 relative">
+                        <canvas id="top-suppliers-chart-canvas" class="w-full h-full"></canvas>
+                    </div>
+                    <div class="mt-3 text-xs text-center text-stone-500 dark:text-stone-400">
+                        Top 10 suppliers by total spending
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 5: Asset Expiry Timeline -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Asset Expiry Timeline</h3>
+                <div class="relative">
+                    <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="h-64 relative">
+                        <canvas id="assets-expiry-chart-canvas" class="w-full h-full"></canvas>
+                    </div>
+                    <div class="mt-3 text-xs text-center text-stone-500 dark:text-stone-400">
+                        ICS items reaching end of useful life (next 12 months)
                     </div>
                 </div>
             </div>
@@ -979,6 +1197,189 @@ new #[Layout('components.layouts.app')] class extends Component {
                         backgroundColor: colors.slice(0, categoryData.length),
                         borderWidth: 2,
                         borderColor: '#ffffff'
+                    }]
+                };
+                
+                window.updateChart(data[0].chartId, newData);
+            });
+
+            // Inventory System Breakdown Chart Event Handlers
+            Livewire.on('initializeInventorySystemChart', (data) => {
+                const systemData = data[0].data;
+                
+                const barChartData = {
+                    labels: ['Quantity', 'Value (₱M)'],
+                    datasets: systemData.map(system => ({
+                        label: system.system,
+                        data: [system.quantity, (system.value / 1000000).toFixed(2)],
+                        backgroundColor: system.color,
+                        borderColor: system.color,
+                        borderWidth: 1
+                    }))
+                };
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                window.initializeChart(data[0].chartId, 'bar', barChartData, options);
+            });
+            
+            Livewire.on('updateInventorySystemChart', (data) => {
+                const systemData = data[0].data;
+                
+                const newData = {
+                    labels: ['Quantity', 'Value (₱M)'],
+                    datasets: systemData.map(system => ({
+                        label: system.system,
+                        data: [system.quantity, (system.value / 1000000).toFixed(2)],
+                        backgroundColor: system.color,
+                        borderColor: system.color,
+                        borderWidth: 1
+                    }))
+                };
+                
+                window.updateChart(data[0].chartId, newData);
+            });
+
+            // Top Suppliers Chart Event Handlers
+            Livewire.on('initializeTopSuppliersChart', (data) => {
+                const suppliersData = data[0].data;
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#06B6D4'];
+                
+                const horizontalBarData = {
+                    labels: suppliersData.map(supplier => supplier.name.length > 20 ? supplier.name.substring(0, 20) + '...' : supplier.name),
+                    datasets: [{
+                        label: 'Total Spent (₱)',
+                        data: suppliersData.map(supplier => supplier.total_spent),
+                        backgroundColor: colors.slice(0, suppliersData.length),
+                        borderColor: colors.slice(0, suppliersData.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                window.initializeChart(data[0].chartId, 'bar', horizontalBarData, options);
+            });
+            
+            Livewire.on('updateTopSuppliersChart', (data) => {
+                const suppliersData = data[0].data;
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#06B6D4'];
+                
+                const newData = {
+                    labels: suppliersData.map(supplier => supplier.name.length > 20 ? supplier.name.substring(0, 20) + '...' : supplier.name),
+                    datasets: [{
+                        label: 'Total Spent (₱)',
+                        data: suppliersData.map(supplier => supplier.total_spent),
+                        backgroundColor: colors.slice(0, suppliersData.length),
+                        borderColor: colors.slice(0, suppliersData.length),
+                        borderWidth: 1
+                    }]
+                };
+                
+                window.updateChart(data[0].chartId, newData);
+            });
+
+            // Assets Expiry Timeline Chart Event Handlers
+            Livewire.on('initializeAssetsExpiryChart', (data) => {
+                const expiryData = data[0].data;
+                
+                const lineChartData = {
+                    labels: expiryData.map(d => d.month),
+                    datasets: [{
+                        label: 'Items Expiring',
+                        data: expiryData.map(d => d.count),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                };
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    if (value % 1 === 0) {
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                window.initializeChart(data[0].chartId, 'line', lineChartData, options);
+            });
+            
+            Livewire.on('updateAssetsExpiryChart', (data) => {
+                const expiryData = data[0].data;
+                
+                const newData = {
+                    labels: expiryData.map(d => d.month),
+                    datasets: [{
+                        label: 'Items Expiring',
+                        data: expiryData.map(d => d.count),
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#EF4444',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
                     }]
                 };
                 
