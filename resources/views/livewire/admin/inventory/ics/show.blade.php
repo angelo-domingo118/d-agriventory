@@ -22,7 +22,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contractItem.contract.supplier',
             'assignedEmployee.position',
             'assignedEmployee.division',
-            'itemBatches.components.item.itemSpecification',
+            // Removed '.item.itemSpecification' as ItemComponent currently has no `item` relation. Eager load only components for now.
+            'itemBatches.components',
             'transfers.fromEmployee',
             'transfers.toEmployee',
         ]);
