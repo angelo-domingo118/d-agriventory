@@ -228,10 +228,21 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function downloadPdf()
     {
         $viewPath = 'livewire.admin.main.reports.formats.' . $this->reportType . '.';
-        if ($this->reportType === 'idr') {
-            $viewPath .= 'batch';
-        } else {
-            $viewPath .= $this->reportFormat;
+        
+        switch ($this->reportType) {
+            case 'idr':
+                $viewPath .= match ($this->reportFormat) {
+                    'batch'             => $this->idrSignatoryStyle === 'default' ? 'batch-combined' : 'batch-detailed',
+                    'by_employee'       => 'by-employee',
+                    'by_rsmi_number'    => 'by-rsmi-number',
+                    default             => $this->reportFormat,
+                };
+                break;
+
+            default:
+                // Convert snake_case to kebab-case for view names (e.g., by_number -> by-number)
+                $viewPath .= str_replace('_', '-', $this->reportFormat);
+                break;
         }
 
         $pdfData = [];
@@ -243,6 +254,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $pdfData['employeeName'] = $this->employee_name_ics;
             }
         }
+
+        // Make the report format available inside the Blade template (used for CSS tweaks)
+        $pdfData['reportFormat'] = $this->reportFormat;
+        $pdfData['reportType']   = $this->reportType;
 
         $pdf = Pdf::loadView($viewPath, $pdfData)->setPaper('a4', 'portrait');
 
