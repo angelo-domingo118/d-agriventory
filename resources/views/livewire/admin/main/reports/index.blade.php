@@ -5,6 +5,7 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Request;
+use App\Models\IcsNumber;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public string $reportType = 'idr';
@@ -140,10 +141,17 @@ new #[Layout('components.layouts.app')] class extends Component {
             $viewPath .= $this->reportFormat;
         }
 
-        $pdf = Pdf::loadView($viewPath, [
-            // We can pass data to the view if needed.
-            // For now, the included views do not require specific data props.
-        ])->setPaper('a4', 'portrait');
+        $pdfData = [];
+        if ($this->reportType === 'ics') {
+            if ($this->reportFormat === 'by_number') {
+                $pdfData['ics'] = $this->icsBatch;
+            } elseif ($this->reportFormat === 'by_employee') {
+                $pdfData['items'] = $this->icsItemsByEmployee;
+                $pdfData['employeeName'] = $this->employee_name_ics;
+            }
+        }
+
+        $pdf = Pdf::loadView($viewPath, $pdfData)->setPaper('a4', 'portrait');
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -160,6 +168,32 @@ new #[Layout('components.layouts.app')] class extends Component {
         ];
 
         return isset($availableCombos[$this->reportType]) && in_array($this->reportFormat, $availableCombos[$this->reportType]);
+    }
+
+    #[Computed]
+    public function icsBatch(): ?\App\Models\IcsNumber
+    {
+        if ($this->reportType === 'ics' && $this->reportFormat === 'by_number' && $this->ics_number) {
+            return IcsNumber::with([
+                'assignedEmployee.division',
+                'contractItem.itemSpecification.itemCatalog',
+                'itemBatches.components',
+            ])->where('ics_number', $this->ics_number)->first();
+        }
+        return null;
+    }
+
+    #[Computed]
+    public function icsItemsByEmployee()
+    {
+        if ($this->reportType === 'ics' && $this->reportFormat === 'by_employee' && $this->employee_name_ics) {
+            $employeeName = $this->employee_name_ics;
+            return IcsNumber::with([
+                'contractItem.itemSpecification.itemCatalog',
+                'itemBatches.components',
+            ])->whereHas('assignedEmployee', fn($q) => $q->where('name', $employeeName))->get();
+        }
+        return collect();
     }
 }; ?>
 
@@ -576,9 +610,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @switch($reportType)
                                     @case('ics')
                                         @if ($reportFormat === 'by_number')
-                                            @include('livewire.admin.main.reports.formats.ics.by-number')
+                                            @include('livewire.admin.main.reports.formats.ics.by-number', ['ics' => $this->icsBatch])
                                         @elseif($reportFormat === 'by_employee')
-                                            @include('livewire.admin.main.reports.formats.ics.by-employee')
+                                            @include('livewire.admin.main.reports.formats.ics.by-employee', ['items' => $this->icsItemsByEmployee, 'employeeName' => $this->employee_name_ics])
                                         @endif
                                     @break
 

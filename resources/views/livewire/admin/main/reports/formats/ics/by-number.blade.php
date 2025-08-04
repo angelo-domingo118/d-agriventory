@@ -1,22 +1,51 @@
-{{-- Placeholder for ICS Report Format (By Number) --}}
-{{-- This is not the proper format. Edit this file to implement the actual report layout. --}}
+{{-- Inventory Custodian Slip (By Batch Number) --}}
 
 @php
-    $items_page1 = [
-        ['inv_no' => 'SPHV - 0002 - 01 - 2025', 'serial' => '0750100024490016'],
-        ['inv_no' => 'SPHV - 0003 - 01 - 2025', 'serial' => '0750100024490024'],
-        ['inv_no' => 'SPHV - 0004 - 01 - 2025', 'serial' => '0750100024490025'],
-        ['inv_no' => 'SPHV - 0005 - 01 - 2025', 'serial' => '0750100024490018'],
-        ['inv_no' => 'SPHV - 0006 - 01 - 2025', 'serial' => '0750100024490027'],
-        ['inv_no' => 'SPHV - 0007 - 01 - 2025', 'serial' => '0750100024490022'],
-        ['inv_no' => 'SPHV - 0008 - 01 - 2025', 'serial' => '0750100024490021'],
-    ];
-    $items_page2 = [
-        ['inv_no' => 'SPHV - 0009 - 01 - 2025', 'serial' => '0750100024490030'],
-        ['inv_no' => 'SPHV - 0010 - 01 - 2025', 'serial' => '0750100024490023'],
-        ['inv_no' => 'SPHV - 0011 - 01 - 2025', 'serial' => '0750100024490019'],
-        ['inv_no' => 'SPHV - 0012 - 01 - 2025', 'serial' => '0750100024490020'],
-    ];
+    /** @var \App\Models\IcsNumber|null $ics */
+    $ics = $ics ?? null;
+
+    if ($ics) {
+        $items = [];
+        foreach ($ics->itemBatches as $batch) {
+            // Compose an Inventory Item Number (ICS_TYPE-ICS_NO-MM-YYYY)
+            $invNo = $ics->ics_type . ' - ' . str_pad($ics->ics_number, 4, '0', STR_PAD_LEFT);
+            if ($ics->date_accepted) {
+                $invNo .= ' - ' . $ics->date_accepted->format('m') . ' - ' . $ics->date_accepted->format('Y');
+            }
+
+            // Use identification_data if present, otherwise aggregate component serials
+            $serialDisplay = $batch->identification_data;
+            if (!$serialDisplay && $batch->components->isNotEmpty()) {
+                $serialDisplay = $batch->components->pluck('serial_number')->filter()->implode(', ');
+            }
+
+            $items[] = [
+                'inv_no' => $invNo,
+                'serial' => $serialDisplay ?? 'N/A',
+            ];
+        }
+
+        // Split items into pages (max 7 items per page for the current layout)
+        $items_page1 = array_slice($items, 0, 7);
+        $items_page2 = array_slice($items, 7);
+    } else {
+        // Fallback placeholder data when no $ics is supplied (preview without parameters)
+        $items_page1 = [
+            ['inv_no' => 'SPHV - 0002 - 01 - 2025', 'serial' => '0750100024490016'],
+            ['inv_no' => 'SPHV - 0003 - 01 - 2025', 'serial' => '0750100024490024'],
+            ['inv_no' => 'SPHV - 0004 - 01 - 2025', 'serial' => '0750100024490025'],
+            ['inv_no' => 'SPHV - 0005 - 01 - 2025', 'serial' => '0750100024490018'],
+            ['inv_no' => 'SPHV - 0006 - 01 - 2025', 'serial' => '0750100024490027'],
+            ['inv_no' => 'SPHV - 0007 - 01 - 2025', 'serial' => '0750100024490022'],
+            ['inv_no' => 'SPHV - 0008 - 01 - 2025', 'serial' => '0750100024490021'],
+        ];
+        $items_page2 = [
+            ['inv_no' => 'SPHV - 0009 - 01 - 2025', 'serial' => '0750100024490030'],
+            ['inv_no' => 'SPHV - 0010 - 01 - 2025', 'serial' => '0750100024490023'],
+            ['inv_no' => 'SPHV - 0011 - 01 - 2025', 'serial' => '0750100024490019'],
+            ['inv_no' => 'SPHV - 0012 - 01 - 2025', 'serial' => '0750100024490020'],
+        ];
+    }
 @endphp
 
 {{-- Page 1 --}}
@@ -27,14 +56,12 @@
     </div>
     <div class="mt-6 flex justify-between text-sm">
         <div>
-            <p><strong>Date prepared:</strong> 1/7/2025</p>
-            <p><strong>Entity Name:</strong> Department of Agriculture - Regional Field
-                Unit -
-                CAR</p>
+            <p><strong>Date prepared:</strong> {{ optional($ics?->date_prepared)->format('n/j/Y') ?? '—' }}</p>
+            <p><strong>Entity Name:</strong> Department of Agriculture - Regional Field Unit - CAR</p>
             <p><strong>Fund Cluster:</strong></p>
         </div>
         <div>
-            <p><strong>ICS No:</strong> ____________________</p>
+            <p><strong>ICS No:</strong> {{ $ics ? ($ics->ics_type . ' ' . str_pad($ics->ics_number, 4, '0', STR_PAD_LEFT)) : '____________________' }}</p>
         </div>
     </div>
     <div class="mt-4">
@@ -44,14 +71,9 @@
                     <th class="border p-2 text-center" style="width: 5%;">Qty</th>
                     <th class="border p-2 text-center" style="width: 5%;">Unit</th>
                     <th class="border p-2 text-center" colspan="2">Amount</th>
-                    <th class="border p-2 text-center" style="width: 40%;">Description
-                    </th>
-                    <th class="border p-2 text-center" style="width: 20%;">Inventory
-                        Item
-                        Number</th>
-                    <th class="border p-2 text-center" style="width: 15%;">Estimated
-                        Useful
-                        Life</th>
+                    <th class="border p-2 text-center" style="width: 40%;">Description</th>
+                    <th class="border p-2 text-center" style="width: 20%;">Inventory Item Number</th>
+                    <th class="border p-2 text-center" style="width: 15%;">Estimated Useful Life</th>
                 </tr>
                 <tr>
                     <th class="border p-2"></th>
@@ -68,15 +90,17 @@
                     <tr>
                         <td class="border p-2 text-center">1</td>
                         <td class="border p-2 text-center">unit</td>
-                        <td class="border p-2 text-right">20,000.00</td>
-                        <td class="border p-2 text-right">20,000.00</td>
+                        <td class="border p-2 text-right">{{ $ics ? number_format($ics->contractItem?->unit_price ?? 0, 2) : '20,000.00' }}</td>
+                        <td class="border p-2 text-right">{{ $ics ? number_format(($ics->contractItem?->unit_price ?? 0), 2) : '20,000.00' }}</td>
                         <td class="border p-2">
-                            <strong>TIME ATTENDANCE TERMINAL</strong><br>
-                            Brand/Model: Anviz C2 Pro<br>
+                            <strong>{{ $ics?->contractItem?->itemSpecification?->itemCatalog?->name ?? 'TIME ATTENDANCE TERMINAL' }}</strong><br>
+                            @if ($ics && $ics->contractItem?->itemSpecification)
+                                Brand/Model: {{ collect([$ics->contractItem->itemSpecification->brand, $ics->contractItem->itemSpecification->model])->filter()->join(' ') }}<br>
+                            @endif
                             Serial Number: {{ $item['serial'] }}
                         </td>
                         <td class="border p-2 text-center">{{ $item['inv_no'] }}</td>
-                        <td class="border p-2"></td>
+                        <td class="border p-2 text-center">{{ $ics?->estimated_useful_life }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -86,11 +110,11 @@
         <div>
             <p>Received by:</p>
             <div class="mt-10 border-t pt-2 text-center">
-                <p>DICKSON, Julio Earl</p>
+                <p>{{ $ics?->assignedEmployee?->name ?? '____________________' }}</p>
                 <p class="text-xs">Signature over Printed Name</p>
             </div>
             <div class="mt-6 border-t pt-2 text-center">
-                <p>&nbsp;</p>
+                <p>{{ $ics?->assignedEmployee?->position?->name ?? '' }}</p>
                 <p class="text-xs">Position</p>
             </div>
             <div class="mt-6 border-t pt-2 text-center">
@@ -116,10 +140,11 @@
     </div>
     <div class="mt-4 flex justify-between text-xs">
         <span>G.A.M. for NGA, Volume II, Appendix 59, page 149</span>
-        <span>Page 1 of 2</span>
+        <span>Page 1 of {{ empty($items_page2) ? 1 : 2 }}</span>
     </div>
 </div>
 
+@if(!empty($items_page2))
 {{-- Page 2 --}}
 <div
     class="report-page mx-auto bg-white p-6 text-stone-900 shadow-lg dark:bg-white @if ($reportFormat === 'by_employee') w-[1024px] aspect-[1.414/1] @else w-[724px] aspect-[1/1.414] @endif">
@@ -128,14 +153,12 @@
     </div>
     <div class="mt-6 flex justify-between text-sm">
         <div>
-            <p><strong>Date prepared:</strong> 1/7/2025</p>
-            <p><strong>Entity Name:</strong> Department of Agriculture - Regional Field
-                Unit -
-                CAR</p>
+            <p><strong>Date prepared:</strong> {{ optional($ics?->date_prepared)->format('n/j/Y') ?? '—' }}</p>
+            <p><strong>Entity Name:</strong> Department of Agriculture - Regional Field Unit - CAR</p>
             <p><strong>Fund Cluster:</strong></p>
         </div>
         <div>
-            <p><strong>ICS No:</strong> ____________________</p>
+            <p><strong>ICS No:</strong> {{ $ics ? ($ics->ics_type . ' ' . str_pad($ics->ics_number, 4, '0', STR_PAD_LEFT)) : '____________________' }}</p>
         </div>
     </div>
     <div class="mt-4">
@@ -145,14 +168,9 @@
                     <th class="border p-2 text-center" style="width: 5%;">Qty</th>
                     <th class="border p-2 text-center" style="width: 5%;">Unit</th>
                     <th class="border p-2 text-center" colspan="2">Amount</th>
-                    <th class="border p-2 text-center" style="width: 40%;">Description
-                    </th>
-                    <th class="border p-2 text-center" style="width: 20%;">Inventory
-                        Item
-                        Number</th>
-                    <th class="border p-2 text-center" style="width: 15%;">Estimated
-                        Useful
-                        Life</th>
+                    <th class="border p-2 text-center" style="width: 40%;">Description</th>
+                    <th class="border p-2 text-center" style="width: 20%;">Inventory Item Number</th>
+                    <th class="border p-2 text-center" style="width: 15%;">Estimated Useful Life</th>
                 </tr>
                 <tr>
                     <th class="border p-2"></th>
@@ -169,15 +187,17 @@
                     <tr>
                         <td class="border p-2 text-center">1</td>
                         <td class="border p-2 text-center">unit</td>
-                        <td class="border p-2 text-right">20,000.00</td>
-                        <td class="border p-2 text-right">20,000.00</td>
+                        <td class="border p-2 text-right">{{ $ics ? number_format($ics->contractItem?->unit_price ?? 0, 2) : '20,000.00' }}</td>
+                        <td class="border p-2 text-right">{{ $ics ? number_format(($ics->contractItem?->unit_price ?? 0), 2) : '20,000.00' }}</td>
                         <td class="border p-2">
-                            <strong>TIME ATTENDANCE TERMINAL</strong><br>
-                            Brand/Model: Anviz C2 Pro<br>
+                            <strong>{{ $ics?->contractItem?->itemSpecification?->itemCatalog?->name ?? 'TIME ATTENDANCE TERMINAL' }}</strong><br>
+                            @if ($ics && $ics->contractItem?->itemSpecification)
+                                Brand/Model: {{ collect([$ics->contractItem->itemSpecification->brand, $ics->contractItem->itemSpecification->model])->filter()->join(' ') }}<br>
+                            @endif
                             Serial Number: {{ $item['serial'] }}
                         </td>
                         <td class="border p-2 text-center">{{ $item['inv_no'] }}</td>
-                        <td class="border p-2"></td>
+                        <td class="border p-2 text-center">{{ $ics?->estimated_useful_life }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -187,11 +207,11 @@
         <div>
             <p>Received by:</p>
             <div class="mt-10 border-t pt-2 text-center">
-                <p>DICKSON, Julio Earl</p>
+                <p>{{ $ics?->assignedEmployee?->name ?? '____________________' }}</p>
                 <p class="text-xs">Signature over Printed Name</p>
             </div>
             <div class="mt-6 border-t pt-2 text-center">
-                <p>&nbsp;</p>
+                <p>{{ $ics?->assignedEmployee?->position?->name ?? '' }}</p>
                 <p class="text-xs">Position</p>
             </div>
             <div class="mt-6 border-t pt-2 text-center">
@@ -219,4 +239,5 @@
         <span>G.A.M. for NGA, Volume II, Appendix 59, page 149</span>
         <span>Page 2 of 2</span>
     </div>
-</div> 
+</div>
+@endif
