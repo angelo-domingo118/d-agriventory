@@ -1392,6 +1392,17 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 }; ?>
 
+<div>
+    <!-- Breadcrumbs -->
+<div class="mb-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" />
+        <flux:breadcrumbs.item href="#" class="text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item :href="route('admin.inventory.ics.index')" wire:navigate>ICS Management</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Create ICS</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+</div>
+
 <form wire:submit="store" novalidate>
     <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
@@ -2092,6 +2103,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 </form>
+</div>
 
 @script
 <script>
