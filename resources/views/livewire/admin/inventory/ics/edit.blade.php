@@ -1812,7 +1812,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @input="formatDate($event)"
                                         @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
                                     />
-                                    <x-input-error for="date_prepared" class="mt-2" />
                                 </div>
 
                                 <div>
