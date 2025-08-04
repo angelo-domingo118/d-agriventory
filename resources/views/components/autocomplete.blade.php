@@ -52,29 +52,45 @@
         },
         positionDropdown() {
             requestAnimationFrame(() => {
-                if (this.inputRef && this.$refs.dropdown) {
-                    const rect = this.inputRef.getBoundingClientRect();
-                    const dropdown = this.$refs.dropdown;
-                    // Determine preferred position (below by default)
-                    // Ensure dropdown is at least as wide as the input but can grow if needed
-                    dropdown.style.minWidth = rect.width + 'px';
-                    dropdown.style.maxWidth = 'calc(100vw - ' + rect.left + 'px - 16px)'; // prevent overflow off right edge (16px margin)
-                    dropdown.style.left = rect.left + 'px';
-                    // Calculate dropdown height (might be 0 if hidden)
-                    dropdown.style.top = '-9999px';
-                    dropdown.style.display = 'block';
-                    const dropdownHeight = dropdown.offsetHeight;
-                    // Reset display if suggestions hidden
-                    if (!this.showSuggestions) {
-                        dropdown.style.display = 'none';
-                    }
-                    const spaceBelow = window.innerHeight - rect.bottom - 8; // 8px margin
-                    if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
-                        // Not enough space below, show above
-                        dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px';
-                    } else {
-                        dropdown.style.top = (rect.bottom + 4) + 'px';
-                    }
+                if (!this.inputRef || !this.$refs.dropdown || !this.showSuggestions) {
+                    return;
+                }
+                
+                const rect = this.inputRef.getBoundingClientRect();
+                const dropdown = this.$refs.dropdown;
+                
+                // Ensure input element is properly positioned (not at 0,0)
+                if (rect.width === 0 || rect.height === 0 || (rect.left === 0 && rect.top === 0)) {
+                    // Input not properly rendered yet, try again shortly
+                    setTimeout(() => this.positionDropdown(), 10);
+                    return;
+                }
+                
+                // Determine preferred position (below by default)
+                // Ensure dropdown is at least as wide as the input but can grow if needed
+                dropdown.style.minWidth = rect.width + 'px';
+                dropdown.style.maxWidth = 'calc(100vw - ' + rect.left + 'px - 16px)'; // prevent overflow off right edge (16px margin)
+                dropdown.style.left = rect.left + window.scrollX + 'px';
+                
+                // Calculate dropdown height (might be 0 if hidden)
+                dropdown.style.top = '-9999px';
+                dropdown.style.display = 'block';
+                dropdown.style.visibility = 'hidden'; // Hide while measuring
+                const dropdownHeight = dropdown.offsetHeight;
+                dropdown.style.visibility = 'visible'; // Show again
+                
+                // Reset display if suggestions hidden
+                if (!this.showSuggestions) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                
+                const spaceBelow = window.innerHeight - rect.bottom - 8; // 8px margin
+                if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+                    // Not enough space below, show above
+                    dropdown.style.top = (rect.top + window.scrollY - dropdownHeight - 4) + 'px';
+                } else {
+                    dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
                 }
             });
         },
@@ -176,8 +192,8 @@
         :disabled="$disabled"
         autocomplete="off"
         x-ref="input"
-        x-on:focus="{{ $onFocus }}; $nextTick(() => positionDropdown())"
-        x-on:click="{{ $onFocus }}; $nextTick(() => positionDropdown())"
+        x-on:focus="{{ $onFocus }}; setTimeout(() => positionDropdown(), 0)"
+        x-on:click="{{ $onFocus }}; setTimeout(() => positionDropdown(), 0)"
         x-on:blur="handleBlur()"
         x-on:keydown="handleKeydown($event)"
     >
@@ -199,6 +215,18 @@
          x-transition
          class="autocomplete-dropdown fixed z-[9999] bg-white dark:bg-stone-800 border border-stone-300 dark:border-stone-600 rounded-lg shadow-xl max-h-60 overflow-auto"
          style="position: fixed !important;"
+         x-init="
+            // Fallback: if fixed positioning fails, use absolute positioning relative to the wrapper
+            $nextTick(() => {
+                if (showSuggestions && $el.getBoundingClientRect().left === 0 && $el.getBoundingClientRect().top === 0) {
+                    $el.style.position = 'absolute';
+                    $el.style.top = '100%';
+                    $el.style.left = '0';
+                    $el.style.right = '0';
+                    $el.style.zIndex = '50';
+                }
+            })
+         "
     >
         <template x-for="(suggestion, index) in suggestions" :key="suggestion.id + '-' + index">
             <div x-on:click="selectSuggestion(suggestion)"
