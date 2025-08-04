@@ -1647,12 +1647,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="space-y-4 p-4">
                             <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
                                 <div>
-                                    <flux:input 
-                                        id="ics_number_input"
-                                        wire:model.blur="ics_number" 
-                                        label="ICS Number" 
-                                        readonly
-                                        tabindex="-1" />
+                                    <label for="ics_number_input" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        ICS Number <span class="text-stone-500 dark:text-stone-400 font-normal">(Auto-generated)</span>
+                                    </label>
+                                    <div class="relative">
+                                        <flux:input 
+                                            id="ics_number_input"
+                                            wire:model.blur="ics_number" 
+                                            readonly
+                                            tabindex="-1"
+                                            class="bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 cursor-not-allowed border-stone-200 dark:border-stone-700" />
+                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <x-flux::icon.lock-closed class="h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                        </div>
+                                    </div>
                                     <x-input-error for="ics_number" class="mt-2" />
                                 </div>
                                 <div x-data="{ 
@@ -1675,9 +1683,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
 
                             <div>
-                                <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">ICS Type</label>
+                                <label for="ics_type" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    ICS Type <span class="text-stone-500 dark:text-stone-400 font-normal">(Auto-generated)</span>
+                                </label>
                                 <div class="relative">
-                                    <flux:input id="ics_type" wire:model="ics_type" readonly tabindex="511" :value="$ics_type" />
+                                    <flux:input 
+                                        id="ics_type" 
+                                        wire:model="ics_type" 
+                                        readonly 
+                                        tabindex="-1" 
+                                        :value="$ics_type"
+                                        class="bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 cursor-not-allowed border-stone-200 dark:border-stone-700" />
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <x-flux::icon.lock-closed class="h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                    </div>
                                 </div>
                                 <x-input-error for="ics_type" class="mt-2" />
                             </div>
