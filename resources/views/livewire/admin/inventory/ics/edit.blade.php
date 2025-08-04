@@ -1278,18 +1278,37 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function showDeleteModal(): void
+    {
+        \Log::info('showDeleteModal method called');
+        $this->showDeleteModal = true;
+    }
+
+    public function hideDeleteModal(): void
+    {
+        \Log::info('hideDeleteModal method called');
+        $this->showDeleteModal = false;
+    }
+
     public function destroy(): void
     {
+        // Add debugging
+        \Log::info('Destroy method called for ICS: ' . $this->icsNumber->id);
+        
         if (!auth()->user()->hasAdminPermission('delete_inventory')) {
+            \Log::warning('User does not have delete_inventory permission');
             abort(403);
         }
 
         try {
+            \Log::info('Attempting to delete ICS record: ' . $this->icsNumber->ics_number);
             $this->icsNumber->delete();
+            \Log::info('ICS record deleted successfully');
             $this->dispatch('ics-deleted');
             session()->flash('success', 'ICS record deleted successfully.');
             $this->redirect(route('admin.inventory.ics.index'), navigate: true);
         } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error during ICS deletion: ' . $e->getMessage());
             if (($e->errorInfo[1] ?? null) === 1451) { // FK constraint
                 session()->flash('error', 'Cannot delete this record because it is referenced by other records.');
             } else {
@@ -1298,7 +1317,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             \Log::warning('ICS delete failed', ['ics_id' => $this->icsNumber->id, 'error' => $e->getMessage()]);
         } catch (\Throwable $e) {
             // Log the exception for debugging
-            \Illuminate\Support\Facades\Log::error('Error deleting ICS record: ' . $e->getMessage());
+            \Log::error('Error deleting ICS record: ' . $e->getMessage());
             session()->flash('error', 'An unexpected error occurred while deleting the record.');
         }
         
@@ -1332,8 +1351,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span wire:loading.remove wire:target="resetForm">Reset</span>
                         <span wire:loading wire:target="resetForm">Resetting...</span>
                     </flux:button>
-                    <flux:button type="button" variant="danger" @click="showDeleteModal = true">
-                        Delete
+                    <flux:button type="button" variant="danger" wire:click="showDeleteModal" wire:loading.attr="disabled" wire:target="showDeleteModal">
+                        <span wire:loading.remove wire:target="showDeleteModal">Delete (Modal: {{ $showDeleteModal ? 'true' : 'false' }})</span>
+                        <span wire:loading wire:target="showDeleteModal">Opening...</span>
                     </flux:button>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
@@ -2060,7 +2080,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     </form>
 
     <!-- Delete Confirmation Modal -->
-    <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
+    <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="hideDeleteModal">
         <x-slot:content>
             <div class="p-4">
                 <div class="flex items-start space-x-3">
@@ -2096,7 +2116,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         <x-slot:footer>
             <div class="flex justify-end gap-x-4">
-                <flux:button variant="ghost" wire:click="$set('showDeleteModal', false)">Cancel</flux:button>
+                <flux:button variant="ghost" wire:click="hideDeleteModal">Cancel</flux:button>
                 <flux:button variant="danger" wire:click="destroy" wire:loading.attr="disabled" wire:target="destroy">
                     <span wire:loading.remove wire:target="destroy">Delete Record</span>
                     <span wire:loading wire:target="destroy">Deleting...</span>
