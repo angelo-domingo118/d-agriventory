@@ -119,7 +119,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
 
-        $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee');
+        $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
         $this->loadOriginalData();
     }
 
@@ -256,7 +256,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         // Reload the original model data from database
         $this->icsNumber->refresh();
-        $this->icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee');
+        $this->icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
         
         // Reset all form data to original values
         $this->loadOriginalData();
@@ -1027,12 +1027,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->assigned_employee_id = $validated['transfer_to_employee_id'];
         });
 
+        // Update the employee search fields to reflect the new assignment
+        $newEmployee = Employee::find($validated['transfer_to_employee_id']);
+        if ($newEmployee) {
+            $this->employee_search = $newEmployee->name;
+            $this->selected_employee_name = $newEmployee->name;
+        }
+
         $this->showTransferModal = false;
         $this->dispatch('ics-transferred');
         session()->flash('success', "Item successfully transferred.");
 
-        // Reload the model to get fresh transfer history
-        $this->icsNumber->load('transfers.fromEmployee', 'transfers.toEmployee');
+        // Reload the model to get fresh transfer history and employee info
+        $this->icsNumber->load('assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
     }
 
 
@@ -1542,58 +1549,144 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                     </div>
 
-                    <!-- Transfer History -->
-                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Transfer History</h3>
-                        </div>
-                        <div class="p-4">
-                            @if ($this->icsNumber->transfers->isNotEmpty())
-                                <ul class="space-y-4">
-                                    @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
-                                        <li wire:key="transfer-{{ $transfer->id }}" class="text-sm">
-                                            <p class="font-medium text-stone-700 dark:text-stone-300">
-                                                From: <span class="font-normal">{{ $transfer->fromEmployee?->name ?? 'N/A' }}</span>
-                                            </p>
-                                            <p class="font-medium text-stone-700 dark:text-stone-300">
-                                                To: <span class="font-normal">{{ $transfer->toEmployee?->name ?? 'N/A' }}</span>
-                                            </p>
-                                            <p class="text-xs text-stone-500 dark:text-stone-400">
-                                                {{ $transfer->transfer_date->format('F d, Y') }}
-                                            </p>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <p class="text-sm text-stone-500 dark:text-stone-400">No transfer history for this item.</p>
-                            @endif
-                        </div>
-                    </div>
+
                 </div>
 
-                <!-- Column 2: Employee Assignment & Document Details -->
+                <!-- Column 2: Employee Custody & Document Details -->
                 <div class="space-y-6">
-                    <!-- Employee Assignment Section -->
+                    <!-- Current Employee Assignment & Transfer History Section -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Custody</h3>
+                                @if (auth()->user()->hasAdminPermission('transfer_inventory'))
+                                    <flux:button 
+                                        type="button" 
+                                        variant="outline" 
+                                        size="sm" 
+                                        @click="showTransferModal = true"
+                                        class="flex items-center space-x-1"
+                                    >
+                                        <x-flux::icon.arrow-path class="h-4 w-4" />
+                                        <span>Transfer</span>
+                                    </flux:button>
+                                @endif
+                            </div>
                         </div>
-                        <div class="p-4">
-                            <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
-                            @error('assigned_employee_id')
-                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
-                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                                    </svg>
-                                    <span>{{ $message }}</span>
+                        <div class="p-4 space-y-6">
+                            <!-- Currently Assigned Employee -->
+                            <div>
+                                <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Currently Assigned Employee</h4>
+                                <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                                @error('assigned_employee_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
+                                @if ($creating_new_employee)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New employee will be created upon saving.</span>
+                                    </div>
+                                @endif
+                                
+                                <!-- Current Assignment Info -->
+                                @if ($this->icsNumber->assignedEmployee && !$creating_new_employee)
+                                    <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <div class="flex items-center space-x-2">
+                                                    <x-flux::icon.user class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                    <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
+                                                        {{ $this->icsNumber->assignedEmployee->name }}
+                                                    </span>
+                                                </div>
+                                                @if ($this->icsNumber->assignedEmployee->division || $this->icsNumber->assignedEmployee->position)
+                                                    <div class="mt-1 text-xs text-blue-700 dark:text-blue-300">
+                                                        @if ($this->icsNumber->assignedEmployee->division)
+                                                            {{ $this->icsNumber->assignedEmployee->division->name }}
+                                                        @endif
+                                                        @if ($this->icsNumber->assignedEmployee->division && $this->icsNumber->assignedEmployee->position)
+                                                            •
+                                                        @endif
+                                                        @if ($this->icsNumber->assignedEmployee->position)
+                                                            {{ $this->icsNumber->assignedEmployee->position->title }}
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            @if (auth()->user()->hasAdminPermission('transfer_inventory'))
+                                                <flux:button 
+                                                    type="button" 
+                                                    variant="outline" 
+                                                    size="xs" 
+                                                    @click="showTransferModal = true"
+                                                    class="text-blue-600 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/30"
+                                                >
+                                                    <x-flux::icon.arrow-path class="h-3 w-3" />
+                                                </flux:button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Transfer History -->
+                            @if ($this->icsNumber->transfers->isNotEmpty())
+                                <div class="border-t border-stone-200 dark:border-stone-700 pt-4">
+                                    <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Transfer History</h4>
+                                    <div class="space-y-3 max-h-48 overflow-y-auto">
+                                        @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
+                                            <div wire:key="transfer-{{ $transfer->id }}" class="flex items-start space-x-3 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-lg">
+                                                <div class="flex-shrink-0 mt-0.5">
+                                                    <x-flux::icon.arrow-right class="h-4 w-4 text-stone-400" />
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="text-sm">
+                                                            <span class="font-medium text-stone-600 dark:text-stone-300">
+                                                                {{ $transfer->fromEmployee?->name ?? 'N/A' }}
+                                                            </span>
+                                                            <span class="text-stone-500 dark:text-stone-400 mx-1">→</span>
+                                                            <span class="font-medium text-stone-900 dark:text-stone-100">
+                                                                {{ $transfer->toEmployee?->name ?? 'N/A' }}
+                                                            </span>
+                                                        </div>
+                                                        <span class="text-xs text-stone-500 dark:text-stone-400 flex-shrink-0">
+                                                            {{ $transfer->transfer_date->format('M d, Y') }}
+                                                        </span>
+                                                    </div>
+                                                    @if ($transfer->fromEmployee?->division || $transfer->toEmployee?->division)
+                                                        <div class="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                                                            @if ($transfer->fromEmployee?->division)
+                                                                {{ $transfer->fromEmployee->division->name }}
+                                                            @endif
+                                                            @if ($transfer->fromEmployee?->division && $transfer->toEmployee?->division)
+                                                                →
+                                                            @endif
+                                                            @if ($transfer->toEmployee?->division)
+                                                                {{ $transfer->toEmployee->division->name }}
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 </div>
-                            @enderror
-                            @if ($creating_new_employee)
-                                <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
-                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                                    </svg>
-                                    <span class="font-medium">New employee will be created upon saving.</span>
+                            @else
+                                <div class="border-t border-stone-200 dark:border-stone-700 pt-4">
+                                    <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Transfer History</h4>
+                                    <div class="text-center py-6">
+                                        <x-flux::icon.clock class="h-8 w-8 text-stone-300 dark:text-stone-600 mx-auto mb-2" />
+                                        <p class="text-sm text-stone-500 dark:text-stone-400">No transfers recorded</p>
+                                        <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">This item has remained with its original assignee</p>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -1989,26 +2082,90 @@ new #[Layout('components.layouts.app')] class extends Component {
     </flux:modal>
 
     <!-- Transfer Modal -->
-    <flux:modal title="Transfer Item" :show="$showTransferModal" max-width="lg" @close="$set('showTransferModal', false)">
-        <div class="p-6">
-            <div class="space-y-4">
-                <flux:select wire:model="transfer_to_employee_id" label="Transfer to Employee" required>
-                    <option value="">Select an employee</option>
-                    @foreach ($this->allEmployees as $employee)
-                        <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) disabled @endif>
-                            {{ $employee->name }}
-                        </option>
-                    @endforeach
-                </flux:select>
+    <flux:modal title="Transfer Item Custody" :show="$showTransferModal" max-width="lg" @close="$set('showTransferModal', false)">
+        <x-slot:content>
+            <div class="p-6">
+                <!-- Current Assignment Info -->
+                @if ($this->icsNumber->assignedEmployee)
+                    <div class="mb-6 p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg border border-stone-200 dark:border-stone-700">
+                        <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">Currently Assigned To:</h4>
+                        <div class="flex items-center space-x-2">
+                            <x-flux::icon.user class="h-4 w-4 text-stone-500" />
+                            <span class="font-medium text-stone-900 dark:text-stone-100">
+                                {{ $this->icsNumber->assignedEmployee->name }}
+                            </span>
+                        </div>
+                        @if ($this->icsNumber->assignedEmployee->division || $this->icsNumber->assignedEmployee->position)
+                            <div class="mt-1 text-sm text-stone-600 dark:text-stone-400 ml-6">
+                                @if ($this->icsNumber->assignedEmployee->division)
+                                    {{ $this->icsNumber->assignedEmployee->division->name }}
+                                @endif
+                                @if ($this->icsNumber->assignedEmployee->division && $this->icsNumber->assignedEmployee->position)
+                                    • 
+                                @endif
+                                @if ($this->icsNumber->assignedEmployee->position)
+                                    {{ $this->icsNumber->assignedEmployee->position->title }}
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                @endif
 
-                <flux:input type="date" wire:model="transfer_date" label="Transfer Date" required />
+                <div class="space-y-4">
+                    <div>
+                        <flux:select wire:model="transfer_to_employee_id" label="Transfer To Employee" required>
+                            <option value="">Select the new custodian</option>
+                            @foreach ($this->allEmployees as $employee)
+                                <option value="{{ $employee->id }}" @if($employee->id === $assigned_employee_id) disabled @endif>
+                                    {{ $employee->name }}
+                                    @if($employee->id === $assigned_employee_id) (Current Custodian) @endif
+                                </option>
+                            @endforeach
+                        </flux:select>
+                        @error('transfer_to_employee_id')
+                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <flux:input type="date" wire:model="transfer_date" label="Transfer Date" required />
+                        @error('transfer_date')
+                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <div class="flex items-start space-x-3">
+                        <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <h5 class="text-sm font-medium text-amber-900 dark:text-amber-200">Transfer Notice</h5>
+                            <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                                This action will create a transfer record and update the current custodian. The transfer will be logged in the system for audit purposes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </x-slot:content>
 
         <x-slot:footer>
             <div class="flex justify-end gap-x-4">
                 <flux:button variant="ghost" wire:click="$set('showTransferModal', false)">Cancel</flux:button>
-                <flux:button variant="primary" wire:click="transferItem">Transfer</flux:button>
+                <flux:button variant="primary" wire:click="transferItem" wire:loading.attr="disabled" wire:target="transferItem">
+                    <span wire:loading.remove wire:target="transferItem">Complete Transfer</span>
+                    <span wire:loading wire:target="transferItem">Processing...</span>
+                </flux:button>
             </div>
         </x-slot:footer>
     </flux:modal>
