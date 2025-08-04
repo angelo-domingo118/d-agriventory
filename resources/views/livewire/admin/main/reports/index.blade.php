@@ -7,6 +7,7 @@ use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Request;
 use App\Services\ToastService;
 use App\Models\IcsNumber;
+use App\Models\Employee;
 
 new #[Layout('components.layouts.app')] class extends Component {
     /**
@@ -26,6 +27,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $idr_batch = null;
     public ?string $idr_employee = null;
     public ?string $rsmi_number = null;
+
+    // Autocomplete state
+    public array $icsNumberSuggestions = [];
+    public bool $icsNumberShowSuggestions = false;
+    public array $employeeSuggestions = [];
+    public bool $employeeShowSuggestions = false;
 
     public function mount(): void
     {
@@ -217,6 +224,72 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         return collect();
     }
+
+    /*
+    |-------------------------------------------------------------------------
+    | Autocomplete helpers
+    |-------------------------------------------------------------------------
+    */
+
+    public function updatedIcsNumber(string $value): void
+    {
+        $this->icsNumberSuggestions = IcsNumber::query()
+            ->where('ics_number', 'like', $value . '%')
+            ->orderBy('ics_number')
+            ->limit(10)
+            ->get()
+            ->map(fn (IcsNumber $ics) => ['id' => $ics->id, 'name' => (string) $ics->ics_number])
+            ->toArray();
+
+        $this->icsNumberShowSuggestions = count($this->icsNumberSuggestions) > 0;
+    }
+
+    public function updatedEmployeeNameIcs(string $value): void
+    {
+        $this->employeeSuggestions = Employee::query()
+            ->where('name', 'like', '%' . $value . '%')
+            ->orderBy('name')
+            ->limit(10)
+            ->get()
+            ->map(fn (Employee $emp) => ['id' => $emp->id, 'name' => $emp->name])
+            ->toArray();
+
+        $this->employeeShowSuggestions = count($this->employeeSuggestions) > 0;
+    }
+
+    public function loadInitialIcsNumberSuggestions(): void
+    {
+        $this->icsNumberSuggestions = IcsNumber::query()
+            ->orderBy('ics_number')
+            ->limit(10)
+            ->get()
+            ->map(fn (IcsNumber $ics) => ['id' => $ics->id, 'name' => (string) $ics->ics_number])
+            ->toArray();
+        $this->icsNumberShowSuggestions = true;
+    }
+
+    public function loadInitialEmployeeSuggestions(): void
+    {
+        $this->employeeSuggestions = Employee::query()
+            ->orderBy('name')
+            ->limit(10)
+            ->get()
+            ->map(fn (Employee $emp) => ['id' => $emp->id, 'name' => $emp->name])
+            ->toArray();
+        $this->employeeShowSuggestions = true;
+    }
+
+    public function selectIcsNumberSuggestion(array $suggestion): void
+    {
+        $this->ics_number = $suggestion['name'] ?? '';
+        $this->icsNumberShowSuggestions = false;
+    }
+
+    public function selectEmployeeSuggestion(array $suggestion): void
+    {
+        $this->employee_name_ics = $suggestion['name'] ?? '';
+        $this->employeeShowSuggestions = false;
+    }
 }; ?>
 
 <div>
@@ -386,16 +459,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="rounded-lg border bg-white p-4 dark:border-stone-700 dark:bg-stone-900">
                     @if ($reportType === 'ics')
                         @if ($reportFormat === 'by_number')
-                            <flux:field>
-                                <flux:label for="ics_number" required>ICS Number</flux:label>
-                                <flux:input id="ics_number" type="number" placeholder="Enter ICS number" wire:model="ics_number" />
-                            </flux:field>
+                            <x-autocomplete
+                                id="ics_number"
+                                wire:model.live="ics_number"
+                                label="ICS Number"
+                                placeholder="Search ICS number..."
+                                wire:suggestions="icsNumberSuggestions"
+                                wire:showSuggestions="icsNumberShowSuggestions"
+                                required
+                                onFocus="$wire.loadInitialIcsNumberSuggestions()"
+                                onSelect="$wire.selectIcsNumberSuggestion"
+                            />
                         @elseif($reportFormat === 'by_employee')
-                            <flux:field>
-                                <flux:label for="employee_name_ics" required>Employee Name</flux:label>
-                                <flux:input id="employee_name_ics" type="text"
-                                    placeholder="Search for an employee..." wire:model="employee_name_ics" />
-                            </flux:field>
+                            <x-autocomplete
+                                id="employee_name_ics"
+                                wire:model.live="employee_name_ics"
+                                label="Employee Name"
+                                placeholder="Search for an employee..."
+                                wire:suggestions="employeeSuggestions"
+                                wire:showSuggestions="employeeShowSuggestions"
+                                required
+                                onFocus="$wire.loadInitialEmployeeSuggestions()"
+                                onSelect="$wire.selectEmployeeSuggestion"
+                            />
                         @endif
                     @elseif ($reportType === 'par')
                         @if ($reportFormat === 'by_number')
