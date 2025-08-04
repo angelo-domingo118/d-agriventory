@@ -24,8 +24,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'assignedEmployee.division',
             // Removed '.item.itemSpecification' as ItemComponent currently has no `item` relation. Eager load only components for now.
             'itemBatches.components',
-            'transfers.fromEmployee',
-            'transfers.toEmployee',
+            'transfers.fromEmployee.division',
+            'transfers.toEmployee.division',
         ]);
     }
 }; ?>
@@ -397,6 +397,84 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No batches recorded</h3>
                     <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">No item batches have been recorded for this ICS.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Transfer History Section -->
+    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+        <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+            <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                <x-flux::icon.arrow-path class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                Transfer History
+                @if ($this->icsNumber->transfers->isNotEmpty())
+                    <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300">
+                        {{ $this->icsNumber->transfers->count() }} {{ Str::plural('transfer', $this->icsNumber->transfers->count()) }}
+                    </span>
+                @endif
+            </h3>
+        </div>
+        <div class="px-6 py-5">
+            @if ($this->icsNumber->transfers->isNotEmpty())
+                <div class="space-y-4">
+                    @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
+                        <div wire:key="transfer-{{ $transfer->id }}" class="flex items-start space-x-4 p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg border border-stone-200 dark:border-stone-600">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20">
+                                    <x-flux::icon.arrow-right class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-stone-600 dark:text-stone-300">
+                                            From: {{ $transfer->fromEmployee?->name ?? 'N/A' }}
+                                        </span>
+                                        <x-flux::icon.arrow-right class="h-4 w-4 text-stone-400" />
+                                        <span class="text-sm font-medium text-stone-900 dark:text-stone-100">
+                                            To: {{ $transfer->toEmployee?->name ?? 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <span class="text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-700 px-3 py-1 rounded-full border border-stone-200 dark:border-stone-600">
+                                        {{ $transfer->transfer_date->format('F d, Y') }}
+                                    </span>
+                                </div>
+                                
+                                @if ($transfer->fromEmployee?->division || $transfer->toEmployee?->division)
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        @if ($transfer->fromEmployee?->division)
+                                            <div>
+                                                <span class="text-stone-500 dark:text-stone-400">From Division:</span>
+                                                <span class="ml-2 text-stone-700 dark:text-stone-300">{{ $transfer->fromEmployee->division->name }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($transfer->toEmployee?->division)
+                                            <div>
+                                                <span class="text-stone-500 dark:text-stone-400">To Division:</span>
+                                                <span class="ml-2 text-stone-700 dark:text-stone-300">{{ $transfer->toEmployee->division->name }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                                
+                                @if ($transfer->remarks)
+                                    <div class="mt-3 p-3 bg-white dark:bg-stone-700 rounded-md border border-stone-200 dark:border-stone-600">
+                                        <span class="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">Remarks:</span>
+                                        <p class="mt-1 text-sm text-stone-700 dark:text-stone-300">{{ $transfer->remarks }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+                        <x-flux::icon.clock class="h-8 w-8 text-stone-400" />
+                    </div>
+                    <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No transfers recorded</h3>
+                    <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">This item has remained with its original assignee since creation.</p>
                 </div>
             @endif
         </div>
