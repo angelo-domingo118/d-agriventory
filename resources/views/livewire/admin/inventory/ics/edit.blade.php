@@ -2215,8 +2215,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             icsField.addEventListener('focus', () => focusOn('estimated_useful_life_wrapper', true));
         }
         
-        // Automatically focus Supplier field on initial load
-        focusOn('supplier_search');
+        // Removed autofocus on supplier field for better UX
         
         // Handle automatically adding serial number prefix to new batches
         @this.on('batch-added', () => {
