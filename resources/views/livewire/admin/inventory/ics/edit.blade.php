@@ -1651,7 +1651,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                             <!-- Transfer History -->
                             <div class="border-t border-stone-200 dark:border-stone-700 pt-4" x-data="{ transferHistoryExpanded: false }">
-                                <button @click="transferHistoryExpanded = !transferHistoryExpanded" class="flex w-full items-center justify-between text-left">
+                                <button type="button" @click="transferHistoryExpanded = !transferHistoryExpanded" class="flex w-full items-center justify-between text-left">
                                     <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300">Transfer History</h4>
                                     <x-flux::icon.chevron-down class="h-4 w-4 text-stone-400 transition-transform duration-200" ::class="{ 'rotate-180': transferHistoryExpanded }" />
                                 </button>
