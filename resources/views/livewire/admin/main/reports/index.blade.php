@@ -128,7 +128,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             ($this->reportType === 'ics' && $this->reportFormat === 'by_employee') ||
             ($this->reportType === 'par' && $this->reportFormat === 'by_employee')
         ) {
-            $this->zoom = 0.7;
+            $this->zoom = 0.9;
         } else {
             $this->zoom = 1.0;
         }
@@ -682,7 +682,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 {{-- Show loading state --}}
                 <div wire:loading.block wire:target="generatePreview">
-                    <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
+                    <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-y-auto overflow-x-hidden rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
                         x-data="{
                             isDragging: false,
                             startX: 0,
@@ -715,8 +715,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             }
                         "
                         style="cursor: grab;">
-                        <div id="report-preview-content" class="origin-top"
-                            style="transform: scale({{ $this->zoom }});">
+                        <div id="report-preview-content" class="origin-top max-w-full"
+                            style="transform: scale({{ $this->zoom }}); max-width: calc(100% / {{ $this->zoom }});">
                             @if ($reportFormat === 'by_employee')
                                 {{-- Landscape Skeleton --}}
                                 <div
@@ -800,7 +800,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div wire:loading.remove.block wire:target="generatePreview">
                     @if ($previewGenerated && $this->isPreviewAvailable)
                         {{-- Scrollable container for actual previews --}}
-                        <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
+                        <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-y-auto overflow-x-hidden rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
                             x-data="{
                                 isDragging: false,
                                 startX: 0,
@@ -833,8 +833,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 }
                             "
                             style="cursor: grab;">
-                            <div id="report-preview-content" class="origin-top"
-                                style="transform: scale({{ $this->zoom }});">
+                            <div id="report-preview-content" class="origin-top max-w-full"
+                                style="transform: scale({{ $this->zoom }}); max-width: calc(100% / {{ $this->zoom }});">
                                 @switch($reportType)
                                     @case('ics')
                                         @if ($reportFormat === 'by_number')
