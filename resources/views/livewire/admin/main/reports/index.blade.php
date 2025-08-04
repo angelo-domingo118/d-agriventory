@@ -680,42 +680,43 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
 
-                <div x-data="{
-                    isDragging: false,
-                    startX: 0,
-                    startY: 0,
-                    initialScrollLeft: 0,
-                    initialScrollTop: 0,
-                }" @mousedown.prevent="
-                    isDragging = true;
-                    startX = $event.pageX;
-                    startY = $event.pageY;
-                    initialScrollLeft = $el.scrollLeft;
-                    initialScrollTop = $el.scrollTop;
-                    $el.style.cursor = 'grabbing';
-                " @mouseup.prevent.window="isDragging = false; $el.style.cursor = 'grab';"
-                    @mousemove.prevent="
-                        if (!isDragging) return;
-                        const dx = $event.pageX - startX;
-                        const dy = $event.pageY - startY;
-                        $el.scrollLeft = initialScrollLeft - dx;
-                        $el.scrollTop = initialScrollTop - dy;
-                    "
-                    @wheel="
-                        if ($event.ctrlKey) {
-                            $event.preventDefault();
-                            if ($event.deltaY < 0) {
-                                $wire.zoomIn();
-                            } else if ($event.deltaY > 0) {
-                                $wire.zoomOut();
+                {{-- Show loading state --}}
+                <div wire:loading.block wire:target="generatePreview">
+                    <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
+                        x-data="{
+                            isDragging: false,
+                            startX: 0,
+                            startY: 0,
+                            initialScrollLeft: 0,
+                            initialScrollTop: 0,
+                        }" @mousedown.prevent="
+                            isDragging = true;
+                            startX = $event.pageX;
+                            startY = $event.pageY;
+                            initialScrollLeft = $el.scrollLeft;
+                            initialScrollTop = $el.scrollTop;
+                            $el.style.cursor = 'grabbing';
+                        " @mouseup.prevent.window="isDragging = false; $el.style.cursor = 'grab';"
+                        @mousemove.prevent="
+                            if (!isDragging) return;
+                            const dx = $event.pageX - startX;
+                            const dy = $event.pageY - startY;
+                            $el.scrollLeft = initialScrollLeft - dx;
+                            $el.scrollTop = initialScrollTop - dy;
+                        "
+                        @wheel="
+                            if ($event.ctrlKey) {
+                                $event.preventDefault();
+                                if ($event.deltaY < 0) {
+                                    $wire.zoomIn();
+                                } else if ($event.deltaY > 0) {
+                                    $wire.zoomOut();
+                                }
                             }
-                        }
-                    "
-                    class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
-                    style="cursor: grab;">
-                    <div id="report-preview-content" class="origin-top"
-                        style="transform: scale({{ $this->zoom }});">
-                        <div wire:loading.block wire:target="generatePreview">
+                        "
+                        style="cursor: grab;">
+                        <div id="report-preview-content" class="origin-top"
+                            style="transform: scale({{ $this->zoom }});">
                             @if ($reportFormat === 'by_employee')
                                 {{-- Landscape Skeleton --}}
                                 <div
@@ -792,9 +793,48 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </div>
                             @endif
                         </div>
+                    </div>
+                </div>
 
-                        <div wire:loading.remove.block wire:target="generatePreview">
-                            @if ($previewGenerated && $this->isPreviewAvailable)
+                {{-- Show preview or placeholder --}}
+                <div wire:loading.remove.block wire:target="generatePreview">
+                    @if ($previewGenerated && $this->isPreviewAvailable)
+                        {{-- Scrollable container for actual previews --}}
+                        <div class="mt-6 flex max-h-[calc(100vh-12rem)] items-start justify-center overflow-auto rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50 print-scroll-container"
+                            x-data="{
+                                isDragging: false,
+                                startX: 0,
+                                startY: 0,
+                                initialScrollLeft: 0,
+                                initialScrollTop: 0,
+                            }" @mousedown.prevent="
+                                isDragging = true;
+                                startX = $event.pageX;
+                                startY = $event.pageY;
+                                initialScrollLeft = $el.scrollLeft;
+                                initialScrollTop = $el.scrollTop;
+                                $el.style.cursor = 'grabbing';
+                            " @mouseup.prevent.window="isDragging = false; $el.style.cursor = 'grab';"
+                            @mousemove.prevent="
+                                if (!isDragging) return;
+                                const dx = $event.pageX - startX;
+                                const dy = $event.pageY - startY;
+                                $el.scrollLeft = initialScrollLeft - dx;
+                                $el.scrollTop = initialScrollTop - dy;
+                            "
+                            @wheel="
+                                if ($event.ctrlKey) {
+                                    $event.preventDefault();
+                                    if ($event.deltaY < 0) {
+                                        $wire.zoomIn();
+                                    } else if ($event.deltaY > 0) {
+                                        $wire.zoomOut();
+                                    }
+                                }
+                            "
+                            style="cursor: grab;">
+                            <div id="report-preview-content" class="origin-top"
+                                style="transform: scale({{ $this->zoom }});">
                                 @switch($reportType)
                                     @case('ics')
                                         @if ($reportFormat === 'by_number')
@@ -826,11 +866,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                         @break
                                 @endswitch
-                            @else
-                                @include('livewire.admin.main.reports.formats.unavailable')
-                            @endif
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        {{-- Simple centered placeholder without scrollable container --}}
+                        <div class="mt-6 flex items-center justify-center min-h-[calc(100vh-12rem)]">
+                            <div class="text-center">
+                                <x-flux::icon.document-magnifying-glass
+                                    class="mx-auto h-12 w-12 text-stone-400 dark:text-stone-500" />
+                                <h3 class="mt-2 text-sm font-semibold text-stone-900 dark:text-stone-100">No Preview Available</h3>
+                                <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                                    Generate a report to see a preview.
+                                </p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
