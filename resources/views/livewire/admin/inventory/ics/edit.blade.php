@@ -1039,6 +1039,9 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function update(): void
     {
+        // Extract the code from the descriptive ICS type string for validation
+        $icsTypeCode = strtok($this->ics_type, ' ');
+        
         $rules = [
             'ics_number' => ['required', 'string', 'max:255', Rule::unique('ics_number', 'ics_number')->ignore($this->icsNumber->id)],
             'assigned_employee_id' => 'required_unless:creating_new_employee,true|nullable|exists:employees,id',
@@ -1046,7 +1049,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
             'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
-            'ics_type' => ['required', 'string', Rule::in(['SPLV', 'SPHV'])],
             'quantity' => ['required', 'integer', 'min:1', function ($attribute, $value, $fail) {
                 $activeBatches = count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false)));
                 if ($value != $activeBatches) {
@@ -1064,6 +1066,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             'batches.*.components.*.model' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.serial_number' => ['nullable', 'string', 'max:255'],
         ];
+
+        // Add custom validation for ICS type code
+        if (!in_array($icsTypeCode, ['SPLV', 'SPHV']) && !str_contains($this->ics_type, 'Not applicable')) {
+            $this->addError('ics_type', 'The selected ICS type is invalid.');
+            return;
+        }
 
         if ($this->creating_new_supplier) {
             $rules['supplier_search'] = 'required|string|max:255|unique:suppliers,name';
@@ -1163,9 +1171,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                     ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
                     ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
                 );
-
-                // Extract the code from the descriptive string
-                $icsTypeCode = strtok($this->ics_type, ' ');
 
                 // 1. Update the main IcsNumber record
                 $this->icsNumber->update([
