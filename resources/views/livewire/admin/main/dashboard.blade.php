@@ -285,7 +285,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
-    public function categoryDistribution(): array
+    public function categoryDistribution()
     {
         return Cache::remember('admin.dashboard.category_distribution', now()->addMinutes(10), function () {
             $categories = PrimaryCategory::all();
@@ -345,7 +345,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             // Sort by count descending
             usort($data, fn($a, $b) => $b['count'] <=> $a['count']);
             
-            return $data;
+            return collect($data);
         });
     }
 
@@ -411,7 +411,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $nonConsumables = DB::table('primary_categories')
                 ->join('secondary_categories', 'primary_categories.id', '=', 'secondary_categories.primary_category_id')
                 ->join('items_catalog', 'secondary_categories.id', '=', 'items_catalog.secondary_category_id')
-                ->join('item_specifications', 'items_catalog.id', '=', 'item_specifications.items_catalog_id')
+                ->join('item_specifications', 'items_catalog.id', '=', 'item_specifications.item_catalog_id')
                 ->join('contract_items', 'item_specifications.id', '=', 'contract_items.item_specification_id')
                 ->leftJoin(DB::raw('(SELECT contract_item_id, SUM(quantity) as qty FROM ics_number GROUP BY contract_item_id) as ics'), 'ics.contract_item_id', '=', 'contract_items.id')
                 ->leftJoin(DB::raw('(SELECT contract_item_id, SUM(quantity) as qty FROM par_number GROUP BY contract_item_id) as par'), 'par.contract_item_id', '=', 'contract_items.id')
@@ -434,7 +434,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $consumables = DB::table('primary_categories')
                 ->join('secondary_categories', 'primary_categories.id', '=', 'secondary_categories.primary_category_id')
                 ->join('items_catalog', 'secondary_categories.id', '=', 'items_catalog.secondary_category_id')
-                ->join('item_specifications', 'items_catalog.id', '=', 'item_specifications.items_catalog_id')
+                ->join('item_specifications', 'items_catalog.id', '=', 'item_specifications.item_catalog_id')
                 ->join('consumable_items', 'item_specifications.id', '=', 'consumable_items.item_specification_id')
                 ->leftJoinSub($avgPrices, 'avg_prices', function ($join) {
                     $join->on('item_specifications.id', '=', 'avg_prices.item_specification_id');
@@ -466,7 +466,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
-    public function supplierSpending(): array
+    public function supplierSpending()
     {
         return Cache::remember('admin.dashboard.supplier_spending', now()->addMinutes(5), function () {
             return Supplier::with(['contracts.contractItems' => function ($query) {
@@ -495,7 +495,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'total_items' => $totalItems,
                     'contracts_count' => $supplier->contracts->count(),
                 ];
-            })->sortByDesc('total_spent')->values()->all();
+            })->sortByDesc('total_spent')->values();
         });
     }
 
@@ -581,7 +581,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="bg-white dark:bg-stone-800/50 rounded-lg p-4 shadow-sm border border-stone-200 dark:border-stone-700/60">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100 flex items-center">
-                <x-flux::icon.bell class="h-5 w-5 mr-2" />
+                <x-flux::icon.settings-2 class="h-5 w-5 mr-2" />
                 Inventory Alerts
                 <span class="ml-2 inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">{{ collect($this->alerts)->filter(fn($val) => $val > 0)->count() }}</span>
             </h2>
@@ -593,7 +593,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-red-200 dark:border-red-900/50">
                 <div class="flex items-start">
-                    <x-flux::icon.exclamation-triangle class="h-6 w-6 text-red-500 mr-3 flex-shrink-0" />
+                    <x-flux::icon.x-mark class="h-6 w-6 text-red-500 mr-3 flex-shrink-0" />
                     <div>
                         <h3 class="font-semibold text-red-500">Low Stock Alert</h3>
                         <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['low_stock'] }} consumable items are running low across {{ $this->alerts['low_stock_divisions'] }} divisions</p>
@@ -603,7 +603,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
             <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-amber-200 dark:border-amber-800/50">
                 <div class="flex items-start">
-                    <x-flux::icon.clock class="h-6 w-6 text-amber-500 mr-3 flex-shrink-0" />
+                    <x-flux::icon.clock-history class="h-6 w-6 text-amber-500 mr-3 flex-shrink-0" />
                     <div>
                         <h3 class="font-semibold text-amber-500">Pending Transfers</h3>
                         <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['pending_transfers'] }} transfer requests awaiting approval (ICS, PAR, IDR)</p>
@@ -614,7 +614,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if ($this->alerts['expiring_soon'] > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-orange-200 dark:border-orange-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.calendar-days class="h-6 w-6 text-orange-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.clock-history class="h-6 w-6 text-orange-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-orange-500">Items Expiring Soon</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['expiring_soon'] }} items have useful life expiring within 30 days</p>
@@ -653,7 +653,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['unmanaged_divisions'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-purple-200 dark:border-purple-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.users class="h-6 w-6 text-purple-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.user-minus class="h-6 w-6 text-purple-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-purple-500">Unmanaged Divisions</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['unmanaged_divisions'] ?? 0 }} divisions do not have an assigned inventory manager.</p>
@@ -666,7 +666,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['items_missing_specs'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-violet-200 dark:border-violet-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.cog class="h-6 w-6 text-violet-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.puzzle-piece class="h-6 w-6 text-violet-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-violet-500">Items Missing Specs</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['items_missing_specs'] }} items in the catalog are missing specifications.</p>
@@ -679,7 +679,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['unassigned_employees'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-pink-200 dark:border-pink-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.users class="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.user-circle class="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-pink-500">Unassigned Employees</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['unassigned_employees'] }} employees are not yet assigned to a division.</p>
@@ -692,7 +692,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['empty_contracts'] ?? 0) > 0)
                  <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-cyan-200 dark:border-cyan-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.document-text class="h-6 w-6 text-cyan-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.document-minus class="h-6 w-6 text-cyan-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-cyan-500">Empty Contracts</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['empty_contracts'] }} contracts have no items associated with them.</p>
@@ -724,12 +724,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <x-dashboard.stat-card title="Total Items" :value="number_format($this->stats['total_items'])" change="+12.5%" change-type="increase">
             <x-slot:icon>
-                <x-flux::icon.cube class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.box class="h-8 w-8 text-stone-500" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Total Value" value="₱{{ number_format($this->stats['total_value'] / 1000000, 2) }}M" change="+8.2%" change-type="increase">
             <x-slot:icon>
-                <x-flux::icon.banknotes class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.receipt-percent class="h-8 w-8 text-stone-500" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Active Users" :value="$this->stats['active_users']" subtitle="System users">
@@ -739,12 +739,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Pending Actions" :value="$this->stats['pending_actions']" subtitle="Needs attention">
             <x-slot:icon>
-                <x-flux::icon.exclamation-triangle class="h-8 w-8 text-amber-500" />
+                <x-flux::icon.x-mark class="h-8 w-8 text-amber-500" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Expiring Soon" :value="$this->stats['expiring_soon']" subtitle="Within 30 days">
             <x-slot:icon>
-                <x-flux::icon.calendar-days class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.clock-history class="h-8 w-8 text-stone-500" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Total Divisions" :value="$this->stats['total_divisions']" subtitle="Offices/Units">
@@ -830,7 +830,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         @endforeach
                         <div class="mt-4 text-center border-t pt-2">
-                            <div class="text-lg font-bold text-stone-800 dark:text-stone-200">{{ array_sum(array_column($this->categoryDistribution, 'count')) }}</div>
+                            <div class="text-lg font-bold text-stone-800 dark:text-stone-200">{{ $this->categoryDistribution->sum('count') }}</div>
                             <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
                         </div>
                     </div>
@@ -1052,12 +1052,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($division['low_stock'] > 0)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                            <x-flux::icon.exclamation-triangle class="h-3 w-3 mr-1" />
+                                            <x-flux::icon.x-mark class="h-3 w-3 mr-1" />
                                             {{ $division['low_stock'] }}
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                            <x-flux::icon.check-circle class="h-3 w-3 mr-1" />
+                                            <x-flux::icon.check class="h-3 w-3 mr-1" />
                                             OK
                                         </span>
                                     @endif
@@ -1105,11 +1105,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
 
         <!-- Category Inventory Table -->
-        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
-            <div class="p-4 sm:p-6">
+    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
+        <div class="p-4 sm:p-6">
                 <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
-                    Inventory by Category
-                </h3>
+                Inventory by Category
+            </h3>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                         <thead class="bg-stone-50 dark:bg-stone-900">
@@ -1140,7 +1140,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <div class="flex items-center">
                                             <div class="w-16 bg-stone-200 dark:bg-stone-700 rounded-full h-2 mr-3">
                                                 <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $percentage }}%"></div>
-                                            </div>
+            </div>
                                             <span class="text-sm text-stone-600 dark:text-stone-400">{{ $percentage }}%</span>
                                         </div>
                                     </td>
@@ -1190,11 +1190,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
 
         <!-- Supplier Spending Table -->
-        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
-            <div class="p-4 sm:p-6">
+    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
+        <div class="p-4 sm:p-6">
                 <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
-                    Spending by Supplier
-                </h3>
+                Spending by Supplier
+            </h3>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                         <thead class="bg-stone-50 dark:bg-stone-900">
@@ -1214,8 +1214,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div class="flex-shrink-0 h-10 w-10">
                                                 <div class="h-10 w-10 rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center">
                                                     <x-flux::icon.truck class="h-5 w-5 text-stone-600 dark:text-stone-400" />
-                                                </div>
-                                            </div>
+            </div>
+        </div>
                                             <div class="ml-4">
                                                 <div class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $supplier['name'] }}</div>
                                             </div>
@@ -1281,16 +1281,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             @else bg-stone-500
                                             @endif">
                                             @if($activity['action'] === 'created')
-                                                <x-flux::icon.plus class="h-4 w-4 text-white" />
+                                                <x-flux::icon.plus-circle class="h-4 w-4 text-white" />
                                             @elseif($activity['action'] === 'updated')
-                                                <x-flux::icon.pencil class="h-4 w-4 text-white" />
+                                                <x-flux::icon.edit class="h-4 w-4 text-white" />
                                             @elseif($activity['action'] === 'deleted')
-                                                <x-flux::icon.trash class="h-4 w-4 text-white" />
+                                                <x-flux::icon.x-mark class="h-4 w-4 text-white" />
                                             @else
-                                                <x-flux::icon.cog class="h-4 w-4 text-white" />
+                                                <x-flux::icon.settings-2 class="h-4 w-4 text-white" />
                                             @endif
                                         </span>
-                                    </div>
+            </div>
                                     <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                         <div>
                                             <p class="text-sm text-stone-600 dark:text-stone-400">
@@ -1312,7 +1312,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @empty
                         <li class="text-center py-8">
                             <div class="flex flex-col items-center">
-                                <x-flux::icon.clock class="h-12 w-12 text-stone-400 dark:text-stone-600 mb-4" />
+                                <x-flux::icon.clock-history class="h-12 w-12 text-stone-400 dark:text-stone-600 mb-4" />
                                 <p class="text-stone-500 dark:text-stone-400">No recent activity found</p>
                             </div>
                         </li>
@@ -1348,7 +1348,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <x-flux::icon.shield class="h-6 w-6 text-red-600 dark:text-red-400" />
+                            <x-flux::icon.settings-2 class="h-6 w-6 text-red-600 dark:text-red-400" />
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
@@ -1364,7 +1364,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <x-flux::icon.check-circle class="h-6 w-6 text-green-600 dark:text-green-400" />
+                            <x-flux::icon.check class="h-6 w-6 text-green-600 dark:text-green-400" />
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
@@ -1380,7 +1380,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="p-5">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
-                            <x-flux::icon.plus class="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            <x-flux::icon.plus-circle class="h-6 w-6 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div class="ml-5 w-0 flex-1">
                             <dl>
@@ -1427,7 +1427,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="space-y-4">
                         <div class="flex items-center justify-between py-3 border-b border-stone-200 dark:border-stone-700">
                             <div class="flex items-center">
-                                <x-flux::icon.clock class="h-5 w-5 text-stone-400 mr-3" />
+                                <x-flux::icon.clock-history class="h-5 w-5 text-stone-400 mr-3" />
                                 <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Recent Admin Logins (7 days)</span>
                             </div>
                             <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['recent_admin_logins']) }}</span>
@@ -1451,7 +1451,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         
                         <div class="flex items-center justify-between py-3">
                             <div class="flex items-center">
-                                <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-500 mr-3" />
+                                <x-flux::icon.x-mark class="h-5 w-5 text-amber-500 mr-3" />
                                 <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Unverified Users</span>
                             </div>
                             <span class="text-sm font-semibold text-amber-600 dark:text-amber-400">{{ number_format($this->userManagement['unverified_users']) }}</span>
@@ -1475,7 +1475,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     
                     <a href="{{ route('admin.system.users.create') }}" wire:navigate class="flex items-center justify-center p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-lg hover:border-stone-400 dark:hover:border-stone-500 transition-colors">
                         <div class="text-center">
-                            <x-flux::icon.plus class="h-8 w-8 text-stone-400 mx-auto mb-2" />
+                            <x-flux::icon.plus-circle class="h-8 w-8 text-stone-400 mx-auto mb-2" />
                             <p class="text-sm font-medium text-stone-600 dark:text-stone-400">Add New User</p>
                         </div>
                     </a>
