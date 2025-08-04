@@ -182,9 +182,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    Edit Property Acknowledgement Receipt (PAR)
-                </h1>
+                <flux:breadcrumbs class="text-2xl font-semibold">
+                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                    <flux:breadcrumbs.item href="#" class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.inventory.par.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">PAR Management</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit PAR #{{ $par->par_number }}</flux:breadcrumbs.item>
+                </flux:breadcrumbs>
                 <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
                     Update the details for PAR #{{ $par->par_number }}.
                 </p>

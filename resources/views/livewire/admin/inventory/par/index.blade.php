@@ -298,9 +298,14 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 <div x-data="tableResizer('par_column_widths', { article: 400, par_details: 220, doc_source: 300, issued_to: 200, actions: 120 })">
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            PAR Management
-        </h1>
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item href="#" class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">PAR Management</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+        </div>
         <div class="flex items-center gap-x-2">
             <div x-data="{ open: false }" class="relative">
                 <flux:button

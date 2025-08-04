@@ -29,9 +29,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
         <div class="flex flex-wrap items-center justify-between sm:flex-nowrap">
             <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    PAR Details
-                </h1>
+                <flux:breadcrumbs class="text-2xl font-semibold">
+                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                    <flux:breadcrumbs.item href="#" class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.inventory.par.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">PAR Management</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">PAR Details #{{ $par->par_number }}</flux:breadcrumbs.item>
+                </flux:breadcrumbs>
                 <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
                     Viewing Property Acknowledgement Receipt #<span class="font-bold">{{ $par->par_number }}</span>
                 </p>
