@@ -1345,10 +1345,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span wire:loading.remove wire:target="resetForm">Reset</span>
                         <span wire:loading wire:target="resetForm">Resetting...</span>
                     </flux:button>
-                    <flux:button type="button" variant="danger" wire:click="destroy" wire:confirm="Are you sure you want to delete this ICS record? This action cannot be undone." wire:loading.attr="disabled" wire:target="destroy">
-                        <span wire:loading.remove wire:target="destroy">Delete</span>
-                        <span wire:loading wire:target="destroy">Deleting...</span>
-                    </flux:button>
+                    <flux:modal.trigger name="delete-ics-confirmation">
+                        <flux:button type="button" variant="danger" wire:loading.attr="disabled" wire:target="destroy">
+                            <span wire:loading.remove wire:target="destroy">Delete</span>
+                            <span wire:loading wire:target="destroy">Deleting...</span>
+                        </flux:button>
+                    </flux:modal.trigger>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
                         <span wire:loading wire:target="update">Saving...</span>
@@ -2162,6 +2164,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </flux:button>
             </div>
         </x-slot:footer>
+    </flux:modal>
+
+    <!-- Delete Confirmation Modal -->
+    <flux:modal name="delete-ics-confirmation" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete ICS Record?</flux:heading>
+                <flux:text class="mt-2">
+                    <p>You're about to delete ICS record #{{ $icsNumber->ics_number }}.</p>
+                    <p>This action cannot be undone.</p>
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="destroy" variant="danger" wire:loading.attr="disabled" wire:target="destroy">
+                    <span wire:loading.remove wire:target="destroy">Delete Record</span>
+                    <span wire:loading wire:target="destroy">Deleting...</span>
+                </flux:button>
+            </div>
+        </div>
     </flux:modal>
 </div>
 
