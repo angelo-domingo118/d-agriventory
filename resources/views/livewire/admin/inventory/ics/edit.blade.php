@@ -2167,16 +2167,25 @@ new #[Layout('components.layouts.app')] class extends Component {
     </flux:modal>
 
     <!-- Delete Confirmation Modal -->
-    <flux:modal name="delete-ics-confirmation" class="min-w-[22rem]">
+    <flux:modal name="delete-ics-confirmation" class="min-w-[26rem]">
         <div class="space-y-6">
-            <div>
-                <flux:heading size="lg">Delete ICS Record?</flux:heading>
-                <flux:text class="mt-2">
-                    <p>You're about to delete ICS record #{{ $icsNumber->ics_number }}.</p>
-                    <p>This action cannot be undone.</p>
-                </flux:text>
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <x-flux::icon.exclamation-triangle class="h-6 w-6 text-red-500" />
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Delete ICS Record?</h3>
+                    <div class="mt-2 space-y-1">
+                        <p class="text-sm text-stone-600 dark:text-stone-400">
+                            You're about to delete ICS record <span class="font-medium text-stone-900 dark:text-stone-100">#{{ $icsNumber->ics_number }}</span>.
+                        </p>
+                        <p class="text-sm font-medium text-red-700 dark:text-red-300">
+                            This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-3 pt-2">
                 <flux:spacer />
                 <flux:modal.close>
                     <flux:button variant="ghost">Cancel</flux:button>
