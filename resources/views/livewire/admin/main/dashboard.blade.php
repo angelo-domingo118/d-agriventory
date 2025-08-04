@@ -25,6 +25,9 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $tab = 'overview';
     public bool $showAllAlerts = true;
 
+    // Chart data tracking for change detection
+    public ?string $chartDataChecksum = null;
+
     public function toggleAlerts(): void
     {
         $this->showAllAlerts = !$this->showAllAlerts;
@@ -33,6 +36,66 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function setTab(string $tab): void
     {
         $this->tab = $tab;
+    }
+    
+    public function mount(): void
+    {
+        // Initialize charts on component mount
+        $this->initializeCharts();
+    }
+    
+    public function updated(): void
+    {
+        // Check if chart data has changed and update if necessary
+        $this->updateChartsIfNeeded();
+    }
+    
+    private function initializeCharts(): void
+    {
+        // Get current chart data
+        $inventoryData = $this->inventoryValueOverTime;
+        $categoryData = $this->categoryDistribution;
+        
+        // Generate checksum for change detection
+        $currentChecksum = md5(serialize([$inventoryData, $categoryData]));
+        
+        // Emit events to initialize charts
+        $this->dispatch('initializeLineChart', [
+            'chartId' => 'line-chart-canvas',
+            'data' => $inventoryData
+        ]);
+        
+        $this->dispatch('initializeDoughnutChart', [
+            'chartId' => 'donut-chart-canvas', 
+            'data' => $categoryData
+        ]);
+        
+        $this->chartDataChecksum = $currentChecksum;
+    }
+    
+    private function updateChartsIfNeeded(): void
+    {
+        // Get current chart data
+        $inventoryData = $this->inventoryValueOverTime;
+        $categoryData = $this->categoryDistribution;
+        
+        // Generate checksum for change detection
+        $currentChecksum = md5(serialize([$inventoryData, $categoryData]));
+        
+        // Only update if data has changed
+        if ($this->chartDataChecksum !== $currentChecksum) {
+            $this->dispatch('updateLineChart', [
+                'chartId' => 'line-chart-canvas',
+                'data' => $inventoryData
+            ]);
+            
+            $this->dispatch('updateDoughnutChart', [
+                'chartId' => 'donut-chart-canvas',
+                'data' => $categoryData
+            ]);
+            
+            $this->chartDataChecksum = $currentChecksum;
+        }
     }
 
     #[Computed]
@@ -650,9 +713,10 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
                 <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Inventory Value Over Time</h3>
                 <div class="relative">
-                    <!-- Line Chart Container -->
-                    <div id="line-chart" class="h-64 relative">
+                    <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="h-64 relative">
                         <canvas id="line-chart-canvas" class="w-full h-full"></canvas>
+                    </div>
                         <!-- Chart Legend -->
                         <div class="flex flex-wrap justify-center mt-3 gap-4 text-xs">
                             <div class="flex items-center">
@@ -674,7 +738,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div class="flex items-center">
                                 <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
                                 <span class="text-stone-600 dark:text-stone-400">Consumables</span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -684,16 +747,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
                 <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Item Distribution by Category</h3>
                 <div class="flex items-center justify-center">
-                    <!-- Donut Chart Container -->
-                    <div id="donut-chart" class="relative">
+                    <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="relative">
                         <canvas id="donut-chart-canvas" width="200" height="200"></canvas>
-                        <!-- Center Text -->
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-stone-800 dark:text-stone-200" id="total-items">{{ array_sum(array_column($this->categoryDistribution, 'count')) }}</div>
-                                <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
-                            </div>
-                        </div>
                     </div>
                     <!-- Legend -->
                     <div class="ml-6 space-y-2">
@@ -704,199 +760,160 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <span class="ml-auto text-stone-500 dark:text-stone-400">{{ $category['percentage'] }}%</span>
                             </div>
                         @endforeach
+                        <div class="mt-4 text-center border-t pt-2">
+                            <div class="text-lg font-bold text-stone-800 dark:text-stone-200">{{ array_sum(array_column($this->categoryDistribution, 'count')) }}</div>
+                            <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Custom Styles and Scripts for Charts -->
-    <style>
-        .chart-tooltip {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .chart-tooltip.show {
-            opacity: 1;
-        }
-    </style>
-
+    <!-- Chart Initialization Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Line Chart Data
-            const lineChartData = @json($this->inventoryValueOverTime);
+        document.addEventListener('livewire:init', () => {
+            // Line Chart Event Handlers
+            Livewire.on('initializeLineChart', (data) => {
+                const chartData = data[0].data;
+                
+                const datasets = [{
+                    label: 'Total Value',
+                    data: chartData.map(d => d.value),
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'ICS',
+                    data: chartData.map(d => d.ics),
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'PAR',
+                    data: chartData.map(d => d.par),
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'IDR',
+                    data: chartData.map(d => d.idr),
+                    borderColor: '#8B5CF6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Consumables',
+                    data: chartData.map(d => d.consumables),
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }];
+                
+                const lineChartData = {
+                    labels: chartData.map(d => d.month),
+                    datasets: datasets
+                };
+                
+                window.initializeChart(data[0].chartId, 'line', lineChartData);
+            });
             
-            // Category Distribution Data
-            const categoryData = @json($this->categoryDistribution);
-            
-            // Draw Line Chart
-            function drawLineChart() {
-                const canvas = document.getElementById('line-chart-canvas');
-                const ctx = canvas.getContext('2d');
-                const container = canvas.parentElement;
-                
-                // Set canvas size
-                canvas.width = container.clientWidth;
-                canvas.height = 256;
-                
-                const padding = 60;
-                const chartWidth = canvas.width - (padding * 2);
-                const chartHeight = canvas.height - (padding * 2);
-                
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                if (lineChartData.length === 0) return;
-                
-                // Find max value for scaling
-                const maxValue = Math.max(...lineChartData.map(d => Math.max(d.value, d.ics, d.par, d.idr, d.consumables)));
-                const minValue = 0;
-                
-                // Draw grid lines and labels
-                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-200') || '#e5e7eb';
-                ctx.lineWidth = 1;
-                ctx.font = '12px system-ui';
-                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-stone-500') || '#6b7280';
-                
-                // Vertical grid lines and month labels
-                for (let i = 0; i <= lineChartData.length - 1; i++) {
-                    const x = padding + (i * chartWidth / (lineChartData.length - 1));
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x, padding);
-                    ctx.lineTo(x, padding + chartHeight);
-                    ctx.stroke();
-                    
-                    // Month labels
-                    ctx.textAlign = 'center';
-                    ctx.fillText(lineChartData[i].month, x, canvas.height - 20);
-                }
-                
-                // Horizontal grid lines and value labels
-                const gridLines = 5;
-                for (let i = 0; i <= gridLines; i++) {
-                    const y = padding + (i * chartHeight / gridLines);
-                    const value = maxValue - (i * maxValue / gridLines);
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(padding, y);
-                    ctx.lineTo(padding + chartWidth, y);
-                    ctx.stroke();
-                    
-                    // Value labels
-                    ctx.textAlign = 'right';
-                    ctx.fillText('₱' + value.toFixed(1) + 'M', padding - 10, y + 4);
-                }
-                
-                // Draw lines
-                const lines = [
-                    { key: 'value', color: '#3B82F6', width: 3 },
-                    { key: 'ics', color: '#10B981', width: 2 },
-                    { key: 'par', color: '#F59E0B', width: 2 },
-                    { key: 'idr', color: '#8B5CF6', width: 2 },
-                    { key: 'consumables', color: '#EF4444', width: 2 }
-                ];
-                
-                lines.forEach(line => {
-                    ctx.strokeStyle = line.color;
-                    ctx.lineWidth = line.width;
-                    ctx.beginPath();
-                    
-                    lineChartData.forEach((data, index) => {
-                        const x = padding + (index * chartWidth / (lineChartData.length - 1));
-                        const y = padding + chartHeight - ((data[line.key] / maxValue) * chartHeight);
-                        
-                        if (index === 0) {
-                            ctx.moveTo(x, y);
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                    });
-                    
-                    ctx.stroke();
-                    
-                    // Draw points
-                    if (line.key === 'value') {
-                        ctx.fillStyle = line.color;
-                        lineChartData.forEach((data, index) => {
-                            const x = padding + (index * chartWidth / (lineChartData.length - 1));
-                            const y = padding + chartHeight - ((data[line.key] / maxValue) * chartHeight);
-                            
-                            ctx.beginPath();
-                            ctx.arc(x, y, 4, 0, 2 * Math.PI);
-                            ctx.fill();
-                        });
-                    }
-                });
-            }
-            
-            // Draw Donut Chart
-            function drawDonutChart() {
-                const canvas = document.getElementById('donut-chart-canvas');
-                const ctx = canvas.getContext('2d');
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-                const outerRadius = 80;
-                const innerRadius = 50;
-                
-                // Clear canvas
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                if (categoryData.length === 0) return;
-                
-                const total = categoryData.reduce((sum, item) => sum + item.count, 0);
+            // Donut Chart Event Handlers  
+            Livewire.on('initializeDoughnutChart', (data) => {
+                const categoryData = data[0].data;
                 const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
                 
-                let currentAngle = -Math.PI / 2; // Start from top
+                const doughnutChartData = {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        data: categoryData.map(d => d.count),
+                        backgroundColor: colors.slice(0, categoryData.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                };
                 
-                categoryData.forEach((item, index) => {
-                    const sliceAngle = (item.count / total) * 2 * Math.PI;
-                    const color = colors[index % colors.length];
-                    
-                    // Draw slice
-                    ctx.fillStyle = color;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, outerRadius, currentAngle, currentAngle + sliceAngle);
-                    ctx.arc(centerX, centerY, innerRadius, currentAngle + sliceAngle, currentAngle, true);
-                    ctx.closePath();
-                    ctx.fill();
-                    
-                    currentAngle += sliceAngle;
-                });
-            }
-            
-            // Initial draw
-            drawLineChart();
-            drawDonutChart();
-            
-            // Redraw on window resize
-            window.addEventListener('resize', function() {
-                setTimeout(() => {
-                    drawLineChart();
-                    drawDonutChart();
-                }, 100);
+                window.initializeChart(data[0].chartId, 'doughnut', doughnutChartData);
             });
             
-            // Redraw when Livewire updates
-            window.addEventListener('livewire:load', function() {
-                drawLineChart();
-                drawDonutChart();
+            // Update Event Handlers
+            Livewire.on('updateLineChart', (data) => {
+                const chartData = data[0].data;
+                
+                const datasets = [{
+                    label: 'Total Value',
+                    data: chartData.map(d => d.value),
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'ICS',
+                    data: chartData.map(d => d.ics),
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'PAR',
+                    data: chartData.map(d => d.par),
+                    borderColor: '#F59E0B',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'IDR',
+                    data: chartData.map(d => d.idr),
+                    borderColor: '#8B5CF6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Consumables',
+                    data: chartData.map(d => d.consumables),
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }];
+                
+                const newData = {
+                    labels: chartData.map(d => d.month),
+                    datasets: datasets
+                };
+                
+                window.updateChart(data[0].chartId, newData);
             });
             
-            document.addEventListener('livewire:update', function() {
-                setTimeout(() => {
-                    drawLineChart();
-                    drawDonutChart();
-                }, 100);
+            Livewire.on('updateDoughnutChart', (data) => {
+                const categoryData = data[0].data;
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
+                
+                const newData = {
+                    labels: categoryData.map(d => d.name),
+                    datasets: [{
+                        data: categoryData.map(d => d.count),
+                        backgroundColor: colors.slice(0, categoryData.length),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                };
+                
+                window.updateChart(data[0].chartId, newData);
             });
         });
     </script>
