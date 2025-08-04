@@ -1852,7 +1852,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 placeholder="Add any notes or remarks here..." 
                                 :disabled="$isParItem" 
                                 tabindex="515" 
-                                rows="10" 
+                                rows="2" 
                                 @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
                             />
                         </div>
