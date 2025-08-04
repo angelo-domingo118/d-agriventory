@@ -30,5 +30,7 @@ trait ClearsDashboardCache
         Cache::forget('admin.dashboard.division_inventory');
         Cache::forget('admin.dashboard.category_inventory');
         Cache::forget('admin.dashboard.supplier_spending');
+        Cache::forget('admin.dashboard.recent_activity');
+        Cache::forget('admin.dashboard.user_management');
     }
 }

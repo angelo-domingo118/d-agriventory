@@ -498,6 +498,75 @@ new #[Layout('components.layouts.app')] class extends Component {
             })->sortByDesc('total_spent')->values()->all();
         });
     }
+
+    #[Computed]
+    public function recentActivity(): array
+    {
+        return Cache::remember('admin.dashboard.recent_activity', now()->addMinutes(2), function () {
+            return AuditLog::with('user')
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get()
+                ->map(function ($log) {
+                    return [
+                        'id' => $log->id,
+                        'user_name' => $log->user?->name ?? 'System',
+                        'action' => $log->action_type,
+                        'table' => $log->table_name,
+                        'description' => $log->description,
+                        'created_at' => $log->created_at,
+                        'time_ago' => $log->created_at?->diffForHumans(),
+                    ];
+                })
+                ->toArray();
+        });
+    }
+
+    #[Computed]
+    public function userManagement(): array
+    {
+        return Cache::remember('admin.dashboard.user_management', now()->addMinutes(5), function () {
+            $totalUsers = User::count();
+            $adminUsers = User::whereHas('adminUser')->count();
+            $inventoryManagers = User::whereHas('divisionInventoryManager')->count();
+            $regularUsers = $totalUsers - $adminUsers - $inventoryManagers;
+            $verifiedUsers = User::whereNotNull('email_verified_at')->count();
+            $unverifiedUsers = $totalUsers - $verifiedUsers;
+            
+            // Recent user registrations (last 30 days)
+            $recentRegistrations = User::where('created_at', '>=', now()->subDays(30))->count();
+            
+            // Recent admin logins (last 7 days)
+            $recentAdminLogins = User::whereHas('adminUser', function($query) {
+                $query->where('last_login_at', '>=', now()->subDays(7));
+            })->count();
+            
+            // Active admin users (logged in within 30 days)
+            $activeAdmins = User::whereHas('adminUser', function($query) {
+                $query->where('last_login_at', '>=', now()->subDays(30));
+            })->count();
+
+            // Role distribution
+            $roleDistribution = [
+                ['role' => 'Admin Users', 'count' => $adminUsers, 'color' => 'text-red-500'],
+                ['role' => 'Inventory Managers', 'count' => $inventoryManagers, 'color' => 'text-blue-500'],
+                ['role' => 'Regular Users', 'count' => $regularUsers, 'color' => 'text-green-500'],
+            ];
+
+            return [
+                'total_users' => $totalUsers,
+                'admin_users' => $adminUsers,
+                'inventory_managers' => $inventoryManagers,
+                'regular_users' => $regularUsers,
+                'verified_users' => $verifiedUsers,
+                'unverified_users' => $unverifiedUsers,
+                'recent_registrations' => $recentRegistrations,
+                'recent_admin_logins' => $recentAdminLogins,
+                'active_admins' => $activeAdmins,
+                'role_distribution' => $roleDistribution,
+            ];
+        });
+    }
 }; ?>
 
 <div class="w-full mx-auto space-y-6" wire:poll.15s>
@@ -584,7 +653,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['unmanaged_divisions'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-purple-200 dark:border-purple-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.user-minus class="h-6 w-6 text-purple-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.users class="h-6 w-6 text-purple-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-purple-500">Unmanaged Divisions</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['unmanaged_divisions'] ?? 0 }} divisions do not have an assigned inventory manager.</p>
@@ -597,7 +666,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['items_missing_specs'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-violet-200 dark:border-violet-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.puzzle-piece class="h-6 w-6 text-violet-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.cog class="h-6 w-6 text-violet-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-violet-500">Items Missing Specs</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['items_missing_specs'] }} items in the catalog are missing specifications.</p>
@@ -610,7 +679,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['unassigned_employees'] ?? 0) > 0)
                 <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-pink-200 dark:border-pink-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.user-circle class="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.users class="h-6 w-6 text-pink-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-pink-500">Unassigned Employees</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['unassigned_employees'] }} employees are not yet assigned to a division.</p>
@@ -623,7 +692,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             @if (($this->alerts['empty_contracts'] ?? 0) > 0)
                  <div class="p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-cyan-200 dark:border-cyan-900/50">
                     <div class="flex items-start">
-                        <x-flux::icon.document-minus class="h-6 w-6 text-cyan-500 mr-3 flex-shrink-0" />
+                        <x-flux::icon.document-text class="h-6 w-6 text-cyan-500 mr-3 flex-shrink-0" />
                         <div>
                             <h3 class="font-semibold text-cyan-500">Empty Contracts</h3>
                             <p class="text-sm text-stone-600 dark:text-stone-400 mt-1">{{ $this->alerts['empty_contracts'] }} contracts have no items associated with them.</p>
@@ -940,75 +1009,491 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     @if ($tab === 'overview')
-    <!-- TODO: [TICKET-XYZ] Implement overview tab content. -->
-    <!-- Division Inventory Overview Placeholder -->
+    <!-- Division Inventory Overview -->
     <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
         <div class="p-4 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100">
+            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
                 Division Inventory Overview
             </h3>
-            <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                <p class="text-stone-500 dark:text-stone-400">Overview content will be displayed here</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                    <thead class="bg-stone-50 dark:bg-stone-900">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Division</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Total Items</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">ICS</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">PAR</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">IDR</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Consumables</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Low Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-stone-800 divide-y divide-stone-200 dark:divide-stone-700">
+                        @forelse($this->divisionInventory as $division)
+                            <tr class="hover:bg-stone-50 dark:hover:bg-stone-700">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $division['name'] }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-stone-900 dark:text-stone-100 font-semibold">{{ number_format($division['total_items']) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($division['ics']) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($division['par']) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($division['idr']) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($division['consumables']) }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($division['low_stock'] > 0)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                            <x-flux::icon.exclamation-triangle class="h-3 w-3 mr-1" />
+                                            {{ $division['low_stock'] }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            <x-flux::icon.check-circle class="h-3 w-3 mr-1" />
+                                            OK
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-4 text-center text-stone-500 dark:text-stone-400">
+                                    No divisions found
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
     @endif
 
     @if ($tab === 'item-categories')
-    <!-- TODO: [TICKET-XYZ] Implement item categories tab content. -->
-    <!-- Item Categories Overview Placeholder -->
-    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
-        <div class="p-4 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100">
-                Inventory by Category
-            </h3>
-            <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                <p class="text-stone-500 dark:text-stone-400">Item categories content will be displayed here</p>
+    <!-- Item Categories Overview -->
+    <div class="space-y-6">
+        <!-- Category Statistics Cards -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($this->categoryDistribution->take(3) as $category)
+                <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 rounded-full" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'][$loop->index % 8] }}"></div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">{{ $category['name'] }}</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-stone-900 dark:text-stone-100">{{ number_format($category['count']) }}</div>
+                                    <div class="ml-2 flex items-baseline text-sm font-semibold text-stone-600 dark:text-stone-400">
+                                        {{ $category['percentage'] }}%
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Category Inventory Table -->
+        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
+            <div class="p-4 sm:p-6">
+                <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
+                    Inventory by Category
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                        <thead class="bg-stone-50 dark:bg-stone-900">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Total Items</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Total Value</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-stone-800 divide-y divide-stone-200 dark:divide-stone-700">
+                            @forelse($this->categoryInventory as $category)
+                                <tr class="hover:bg-stone-50 dark:hover:bg-stone-700">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category['name'] }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-stone-900 dark:text-stone-100 font-semibold">{{ number_format($category['total_items']) }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-stone-600 dark:text-stone-400">₱{{ number_format($category['total_value'], 2) }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @php
+                                            $totalItems = collect($this->categoryInventory)->sum('total_items');
+                                            $percentage = $totalItems > 0 ? round(($category['total_items'] / $totalItems) * 100, 1) : 0;
+                                        @endphp
+                                        <div class="flex items-center">
+                                            <div class="w-16 bg-stone-200 dark:bg-stone-700 rounded-full h-2 mr-3">
+                                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $percentage }}%"></div>
+                                            </div>
+                                            <span class="text-sm text-stone-600 dark:text-stone-400">{{ $percentage }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-4 text-center text-stone-500 dark:text-stone-400">
+                                        No categories found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     @endif
 
     @if ($tab === 'suppliers')
-    <!-- TODO: [TICKET-XYZ] Implement suppliers tab content. -->
-    <!-- Supplier Spending Overview Placeholder -->
-    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
-        <div class="p-4 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100">
-                Spending by Supplier
-            </h3>
-            <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                <p class="text-stone-500 dark:text-stone-400">Supplier spending content will be displayed here</p>
+    <!-- Supplier Spending Overview -->
+    <div class="space-y-6">
+        <!-- Top Suppliers Cards -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($this->supplierSpending->take(3) as $supplier)
+                <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900">
+                                <x-flux::icon.truck class="h-6 w-6 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">{{ $supplier['name'] }}</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-stone-900 dark:text-stone-100">₱{{ number_format($supplier['total_spent'] / 1000000, 1) }}M</div>
+                                    <div class="ml-2 flex items-baseline text-sm font-semibold text-stone-600 dark:text-stone-400">
+                                        {{ number_format($supplier['total_items']) }} items
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <!-- Supplier Spending Table -->
+        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
+            <div class="p-4 sm:p-6">
+                <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
+                    Spending by Supplier
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                        <thead class="bg-stone-50 dark:bg-stone-900">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Supplier</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Total Spent</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Items Purchased</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Contracts</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider">Avg per Item</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-stone-800 divide-y divide-stone-200 dark:divide-stone-700">
+                            @forelse($this->supplierSpending as $supplier)
+                                <tr class="hover:bg-stone-50 dark:hover:bg-stone-700">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-full bg-stone-200 dark:bg-stone-700 flex items-center justify-center">
+                                                    <x-flux::icon.truck class="h-5 w-5 text-stone-600 dark:text-stone-400" />
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-stone-900 dark:text-stone-100">{{ $supplier['name'] }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-stone-900 dark:text-stone-100 font-semibold">₱{{ number_format($supplier['total_spent'], 2) }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($supplier['total_items']) }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                            {{ $supplier['contracts_count'] }} contracts
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-stone-600 dark:text-stone-400">
+                                            @if($supplier['total_items'] > 0)
+                                                ₱{{ number_format($supplier['total_spent'] / $supplier['total_items'], 2) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-stone-500 dark:text-stone-400">
+                                        No suppliers found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
     @endif
     
     @if ($tab === 'recent-activity')
-    <!-- TODO: [TICKET-XYZ] Implement recent activity feed. -->
-    <!-- Recent Activity Placeholder -->
+    <!-- Recent Activity Feed -->
     <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
         <div class="p-4 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100">
+            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100 mb-6">
                 Recent Activity
             </h3>
-            <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                <p class="text-stone-500 dark:text-stone-400">Recent activity feed will be displayed here</p>
+            <div class="flow-root">
+                <ul role="list" class="-mb-8">
+                    @forelse($this->recentActivity as $activity)
+                        <li>
+                            <div class="relative pb-8">
+                                @if(!$loop->last)
+                                    <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-stone-200 dark:bg-stone-700" aria-hidden="true"></span>
+                                @endif
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white dark:ring-stone-800 
+                                            @if($activity['action'] === 'created') bg-green-500
+                                            @elseif($activity['action'] === 'updated') bg-blue-500
+                                            @elseif($activity['action'] === 'deleted') bg-red-500
+                                            @else bg-stone-500
+                                            @endif">
+                                            @if($activity['action'] === 'created')
+                                                <x-flux::icon.plus class="h-4 w-4 text-white" />
+                                            @elseif($activity['action'] === 'updated')
+                                                <x-flux::icon.pencil class="h-4 w-4 text-white" />
+                                            @elseif($activity['action'] === 'deleted')
+                                                <x-flux::icon.trash class="h-4 w-4 text-white" />
+                                            @else
+                                                <x-flux::icon.cog class="h-4 w-4 text-white" />
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm text-stone-600 dark:text-stone-400">
+                                                <span class="font-medium text-stone-900 dark:text-stone-100">{{ $activity['user_name'] }}</span>
+                                                {{ $activity['action'] }} 
+                                                <span class="font-medium text-stone-900 dark:text-stone-100">{{ $activity['table'] }}</span>
+                                                @if($activity['description'])
+                                                    - {{ $activity['description'] }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div class="text-right text-sm whitespace-nowrap text-stone-500 dark:text-stone-400">
+                                            <time datetime="{{ $activity['created_at'] }}">{{ $activity['time_ago'] }}</time>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    @empty
+                        <li class="text-center py-8">
+                            <div class="flex flex-col items-center">
+                                <x-flux::icon.clock class="h-12 w-12 text-stone-400 dark:text-stone-600 mb-4" />
+                                <p class="text-stone-500 dark:text-stone-400">No recent activity found</p>
+                            </div>
+                        </li>
+                    @endforelse
+                </ul>
             </div>
         </div>
     </div>
     @endif
 
     @if ($tab === 'user-management')
-    <!-- TODO: [TICKET-XYZ] Implement user management overview. -->
-    <!-- User Management Placeholder -->
-    <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm">
-        <div class="p-4 sm:p-6">
-            <h3 class="text-lg font-medium leading-6 text-stone-900 dark:text-stone-100">
-                User Management Overview
-            </h3>
-            <div class="mt-4 flex items-center justify-center h-64 bg-stone-100 dark:bg-stone-700/50 rounded-md">
-                <p class="text-stone-500 dark:text-stone-400">User management stats will be displayed here</p>
+    <!-- User Management Overview -->
+    <div class="space-y-6">
+        <!-- User Statistics Cards -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white dark:bg-stone-800 overflow-hidden shadow-sm rounded-lg border border-stone-200 dark:border-stone-700">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <x-flux::icon.users class="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">Total Users</dt>
+                                <dd class="text-lg font-medium text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['total_users']) }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-stone-800 overflow-hidden shadow-sm rounded-lg border border-stone-200 dark:border-stone-700">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <x-flux::icon.shield class="h-6 w-6 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">Admin Users</dt>
+                                <dd class="text-lg font-medium text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['admin_users']) }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-stone-800 overflow-hidden shadow-sm rounded-lg border border-stone-200 dark:border-stone-700">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <x-flux::icon.check-circle class="h-6 w-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">Verified Users</dt>
+                                <dd class="text-lg font-medium text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['verified_users']) }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-stone-800 overflow-hidden shadow-sm rounded-lg border border-stone-200 dark:border-stone-700">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <x-flux::icon.plus class="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400 truncate">Recent Registrations</dt>
+                                <dd class="text-lg font-medium text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['recent_registrations']) }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Role Distribution -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100 mb-4">Role Distribution</h3>
+                    <div class="space-y-4">
+                        @foreach($this->userManagement['role_distribution'] as $role)
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded-full {{ $role['color'] }} bg-current mr-3"></div>
+                                    <span class="text-sm font-medium text-stone-700 dark:text-stone-300">{{ $role['role'] }}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-stone-600 dark:text-stone-400">{{ number_format($role['count']) }}</span>
+                                    <div class="w-16 bg-stone-200 dark:bg-stone-700 rounded-full h-2">
+                                        @php
+                                            $percentage = $this->userManagement['total_users'] > 0 ? ($role['count'] / $this->userManagement['total_users']) * 100 : 0;
+                                        @endphp
+                                        <div class="h-2 rounded-full {{ $role['color'] }} bg-current" style="width: {{ $percentage }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Activity Stats -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100 mb-4">User Activity</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-3 border-b border-stone-200 dark:border-stone-700">
+                            <div class="flex items-center">
+                                <x-flux::icon.clock class="h-5 w-5 text-stone-400 mr-3" />
+                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Recent Admin Logins (7 days)</span>
+                            </div>
+                            <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['recent_admin_logins']) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-stone-200 dark:border-stone-700">
+                            <div class="flex items-center">
+                                <x-flux::icon.users class="h-5 w-5 text-stone-400 mr-3" />
+                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Active Admins (30 days)</span>
+                            </div>
+                            <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['active_admins']) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3 border-b border-stone-200 dark:border-stone-700">
+                            <div class="flex items-center">
+                                <x-flux::icon.package class="h-5 w-5 text-stone-400 mr-3" />
+                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Inventory Managers</span>
+                            </div>
+                            <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">{{ number_format($this->userManagement['inventory_managers']) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <div class="flex items-center">
+                                <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-500 mr-3" />
+                                <span class="text-sm font-medium text-stone-700 dark:text-stone-300">Unverified Users</span>
+                            </div>
+                            <span class="text-sm font-semibold text-amber-600 dark:text-amber-400">{{ number_format($this->userManagement['unverified_users']) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700">
+            <div class="p-6">
+                <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100 mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <a href="{{ route('admin.system.users.index') }}" wire:navigate class="flex items-center justify-center p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-lg hover:border-stone-400 dark:hover:border-stone-500 transition-colors">
+                        <div class="text-center">
+                            <x-flux::icon.users class="h-8 w-8 text-stone-400 mx-auto mb-2" />
+                            <p class="text-sm font-medium text-stone-600 dark:text-stone-400">View All Users</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ route('admin.system.users.create') }}" wire:navigate class="flex items-center justify-center p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-lg hover:border-stone-400 dark:hover:border-stone-500 transition-colors">
+                        <div class="text-center">
+                            <x-flux::icon.plus class="h-8 w-8 text-stone-400 mx-auto mb-2" />
+                            <p class="text-sm font-medium text-stone-600 dark:text-stone-400">Add New User</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ route('admin.system.audit-logs.index') }}" wire:navigate class="flex items-center justify-center p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-lg hover:border-stone-400 dark:hover:border-stone-500 transition-colors">
+                        <div class="text-center">
+                            <x-flux::icon.document-text class="h-8 w-8 text-stone-400 mx-auto mb-2" />
+                            <p class="text-sm font-medium text-stone-600 dark:text-stone-400">View Audit Logs</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ route('admin.data.employees-and-divisions') }}" wire:navigate class="flex items-center justify-center p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-lg hover:border-stone-400 dark:hover:border-stone-500 transition-colors">
+                        <div class="text-center">
+                            <x-flux::icon.building-2 class="h-8 w-8 text-stone-400 mx-auto mb-2" />
+                            <p class="text-sm font-medium text-stone-600 dark:text-stone-400">Manage Divisions</p>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
