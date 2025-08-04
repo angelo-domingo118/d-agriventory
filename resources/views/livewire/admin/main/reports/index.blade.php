@@ -358,7 +358,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
 
             {{-- Parameters --}}
-            <div class="space-y-4">
+            <div class="space-y-4" x-show="$wire.reportFormat !== ''" x-transition>
                 <h2 class="text-base font-semibold text-stone-900 dark:text-stone-100">Parameters</h2>
                 <div class="rounded-lg border bg-white p-4 dark:border-stone-700 dark:bg-stone-900">
                     @if ($reportType === 'ics')
