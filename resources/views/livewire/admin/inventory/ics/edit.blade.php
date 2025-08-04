@@ -55,6 +55,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     // Transfer state
     public ?int $transfer_to_employee_id = null;
     public string $transfer_date = '';
+    public ?int $original_assigned_employee_id = null; // Track original employee for transfer detection
 
     public array $batches = [];
 
@@ -179,6 +180,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->employee_search = $this->icsNumber->assignedEmployee->name;
             $this->selected_employee_name = $this->icsNumber->assignedEmployee->name;
         }
+
+        // Track the original employee for transfer detection
+        $this->original_assigned_employee_id = $this->assigned_employee_id;
 
         // Pre-load data for select dropdowns
         $this->allContracts = Contract::with('supplier:id,name')
@@ -1192,9 +1196,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'date_accepted' => $validated['date_accepted'],
                 ]);
 
+                // 2. Create transfer record if employee changed
+                if ($this->original_assigned_employee_id && 
+                    $this->original_assigned_employee_id !== $this->assigned_employee_id) {
+                    $this->icsNumber->transfers()->create([
+                        'from_employee_id' => $this->original_assigned_employee_id,
+                        'to_employee_id' => $this->assigned_employee_id,
+                        'transfer_date' => now()->format('Y-m-d'),
+                    ]);
+                }
+
                 $activeBatchIds = [];
                 foreach ($this->batches as $batchData) {
-                    // 2. Handle batch creation/update
+                    // 3. Handle batch creation/update
                     $batch = null;
                     if (!($batchData['_destroy'] ?? false)) {
                         $batch = $this->icsNumber->itemBatches()->updateOrCreate(
@@ -1205,7 +1219,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                         $activeComponentIds = [];
                         foreach ($batchData['components'] as $componentData) {
-                            // 3. Handle component creation/update
+                            // 4. Handle component creation/update
                             if (!($componentData['_destroy'] ?? false)) {
                                 // Only save if there's some data
                                 if ($componentData['component_type'] || $componentData['serial_number'] || $componentData['brand'] || $componentData['model']) {
@@ -1222,16 +1236,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 }
                             }
                         }
-                        // 4. Delete components marked for destruction in this batch
+                        // 5. Delete components marked for destruction in this batch
                         $batch->components()->whereNotIn('id', $activeComponentIds)->delete();
                     }
                 }
-                // 5. Delete batches marked for destruction
+                // 6. Delete batches marked for destruction
                 $this->icsNumber->itemBatches()->whereNotIn('id', $activeBatchIds)->delete();
             });
 
             $this->dispatch('ics-updated');
-            session()->flash('success', "ICS record {$this->icsNumber->ics_number} updated successfully.");
+            
+            $successMessage = "ICS record {$this->icsNumber->ics_number} updated successfully.";
+            if ($this->original_assigned_employee_id && 
+                $this->original_assigned_employee_id !== $this->assigned_employee_id) {
+                $successMessage .= " Transfer record has been created.";
+            }
+            
+            session()->flash('success', $successMessage);
             $this->redirect(route('admin.inventory.ics.show', $this->icsNumber), navigate: true);
         } catch (\Exception $e) {
             \Log::error('Error updating ICS record: ' . $e->getMessage());
@@ -1557,21 +1578,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <!-- Current Employee Assignment & Transfer History Section -->
                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                         <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                            <div class="flex items-center justify-between">
-                                <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Custody</h3>
-                                @if (auth()->user()->hasAdminPermission('transfer_inventory'))
-                                    <flux:button 
-                                        type="button" 
-                                        variant="outline" 
-                                        size="sm" 
-                                        @click="showTransferModal = true"
-                                        class="flex items-center space-x-1"
-                                    >
-                                        <x-flux::icon.arrow-path class="h-4 w-4" />
-                                        <span>Transfer</span>
-                                    </flux:button>
-                                @endif
-                            </div>
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Custody</h3>
+                            <p class="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                                Change the assigned employee to automatically create a transfer record
+                            </p>
                         </div>
                         <div class="p-4 space-y-6">
                             <!-- Currently Assigned Employee -->
@@ -1594,42 +1604,40 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <span class="font-medium">New employee will be created upon saving.</span>
                                     </div>
                                 @endif
+
+                                <!-- Transfer Notification -->
+                                @if ($this->original_assigned_employee_id && $this->assigned_employee_id && $this->original_assigned_employee_id !== $this->assigned_employee_id)
+                                    <div class="mt-2 flex items-center rounded-lg bg-amber-50 p-2 text-sm text-amber-700 dark:bg-amber-800/20 dark:text-amber-400" role="alert">
+                                        <x-flux::icon.arrow-path class="mr-2 h-4 w-4 flex-shrink-0" />
+                                        <span class="font-medium">A transfer record will be created when you save changes.</span>
+                                    </div>
+                                @endif
                                 
                                 <!-- Current Assignment Info -->
                                 @if ($this->icsNumber->assignedEmployee && !$creating_new_employee)
                                     <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                        <div class="flex items-start justify-between">
-                                            <div>
-                                                <div class="flex items-center space-x-2">
-                                                    <x-flux::icon.user class="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
-                                                        {{ $this->icsNumber->assignedEmployee->name }}
-                                                    </span>
-                                                </div>
-                                                @if ($this->icsNumber->assignedEmployee->division || $this->icsNumber->assignedEmployee->position)
-                                                    <div class="mt-1 text-xs text-blue-700 dark:text-blue-300">
-                                                        @if ($this->icsNumber->assignedEmployee->division)
-                                                            {{ $this->icsNumber->assignedEmployee->division->name }}
-                                                        @endif
-                                                        @if ($this->icsNumber->assignedEmployee->division && $this->icsNumber->assignedEmployee->position)
-                                                            •
-                                                        @endif
-                                                        @if ($this->icsNumber->assignedEmployee->position)
-                                                            {{ $this->icsNumber->assignedEmployee->position->title }}
-                                                        @endif
-                                                    </div>
-                                                @endif
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <x-flux::icon.user class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                            <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
+                                                Currently Assigned To:
+                                            </span>
+                                        </div>
+                                        <div class="ml-6">
+                                            <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                                {{ $this->icsNumber->assignedEmployee->name }}
                                             </div>
-                                            @if (auth()->user()->hasAdminPermission('transfer_inventory'))
-                                                <flux:button 
-                                                    type="button" 
-                                                    variant="outline" 
-                                                    size="xs" 
-                                                    @click="showTransferModal = true"
-                                                    class="text-blue-600 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/30"
-                                                >
-                                                    <x-flux::icon.arrow-path class="h-3 w-3" />
-                                                </flux:button>
+                                            @if ($this->icsNumber->assignedEmployee->division || $this->icsNumber->assignedEmployee->position)
+                                                <div class="text-xs text-blue-700 dark:text-blue-300">
+                                                    @if ($this->icsNumber->assignedEmployee->division)
+                                                        {{ $this->icsNumber->assignedEmployee->division->name }}
+                                                    @endif
+                                                    @if ($this->icsNumber->assignedEmployee->division && $this->icsNumber->assignedEmployee->position)
+                                                        •
+                                                    @endif
+                                                    @if ($this->icsNumber->assignedEmployee->position)
+                                                        {{ $this->icsNumber->assignedEmployee->position->title }}
+                                                    @endif
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
