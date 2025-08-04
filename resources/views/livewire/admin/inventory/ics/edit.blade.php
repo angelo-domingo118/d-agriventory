@@ -1651,7 +1651,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         id="ics_number_input"
                                         wire:model.blur="ics_number" 
                                         label="ICS Number" 
-                                        required
+                                        readonly
                                         tabindex="-1" />
                                     <x-input-error for="ics_number" class="mt-2" />
                                 </div>
