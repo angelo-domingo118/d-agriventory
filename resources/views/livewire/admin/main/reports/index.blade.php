@@ -5,6 +5,7 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Request;
+use App\Services\ToastService;
 use App\Models\IcsNumber;
 
 new #[Layout('components.layouts.app')] class extends Component {
@@ -126,6 +127,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function generatePreview(): void
     {
+        // Ensure all required inputs are present
+        if (! $this->isPreviewAvailable()) {
+            ToastService::validationError($this, 'Please complete the required parameters before generating a preview.');
+            return;
+        }
+
         // This is for demonstration to show loading state
         sleep(1);
         $this->previewGenerated = true;
@@ -160,13 +167,29 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function isPreviewAvailable(): bool
     {
-        $availableCombos = [
+        // Valid type/format combinations
+        $validCombos = [
             'ics' => ['by_number', 'by_employee'],
             'par' => ['by_number', 'by_employee'],
             'idr' => ['batch', 'by_employee', 'by_rsmi_number'],
         ];
 
-        return isset($availableCombos[$this->reportType]) && in_array($this->reportFormat, $availableCombos[$this->reportType]);
+        // Must first be a valid combination
+        if (! isset($validCombos[$this->reportType]) || ! in_array($this->reportFormat, $validCombos[$this->reportType])) {
+            return false;
+        }
+
+        // Now ensure the required parameters are present
+        return match ([$this->reportType, $this->reportFormat]) {
+            ['ics', 'by_number']       => filled($this->ics_number),
+            ['ics', 'by_employee']     => filled($this->employee_name_ics),
+            ['par', 'by_number']       => filled($this->par_number),
+            ['par', 'by_employee']     => filled($this->employee_name_par),
+            ['idr', 'batch']           => filled($this->idr_batch),
+            ['idr', 'by_employee']     => filled($this->idr_employee),
+            ['idr', 'by_rsmi_number']  => filled($this->rsmi_number),
+            default                    => false,
+        };
     }
 
     #[Computed]
@@ -445,7 +468,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @endif
 
                     <div class="mt-4 border-t pt-4 dark:border-stone-700">
-                        <flux:button variant="primary" class="w-full" wire:click="generatePreview">
+                        <flux:button variant="primary" class="w-full" wire:click="generatePreview" :disabled="!$this->isPreviewAvailable">
                             Generate Preview
                         </flux:button>
                     </div>
