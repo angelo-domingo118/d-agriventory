@@ -1131,7 +1131,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $validated = $this->validate($rules, $messages);
 
         try {
-            DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated, $icsTypeCode) {
                 if ($this->creating_new_supplier) {
                     $newSupplier = Supplier::create(['name' => $this->supplier_search]);
                     $this->supplier_id = $newSupplier->id;
@@ -1252,8 +1252,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $successMessage .= " Transfer record has been created.";
             }
             
+            // Reset the original employee tracker to the current employee
+            $this->original_assigned_employee_id = $this->assigned_employee_id;
+            // Flash toast notification similar to create
+            $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: $successMessage, variant: 'success');
             session()->flash('success', $successMessage);
-            $this->redirect(route('admin.inventory.ics.show', $this->icsNumber), navigate: true);
+            // Reload original data to reflect changes without leaving the page
+            $this->loadOriginalData();
         } catch (\Exception $e) {
             \Log::error('Error updating ICS record: ' . $e->getMessage());
             session()->flash('error', 'An error occurred while updating the record: ' . $e->getMessage());
