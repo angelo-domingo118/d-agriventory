@@ -1332,9 +1332,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span wire:loading.remove wire:target="resetForm">Reset</span>
                         <span wire:loading wire:target="resetForm">Resetting...</span>
                     </flux:button>
+                    @can('delete_inventory')
                     <flux:button type="button" variant="danger" @click="showDeleteModal = true">
                         Delete
                     </flux:button>
+                    @endcan
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
                         <span wire:loading wire:target="update">Saving...</span>
@@ -2062,41 +2064,14 @@ new #[Layout('components.layouts.app')] class extends Component {
     <!-- Delete Confirmation Modal -->
     <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
         <x-slot:content>
-            <div class="p-4">
-                <div class="flex items-start space-x-3">
-                    <div class="flex-shrink-0">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">Delete ICS Record</h3>
-                        <p class="mt-2 text-sm text-stone-600 dark:text-stone-400">
-                            Are you sure you want to delete ICS record <strong>{{ $icsNumber->ics_number }}</strong>? 
-                            This action cannot be undone and will permanently remove all associated batch and component data.
-                        </p>
-                        <div class="mt-3 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-red-700 dark:text-red-300">
-                                        <strong>Warning:</strong> This is a permanent action that cannot be reversed.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <p class="p-4 text-sm text-stone-600 dark:text-stone-400">
+                Are you sure you want to delete ICS record <strong>{{ $icsNumber->ics_number }}</strong>? 
+                This action cannot be undone and will permanently remove all associated batch and component data.
+            </p>
         </x-slot:content>
-
         <x-slot:footer>
             <div class="flex justify-end gap-x-4">
-                <flux:button variant="ghost" wire:click="$set('showDeleteModal', false)">Cancel</flux:button>
+                <flux:button variant="ghost" @click="$set('showDeleteModal', false)">Cancel</flux:button>
                 <flux:button variant="danger" wire:click="destroy" wire:loading.attr="disabled" wire:target="destroy">
                     <span wire:loading.remove wire:target="destroy">Delete Record</span>
                     <span wire:loading wire:target="destroy">Deleting...</span>
