@@ -8,8 +8,11 @@ use Illuminate\Support\Facades\Request;
 use App\Models\IcsNumber;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public string $reportType = 'idr';
-    public string $reportFormat = 'batch';
+    /**
+     * Initialize without any pre-selected report type or format.
+     */
+    public string $reportType = '';
+    public string $reportFormat = '';
     public string $idrSignatoryStyle = 'default';
     public float $zoom = 1.0;
     public bool $previewGenerated = false;
@@ -78,12 +81,8 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedReportType(string $value): void
     {
-        $this->reportFormat = match ($value) {
-            'ics' => 'by_number',
-            'par' => 'by_number',
-            'idr' => 'batch',
-            default => '',
-        };
+        // Keep all dropdowns closed until the user explicitly chooses a format.
+        $this->reportFormat = '';
         $this->resetZoom();
         $this->previewGenerated = false;
     }
