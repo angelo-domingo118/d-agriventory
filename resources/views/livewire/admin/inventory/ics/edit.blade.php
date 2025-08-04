@@ -1622,8 +1622,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="p-4 space-y-6">
                             <!-- Currently Assigned Employee -->
                             <div>
-                                <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Currently Assigned Employee</h4>
-                                <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                                <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Currently Assigned Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
                                 @error('assigned_employee_id')
                                     <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
                                         <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -1646,36 +1645,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <div class="mt-2 flex items-center rounded-lg bg-amber-50 p-2 text-sm text-amber-700 dark:bg-amber-800/20 dark:text-amber-400" role="alert">
                                         <x-flux::icon.arrow-path class="mr-2 h-4 w-4 flex-shrink-0" />
                                         <span class="font-medium">A transfer record will be created when you save changes.</span>
-                                    </div>
-                                @endif
-                                
-                                <!-- Current Assignment Info -->
-                                @if ($this->icsNumber->assignedEmployee && !$creating_new_employee)
-                                    <div class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                        <div class="flex items-center space-x-2 mb-1">
-                                            <x-flux::icon.user class="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                            <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
-                                                Currently Assigned To:
-                                            </span>
-                                        </div>
-                                        <div class="ml-6">
-                                            <div class="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                                                {{ $this->icsNumber->assignedEmployee->name }}
-                                            </div>
-                                            @if ($this->icsNumber->assignedEmployee->division || $this->icsNumber->assignedEmployee->position)
-                                                <div class="text-xs text-blue-700 dark:text-blue-300">
-                                                    @if ($this->icsNumber->assignedEmployee->division)
-                                                        {{ $this->icsNumber->assignedEmployee->division->name }}
-                                                    @endif
-                                                    @if ($this->icsNumber->assignedEmployee->division && $this->icsNumber->assignedEmployee->position)
-                                                        •
-                                                    @endif
-                                                    @if ($this->icsNumber->assignedEmployee->position)
-                                                        {{ $this->icsNumber->assignedEmployee->position->title }}
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        </div>
                                     </div>
                                 @endif
                             </div>
