@@ -1306,7 +1306,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{ showDeleteModal: @entangle('showDeleteModal'), showTransferModal: @entangle('showTransferModal') }">
+<div>
     <form wire:submit="update">
         <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
             <div class="flex items-center justify-between">
@@ -1333,7 +1333,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span wire:loading wire:target="resetForm">Resetting...</span>
                     </flux:button>
                     @can('delete_inventory')
-                    <flux:button type="button" variant="danger" @click="showDeleteModal = true">
+                    <flux:button type="button" variant="danger" wire:click="$set('showDeleteModal', true)">
                         Delete
                     </flux:button>
                     @endcan
@@ -2062,23 +2062,45 @@ new #[Layout('components.layouts.app')] class extends Component {
     </form>
 
     <!-- Delete Confirmation Modal -->
-    <flux:modal title="Delete ICS Record" :show="$showDeleteModal" max-width="lg" @close="$set('showDeleteModal', false)">
-        <x-slot:content>
-            <p class="p-4 text-sm text-stone-600 dark:text-stone-400">
-                Are you sure you want to delete ICS record <strong>{{ $icsNumber->ics_number }}</strong>? 
-                This action cannot be undone and will permanently remove all associated batch and component data.
-            </p>
-        </x-slot:content>
-        <x-slot:footer>
-            <div class="flex justify-end gap-x-4">
-                <flux:button variant="ghost" @click="$set('showDeleteModal', false)">Cancel</flux:button>
-                <flux:button variant="danger" wire:click="destroy" wire:loading.attr="disabled" wire:target="destroy">
-                    <span wire:loading.remove wire:target="destroy">Delete Record</span>
-                    <span wire:loading wire:target="destroy">Deleting...</span>
-                </flux:button>
+    @if($showDeleteModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Delete ICS Record
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Are you sure you want to delete ICS record <strong>{{ $icsNumber->ics_number }}</strong>? 
+                                    This action cannot be undone and will permanently remove all associated batch and component data.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <flux:button type="button" variant="danger" wire:click="destroy" wire:loading.attr="disabled" wire:target="destroy">
+                        <span wire:loading.remove wire:target="destroy">Delete Record</span>
+                        <span wire:loading wire:target="destroy">Deleting...</span>
+                    </flux:button>
+                    <flux:button type="button" variant="ghost" wire:click="$set('showDeleteModal', false)" class="ml-3">
+                        Cancel
+                    </flux:button>
+                </div>
             </div>
-        </x-slot:footer>
-    </flux:modal>
+        </div>
+    </div>
+    @endif
 
     <!-- Transfer Modal -->
     <flux:modal title="Transfer Item Custody" :show="$showTransferModal" max-width="lg" @close="$set('showTransferModal', false)">
