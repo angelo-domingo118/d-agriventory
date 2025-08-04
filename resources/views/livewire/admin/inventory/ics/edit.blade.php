@@ -1320,27 +1320,18 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <!-- Breadcrumbs -->
-<div class="mb-6">
-    <flux:breadcrumbs>
-        <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" />
-        <flux:breadcrumbs.item href="#" class="text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item :href="route('admin.inventory.ics.index')" wire:navigate>ICS Management</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>Edit ICS {{ $icsNumber->ics_number }}</flux:breadcrumbs.item>
-    </flux:breadcrumbs>
-</div>
-
 <div>
     <form wire:submit="update">
         <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
             <div class="flex items-center justify-between">
+                <!-- Breadcrumbs as Title -->
                 <div>
-                    <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                        Edit ICS: {{ $icsNumber->ics_number }}
-                    </h1>
-                    <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                        Update the details for Inventory Custodian Slip #{{ $this->icsNumber->ics_number }}.
-                    </p>
+                    <flux:breadcrumbs class="text-2xl font-semibold">
+                        <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-stone-700 dark:text-stone-300" />
+                        <flux:breadcrumbs.item href="#" class="text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                        <flux:breadcrumbs.item :href="route('admin.inventory.ics.index')" wire:navigate class="text-stone-700 dark:text-stone-300">ICS Management</flux:breadcrumbs.item>
+                        <flux:breadcrumbs.item class="text-stone-900 dark:text-stone-100">Edit ICS {{ $icsNumber->ics_number }}</flux:breadcrumbs.item>
+                    </flux:breadcrumbs>
                 </div>
                 <div class="flex items-center gap-x-4">
                     <x-action-message class="me-3" on="ics-updated">

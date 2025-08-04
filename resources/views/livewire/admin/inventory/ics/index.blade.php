@@ -318,19 +318,15 @@ public string $sortDirection = 'desc';
 }; ?>
 
 <div x-data="tableResizer('ics_column_widths', { article: 400, ics_details: 220, doc_source: 300, issued_to: 200, actions: 120 })">
-    <!-- Breadcrumbs -->
-    <div class="mb-6">
-        <flux:breadcrumbs>
-            <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" />
-            <flux:breadcrumbs.item href="#" class="text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
-            <flux:breadcrumbs.item>ICS Management</flux:breadcrumbs.item>
-        </flux:breadcrumbs>
-    </div>
-
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-            ICS Management
-        </h1>
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item href="#" class="text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-stone-900 dark:text-stone-100">ICS Management</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+        </div>
         <div class="flex items-center gap-x-2">
             <div x-data="{ open: false }" class="relative">
                 <flux:button
