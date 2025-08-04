@@ -1274,7 +1274,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-action-message class="me-3" on="form-reset">
                         {{ __('Form reset to original values.') }}
                     </x-action-message>
-                    <flux:button variant="ghost" :href="route('admin.inventory.ics.index')" wire:navigate>
+                    <flux:button type="button" variant="ghost" @click="history.back()">
                         Cancel
                     </flux:button>
                     <flux:button type="button" variant="filled" wire:click="resetForm" wire:loading.attr="disabled" wire:target="resetForm">
