@@ -7,6 +7,8 @@ use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Request;
 use App\Services\ToastService;
 use App\Models\IcsNumber;
+use App\Models\ParNumber;
+use App\Models\IdrNumber;
 use App\Models\Employee;
 
 new #[Layout('components.layouts.app')] class extends Component {
@@ -140,9 +142,87 @@ new #[Layout('components.layouts.app')] class extends Component {
             return;
         }
 
+        // Validate that the parameters exist in the database
+        if (! $this->validateParametersExist()) {
+            return; // Error messages are handled in validateParametersExist()
+        }
+
         // This is for demonstration to show loading state
         sleep(1);
         $this->previewGenerated = true;
+    }
+
+    private function validateParametersExist(): bool
+    {
+        switch ([$this->reportType, $this->reportFormat]) {
+            case ['ics', 'by_number']:
+                if (! IcsNumber::where('ics_number', $this->ics_number)->exists()) {
+                    ToastService::validationError($this, "ICS Number '{$this->ics_number}' not found in the database.");
+                    return false;
+                }
+                break;
+
+            case ['ics', 'by_employee']:
+                if (! Employee::where('name', $this->employee_name_ics)->exists()) {
+                    ToastService::validationError($this, "Employee '{$this->employee_name_ics}' not found in the database.");
+                    return false;
+                }
+                // Also check if the employee has any ICS records
+                if (! IcsNumber::whereHas('assignedEmployee', fn($q) => $q->where('name', $this->employee_name_ics))->exists()) {
+                    ToastService::validationError($this, "No ICS records found for employee '{$this->employee_name_ics}'.");
+                    return false;
+                }
+                break;
+
+            case ['par', 'by_number']:
+                if (! ParNumber::where('par_number', $this->par_number)->exists()) {
+                    ToastService::validationError($this, "PAR Number '{$this->par_number}' not found in the database.");
+                    return false;
+                }
+                break;
+
+            case ['par', 'by_employee']:
+                if (! Employee::where('name', $this->employee_name_par)->exists()) {
+                    ToastService::validationError($this, "Employee '{$this->employee_name_par}' not found in the database.");
+                    return false;
+                }
+                // Also check if the employee has any PAR records
+                if (! ParNumber::whereHas('assignedEmployee', fn($q) => $q->where('name', $this->employee_name_par))->exists()) {
+                    ToastService::validationError($this, "No PAR records found for employee '{$this->employee_name_par}'.");
+                    return false;
+                }
+                break;
+
+            case ['idr', 'batch']:
+                // Check if IDR batch exists
+                if (! IdrNumber::where('batch_number', $this->idr_batch)->exists()) {
+                    ToastService::validationError($this, "IDR Batch '{$this->idr_batch}' not found in the database.");
+                    return false;
+                }
+                break;
+
+            case ['idr', 'by_employee']:
+                if (! Employee::where('name', $this->idr_employee)->exists()) {
+                    ToastService::validationError($this, "Employee '{$this->idr_employee}' not found in the database.");
+                    return false;
+                }
+                // Also check if the employee has any IDR records
+                if (! IdrNumber::whereHas('assignedEmployee', fn($q) => $q->where('name', $this->idr_employee))->exists()) {
+                    ToastService::validationError($this, "No IDR records found for employee '{$this->idr_employee}'.");
+                    return false;
+                }
+                break;
+
+            case ['idr', 'by_rsmi_number']:
+                // Check if RSMI number exists (assuming it's stored in IdrNumber or related model)
+                if (! IdrNumber::where('rsmi_number', $this->rsmi_number)->exists()) {
+                    ToastService::validationError($this, "RSMI Number '{$this->rsmi_number}' not found in the database.");
+                    return false;
+                }
+                break;
+        }
+
+        return true;
     }
 
     public function downloadPdf()
