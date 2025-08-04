@@ -1332,7 +1332,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
+<div x-on:keydown.window.prevent.ctrl.enter="$wire.update()">
 <div>
     <form wire:submit="update">
         <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
