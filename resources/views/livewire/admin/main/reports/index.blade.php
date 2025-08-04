@@ -869,8 +869,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
                     @else
-                        {{-- Simple centered placeholder without scrollable container --}}
-                        <div class="mt-6 flex items-center justify-center min-h-[calc(100vh-12rem)]">
+                        {{-- Styled placeholder container matching the document preview container --}}
+                        <div class="mt-6 flex items-center justify-center min-h-[calc(100vh-12rem)] rounded-lg border bg-stone-100 p-8 dark:border-stone-700 dark:bg-stone-900/50">
                             <div class="text-center">
                                 <x-flux::icon.document-magnifying-glass
                                     class="mx-auto h-12 w-12 text-stone-400 dark:text-stone-500" />
