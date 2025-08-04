@@ -1650,58 +1650,61 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
 
                             <!-- Transfer History -->
-                            @if ($this->icsNumber->transfers->isNotEmpty())
-                                <div class="border-t border-stone-200 dark:border-stone-700 pt-4">
-                                    <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Transfer History</h4>
-                                    <div class="space-y-3 max-h-48 overflow-y-auto">
-                                        @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
-                                            <div wire:key="transfer-{{ $transfer->id }}" class="flex items-start space-x-3 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-lg">
-                                                <div class="flex-shrink-0 mt-0.5">
-                                                    <x-flux::icon.arrow-right class="h-4 w-4 text-stone-400" />
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-center justify-between">
-                                                        <div class="text-sm">
-                                                            <span class="font-medium text-stone-600 dark:text-stone-300">
-                                                                {{ $transfer->fromEmployee?->name ?? 'N/A' }}
-                                                            </span>
-                                                            <span class="text-stone-500 dark:text-stone-400 mx-1">→</span>
-                                                            <span class="font-medium text-stone-900 dark:text-stone-100">
-                                                                {{ $transfer->toEmployee?->name ?? 'N/A' }}
-                                                            </span>
-                                                        </div>
-                                                        <span class="text-xs text-stone-500 dark:text-stone-400 flex-shrink-0">
-                                                            {{ $transfer->transfer_date->format('M d, Y') }}
-                                                        </span>
+                            <div class="border-t border-stone-200 dark:border-stone-700 pt-4" x-data="{ transferHistoryExpanded: false }">
+                                <button @click="transferHistoryExpanded = !transferHistoryExpanded" class="flex w-full items-center justify-between text-left">
+                                    <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300">Transfer History</h4>
+                                    <x-flux::icon.chevron-down class="h-4 w-4 text-stone-400 transition-transform duration-200" ::class="{ 'rotate-180': transferHistoryExpanded }" />
+                                </button>
+                                
+                                <div x-show="transferHistoryExpanded" x-collapse>
+                                    @if ($this->icsNumber->transfers->isNotEmpty())
+                                        <div class="mt-3 space-y-3 max-h-48 overflow-y-auto">
+                                            @foreach ($this->icsNumber->transfers->sortByDesc('transfer_date') as $transfer)
+                                                <div wire:key="transfer-{{ $transfer->id }}" class="flex items-start space-x-3 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-lg">
+                                                    <div class="flex-shrink-0 mt-0.5">
+                                                        <x-flux::icon.arrow-right class="h-4 w-4 text-stone-400" />
                                                     </div>
-                                                    @if ($transfer->fromEmployee?->division || $transfer->toEmployee?->division)
-                                                        <div class="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                                                            @if ($transfer->fromEmployee?->division)
-                                                                {{ $transfer->fromEmployee->division->name }}
-                                                            @endif
-                                                            @if ($transfer->fromEmployee?->division && $transfer->toEmployee?->division)
-                                                                →
-                                                            @endif
-                                                            @if ($transfer->toEmployee?->division)
-                                                                {{ $transfer->toEmployee->division->name }}
-                                                            @endif
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center justify-between">
+                                                            <div class="text-sm">
+                                                                <span class="font-medium text-stone-600 dark:text-stone-300">
+                                                                    {{ $transfer->fromEmployee?->name ?? 'N/A' }}
+                                                                </span>
+                                                                <span class="text-stone-500 dark:text-stone-400 mx-1">→</span>
+                                                                <span class="font-medium text-stone-900 dark:text-stone-100">
+                                                                    {{ $transfer->toEmployee?->name ?? 'N/A' }}
+                                                                </span>
+                                                            </div>
+                                                            <span class="text-xs text-stone-500 dark:text-stone-400 flex-shrink-0">
+                                                                {{ $transfer->transfer_date->format('M d, Y') }}
+                                                            </span>
                                                         </div>
-                                                    @endif
+                                                        @if ($transfer->fromEmployee?->division || $transfer->toEmployee?->division)
+                                                            <div class="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                                                                @if ($transfer->fromEmployee?->division)
+                                                                    {{ $transfer->fromEmployee->division->name }}
+                                                                @endif
+                                                                @if ($transfer->fromEmployee?->division && $transfer->toEmployee?->division)
+                                                                    →
+                                                                @endif
+                                                                @if ($transfer->toEmployee?->division)
+                                                                    {{ $transfer->toEmployee->division->name }}
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <div class="mt-3 text-center py-6">
+                                            <x-flux::icon.clock class="h-8 w-8 text-stone-300 dark:text-stone-600 mx-auto mb-2" />
+                                            <p class="text-sm text-stone-500 dark:text-stone-400">No transfers recorded</p>
+                                            <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">This item has remained with its original assignee</p>
+                                        </div>
+                                    @endif
                                 </div>
-                            @else
-                                <div class="border-t border-stone-200 dark:border-stone-700 pt-4">
-                                    <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Transfer History</h4>
-                                    <div class="text-center py-6">
-                                        <x-flux::icon.clock class="h-8 w-8 text-stone-300 dark:text-stone-600 mx-auto mb-2" />
-                                        <p class="text-sm text-stone-500 dark:text-stone-400">No transfers recorded</p>
-                                        <p class="text-xs text-stone-400 dark:text-stone-500 mt-1">This item has remained with its original assignee</p>
-                                    </div>
-                                </div>
-                            @endif
+                            </div>
                         </div>
                     </div>
 
