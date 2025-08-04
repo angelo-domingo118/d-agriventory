@@ -246,20 +246,51 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $pdfData = [];
-        if ($this->reportType === 'ics') {
-            if ($this->reportFormat === 'by_number') {
+        
+        // Populate data based on report type and format
+        switch ([$this->reportType, $this->reportFormat]) {
+            case ['ics', 'by_number']:
                 $pdfData['ics'] = $this->icsBatch;
-            } elseif ($this->reportFormat === 'by_employee') {
+                break;
+                
+            case ['ics', 'by_employee']:
                 $pdfData['items'] = $this->icsItemsByEmployee;
                 $pdfData['employeeName'] = $this->employee_name_ics;
-            }
+                break;
+                
+            case ['par', 'by_number']:
+                $pdfData['par'] = $this->parBatch;
+                break;
+                
+            case ['par', 'by_employee']:
+                $pdfData['items'] = $this->parItemsByEmployee;
+                $pdfData['employeeName'] = $this->employee_name_par;
+                break;
+                
+            case ['idr', 'batch']:
+                $pdfData['idrBatch'] = $this->idrBatch;
+                $pdfData['idrSignatoryStyle'] = $this->idrSignatoryStyle;
+                break;
+                
+            case ['idr', 'by_employee']:
+                $pdfData['items'] = $this->idrItemsByEmployee;
+                $pdfData['employeeName'] = $this->idr_employee;
+                break;
+                
+            case ['idr', 'by_rsmi_number']:
+                $pdfData['items'] = $this->idrItemsByRsmi;
+                $pdfData['rsmiNumber'] = $this->rsmi_number;
+                break;
         }
 
         // Make the report format available inside the Blade template (used for CSS tweaks)
         $pdfData['reportFormat'] = $this->reportFormat;
         $pdfData['reportType']   = $this->reportType;
 
-        $pdf = Pdf::loadView($viewPath, $pdfData)->setPaper('a4', 'portrait');
+        // Determine orientation - employee reports should be landscape
+        $orientation = ($this->reportFormat === 'by_employee') ? 'landscape' : 'portrait';
+        
+        $pdf = Pdf::loadView($viewPath, $pdfData)->setPaper('a4', $orientation);
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -316,6 +347,68 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'contractItem.itemSpecification.itemCatalog',
                 'itemBatches.components',
             ])->whereHas('assignedEmployee', fn($q) => $q->where('name', $employeeName))->get();
+        }
+        return collect();
+    }
+
+    #[Computed]
+    public function parBatch(): ?\App\Models\ParNumber
+    {
+        if ($this->reportType === 'par' && $this->reportFormat === 'by_number' && $this->par_number) {
+            return ParNumber::with([
+                'assignedEmployee.division',
+                'contractItem.itemSpecification.itemCatalog',
+                'itemBatches.components',
+            ])->where('par_number', $this->par_number)->first();
+        }
+        return null;
+    }
+
+    #[Computed]
+    public function parItemsByEmployee()
+    {
+        if ($this->reportType === 'par' && $this->reportFormat === 'by_employee' && $this->employee_name_par) {
+            $employeeName = $this->employee_name_par;
+            return ParNumber::with([
+                'contractItem.itemSpecification.itemCatalog',
+                'itemBatches.components',
+            ])->whereHas('assignedEmployee', fn($q) => $q->where('name', $employeeName))->get();
+        }
+        return collect();
+    }
+
+    #[Computed]
+    public function idrBatch()
+    {
+        if ($this->reportType === 'idr' && $this->reportFormat === 'batch' && $this->idr_batch) {
+            return IdrNumber::with([
+                'assignedEmployee.division',
+                'itemBatches.components',
+            ])->where('batch_number', $this->idr_batch)->get();
+        }
+        return collect();
+    }
+
+    #[Computed]
+    public function idrItemsByEmployee()
+    {
+        if ($this->reportType === 'idr' && $this->reportFormat === 'by_employee' && $this->idr_employee) {
+            $employeeName = $this->idr_employee;
+            return IdrNumber::with([
+                'itemBatches.components',
+            ])->whereHas('assignedEmployee', fn($q) => $q->where('name', $employeeName))->get();
+        }
+        return collect();
+    }
+
+    #[Computed]
+    public function idrItemsByRsmi()
+    {
+        if ($this->reportType === 'idr' && $this->reportFormat === 'by_rsmi_number' && $this->rsmi_number) {
+            return IdrNumber::with([
+                'assignedEmployee.division',
+                'itemBatches.components',
+            ])->where('rsmi_number', $this->rsmi_number)->get();
         }
         return collect();
     }
@@ -853,31 +946,69 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @switch($reportType)
                                     @case('ics')
                                         @if ($reportFormat === 'by_number')
-                                            @include('livewire.admin.main.reports.formats.ics.by-number', ['ics' => $this->icsBatch])
+                                            @include('livewire.admin.main.reports.formats.ics.by-number', [
+                                                'ics' => $this->icsBatch,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @elseif($reportFormat === 'by_employee')
-                                            @include('livewire.admin.main.reports.formats.ics.by-employee', ['items' => $this->icsItemsByEmployee, 'employeeName' => $this->employee_name_ics])
+                                            @include('livewire.admin.main.reports.formats.ics.by-employee', [
+                                                'items' => $this->icsItemsByEmployee,
+                                                'employeeName' => $this->employee_name_ics,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @endif
                                     @break
 
                                     @case('par')
                                         @if ($reportFormat === 'by_number')
-                                            @include('livewire.admin.main.reports.formats.par.by-number')
+                                            @include('livewire.admin.main.reports.formats.par.by-number', [
+                                                'par' => $this->parBatch,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @elseif($reportFormat === 'by_employee')
-                                            @include('livewire.admin.main.reports.formats.par.by-employee')
+                                            @include('livewire.admin.main.reports.formats.par.by-employee', [
+                                                'items' => $this->parItemsByEmployee,
+                                                'employeeName' => $this->employee_name_par,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @endif
                                     @break
 
                                     @case('idr')
                                         @if ($reportFormat === 'batch')
                                             @if ($idrSignatoryStyle === 'default')
-                                                @include('livewire.admin.main.reports.formats.idr.batch-combined')
+                                                @include('livewire.admin.main.reports.formats.idr.batch-combined', [
+                                                    'idrBatch' => $this->idrBatch,
+                                                    'idrSignatoryStyle' => $idrSignatoryStyle,
+                                                    'reportFormat' => $reportFormat,
+                                                    'reportType' => $reportType
+                                                ])
                                             @else
-                                                @include('livewire.admin.main.reports.formats.idr.batch-detailed')
+                                                @include('livewire.admin.main.reports.formats.idr.batch-detailed', [
+                                                    'idrBatch' => $this->idrBatch,
+                                                    'idrSignatoryStyle' => $idrSignatoryStyle,
+                                                    'reportFormat' => $reportFormat,
+                                                    'reportType' => $reportType
+                                                ])
                                             @endif
                                         @elseif($reportFormat === 'by_employee')
-                                            @include('livewire.admin.main.reports.formats.idr.by-employee')
+                                            @include('livewire.admin.main.reports.formats.idr.by-employee', [
+                                                'items' => $this->idrItemsByEmployee,
+                                                'employeeName' => $this->idr_employee,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @elseif($reportFormat === 'by_rsmi_number')
-                                            @include('livewire.admin.main.reports.formats.idr.by-rsmi-number')
+                                            @include('livewire.admin.main.reports.formats.idr.by-rsmi-number', [
+                                                'items' => $this->idrItemsByRsmi,
+                                                'rsmiNumber' => $this->rsmi_number,
+                                                'reportFormat' => $reportFormat,
+                                                'reportType' => $reportType
+                                            ])
                                         @endif
                                         @break
                                 @endswitch
