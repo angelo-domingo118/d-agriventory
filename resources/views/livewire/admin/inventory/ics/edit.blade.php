@@ -1131,7 +1131,9 @@ new #[Layout('components.layouts.app')] class extends Component {
         $validated = $this->validate($rules, $messages);
 
         try {
-            DB::transaction(function () use ($validated, $icsTypeCode) {
+            $transferCreated = false;
+            $recordChanged = false;
+            DB::transaction(function () use ($validated, $icsTypeCode, &$transferCreated, &$recordChanged) {
                 if ($this->creating_new_supplier) {
                     $newSupplier = Supplier::create(['name' => $this->supplier_search]);
                     $this->supplier_id = $newSupplier->id;
@@ -1184,7 +1186,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 );
 
                 // 1. Update the main IcsNumber record
-                $this->icsNumber->update([
+                $this->icsNumber->fill([
                     'ics_number' => $validated['ics_number'],
                     'assigned_employee_id' => $this->assigned_employee_id,
                     'contract_item_id' => $final_contract_item->id,
@@ -1195,10 +1197,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'date_prepared' => $validated['date_prepared'],
                     'date_accepted' => $validated['date_accepted'],
                 ]);
+                if ($this->icsNumber->isDirty()) {
+                    $this->icsNumber->save();
+                    $recordChanged = true;
+                }
 
                 // 2. Create transfer record if employee changed
                 if ($this->original_assigned_employee_id && 
                     $this->original_assigned_employee_id !== $this->assigned_employee_id) {
+                    $transferCreated = true;
                     $this->icsNumber->transfers()->create([
                         'from_employee_id' => $this->original_assigned_employee_id,
                         'to_employee_id' => $this->assigned_employee_id,
@@ -1246,6 +1253,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
             $this->dispatch('ics-updated');
             
+            $anyChanges = $recordChanged || $transferCreated;
+            if (! $anyChanges) {
+                $this->dispatch('notify', id: uniqid(), heading: 'No changes', text: 'Nothing to save.', variant: 'info');
+                return;
+            }
+
             $successMessage = "ICS record {$this->icsNumber->ics_number} updated successfully.";
             if ($this->original_assigned_employee_id && 
                 $this->original_assigned_employee_id !== $this->assigned_employee_id) {
