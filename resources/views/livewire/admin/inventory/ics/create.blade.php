@@ -1407,9 +1407,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-action-message class="me-3" on="ics-created">
                     {{ __('Record saved successfully.') }}
                 </x-action-message>
-                <flux:link :href="route('admin.inventory.ics.index')" wire:navigate variant="ghost">
+                <flux:button :href="route('admin.inventory.ics.index')" wire:navigate variant="ghost">
                     Cancel
-                </flux:link>
+                </flux:button>
                 <flux:button type="submit" variant="primary" :disabled="$isParItem" wire:loading.attr="disabled" wire:target="store">
                     <span wire:loading.remove wire:target="store">Save Record</span>
                     <span wire:loading wire:target="store">Saving...</span>
