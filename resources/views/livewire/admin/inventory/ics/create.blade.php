@@ -18,6 +18,7 @@ use App\Models\IcsNumber;
 use Illuminate\Support\Facades\DB;
 use App\Models\IcsItemBatch;
 use App\Models\ItemComponent;
+use App\Services\ToastService;
 use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
@@ -1375,8 +1376,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     }
                 }
 
-                // Dispatch a success toast notification
-                $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: 'ICS record created successfully.', variant: 'success');
+                // Dispatch success toast notification
+                ToastService::created($this, 'ICS record');
 
                 session()->flash('highlighted_ics', $icsNumber->id);
                 $this->redirectRoute('admin.inventory.ics.index', navigate: true);
@@ -1385,8 +1386,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             // Log the exception for debugging
             \Log::error('Error creating ICS record: ' . $e->getMessage());
 
-            // Dispatch an error toast notification
-            $this->dispatch('notify', id: uniqid(), heading: 'Error', text: $e->getMessage(), variant: 'danger');
+            // Dispatch error toast notification
+            ToastService::error($this, $e->getMessage());
         }
     }
 

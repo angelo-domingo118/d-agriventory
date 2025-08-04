@@ -9,6 +9,7 @@ use App\Models\ItemSpecification;
 use App\Models\SecondaryCategory;
 use App\Models\PrimaryCategory;
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -272,7 +273,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->dispatch('form-reset');
         
         // Dispatch success toast notification (same as create.blade.php)
-        $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: 'Form has been reset to original values.', variant: 'success');
+        ToastService::formReset($this);
     }
 
     // Supplier autocomplete methods
@@ -1044,7 +1045,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->dispatch('ics-transferred');
         
         // Dispatch success toast notification (same as create.blade.php)
-        $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: "Item successfully transferred.", variant: 'success');
+        ToastService::transferred($this, 'Item');
 
         // Reload the model to get fresh transfer history and employee info
         $this->icsNumber->load('assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
@@ -1259,7 +1260,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             
             $anyChanges = $recordChanged || $transferCreated;
             if (! $anyChanges) {
-                $this->dispatch('notify', id: uniqid(), heading: 'No changes', text: 'Nothing to save.', variant: 'info');
+                ToastService::noChanges($this);
                 return;
             }
 
@@ -1271,15 +1272,15 @@ new #[Layout('components.layouts.app')] class extends Component {
             
             // Reset the original employee tracker to the current employee
             $this->original_assigned_employee_id = $this->assigned_employee_id;
-            // Dispatch success toast notification (same as create.blade.php)
-            $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: $successMessage, variant: 'success');
+            // Dispatch success toast notification
+            ToastService::success($this, $successMessage);
             // Reload original data to reflect changes without leaving the page
             $this->loadOriginalData();
         } catch (\Exception $e) {
             \Log::error('Error updating ICS record: ' . $e->getMessage());
             
-            // Dispatch an error toast notification (same as create.blade.php)
-            $this->dispatch('notify', id: uniqid(), heading: 'Error', text: 'An error occurred while updating the record: ' . $e->getMessage(), variant: 'danger');
+            // Dispatch error toast notification
+            ToastService::error($this, 'An error occurred while updating the record: ' . $e->getMessage());
         }
     }
 
@@ -1295,26 +1296,23 @@ new #[Layout('components.layouts.app')] class extends Component {
             $icsNumber = $this->icsNumber->ics_number; // Store number before deletion
             $this->icsNumber->delete();
             
-            // Dispatch a success toast notification (same as create.blade.php)
-            $this->dispatch('notify', id: uniqid(), heading: 'Success!', text: "ICS record #{$icsNumber} deleted successfully.", variant: 'success');
+            // Dispatch success toast notification
+            ToastService::success($this, "ICS record #{$icsNumber} deleted successfully.");
             
             $this->dispatch('ics-deleted');
             $this->redirect(route('admin.inventory.ics.index'), navigate: true);
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Database error during ICS deletion: ' . $e->getMessage());
             if (($e->errorInfo[1] ?? null) === 1451) { // FK constraint
-                // Dispatch an error toast notification
-                $this->dispatch('notify', id: uniqid(), heading: 'Error', text: 'Cannot delete this record because it is referenced by other records.', variant: 'danger');
+                ToastService::relationshipError($this);
             } else {
-                // Dispatch an error toast notification
-                $this->dispatch('notify', id: uniqid(), heading: 'Error', text: 'An unexpected database error occurred while deleting the record.', variant: 'danger');
+                ToastService::error($this, 'An unexpected database error occurred while deleting the record.');
             }
         } catch (\Throwable $e) {
             // Log the exception for debugging
             \Log::error('Error deleting ICS record: ' . $e->getMessage());
             
-            // Dispatch an error toast notification
-            $this->dispatch('notify', id: uniqid(), heading: 'Error', text: 'An unexpected error occurred while deleting the record.', variant: 'danger');
+            ToastService::unexpectedError($this, 'An unexpected error occurred while deleting the record.');
         }
     }
 }; ?>
