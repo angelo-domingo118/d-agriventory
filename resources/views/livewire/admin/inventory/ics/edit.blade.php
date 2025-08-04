@@ -1182,6 +1182,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                         'detailed_specifications' => $this->detailed_specifications,
                     ]);
                     $spec_id = $newSpec->id;
+                } else {
+                    // Update existing specification if any fields have changed
+                    $existingSpec = ItemSpecification::find($spec_id);
+                    if ($existingSpec && (
+                        $existingSpec->brand !== $this->main_item_brand ||
+                        $existingSpec->model !== $this->main_item_model ||
+                        $existingSpec->detailed_specifications !== $this->detailed_specifications
+                    )) {
+                        $existingSpec->update([
+                            'brand' => $this->main_item_brand,
+                            'model' => $this->main_item_model,
+                            'detailed_specifications' => $this->detailed_specifications,
+                        ]);
+                        $recordChanged = true;
+                    }
                 }
 
                 // Find or update ContractItem
