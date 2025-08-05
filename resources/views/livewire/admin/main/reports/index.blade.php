@@ -533,8 +533,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="col-span-1 space-y-8 print-hide">
             {{-- Report Types --}}
             <div class="space-y-4">
-                <h2 class="text-base font-semibold text-stone-900 dark:text-stone-100">Report Types</h2>
-                <div class="space-y-2">
+                <h2 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Report Types</h2>
+                <div class="mt-6 space-y-2">
                     <div class="space-y-2">
                         <button wire:click="$set('reportType', 'ics')" type="button"
                             class="flex w-full items-start gap-x-4 rounded-lg border p-4 text-left transition {{ $reportType === 'ics' ? 'border-primary-500 bg-primary-50 ring-2 ring-primary-500 dark:bg-primary-500/20' : 'border-stone-200 bg-white hover:border-stone-300 dark:border-stone-700 dark:bg-stone-900 hover:dark:border-stone-600' }}">
