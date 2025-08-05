@@ -232,7 +232,7 @@ class ToastService
     {
         $message = 'An unexpected error occurred.';
         if ($details) {
-            $message .= ' ' . $details;
+            $message .= ' '.$details;
         }
         self::error($component, $message, 'Unexpected Error');
     }
