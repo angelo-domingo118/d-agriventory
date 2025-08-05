@@ -143,11 +143,19 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
+    <div class="flex items-center justify-between mb-4">
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item href="#" class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Audit Logs</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+        </div>
+    </div>
+
     <div x-data="tableResizer('audit_logs_column_widths', { user: 180, action: 120, table: 180, record: 100, description: 300, timestamp: 180, actions: 100 })">
         <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                Audit Logs
-            </h1>
             <div class="flex items-center gap-x-2">
                 <div x-data="{ open: false }" class="relative">
                     <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
