@@ -58,6 +58,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $systemBreakdownData = $this->inventorySystemBreakdown;
         $topSuppliersData = $this->topSuppliersSpending;
         $assetsExpiryData = $this->assetsExpiryTimeline;
+        $transferActivityData = $this->transferActivityOverTime;
         
         // Generate checksum for change detection
         $currentChecksum = md5(serialize([
@@ -65,7 +66,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             $categoryData, 
             $systemBreakdownData, 
             $topSuppliersData,
-            $assetsExpiryData
+            $assetsExpiryData,
+            $transferActivityData
         ]));
         
         // Emit events to initialize charts
@@ -94,6 +96,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             'data' => $assetsExpiryData
         ]);
         
+        $this->dispatch('initializeTransferActivityChart', [
+            'chartId' => 'transfer-activity-chart-canvas',
+            'data' => $transferActivityData
+        ]);
+        
         $this->chartDataChecksum = $currentChecksum;
     }
     
@@ -105,6 +112,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $systemBreakdownData = $this->inventorySystemBreakdown;
         $topSuppliersData = $this->topSuppliersSpending;
         $assetsExpiryData = $this->assetsExpiryTimeline;
+        $transferActivityData = $this->transferActivityOverTime;
         
         // Generate checksum for change detection
         $currentChecksum = md5(serialize([
@@ -112,7 +120,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             $categoryData, 
             $systemBreakdownData, 
             $topSuppliersData,
-            $assetsExpiryData
+            $assetsExpiryData,
+            $transferActivityData
         ]));
         
         // Only update if data has changed
@@ -140,6 +149,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->dispatch('updateAssetsExpiryChart', [
                 'chartId' => 'assets-expiry-chart-canvas',
                 'data' => $assetsExpiryData
+            ]);
+            
+            $this->dispatch('updateTransferActivityChart', [
+                'chartId' => 'transfer-activity-chart-canvas',
+                'data' => $transferActivityData
             ]);
             
             $this->chartDataChecksum = $currentChecksum;
@@ -693,6 +707,46 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function transferActivityOverTime(): array
+    {
+        return Cache::remember('admin.dashboard.transfer_activity_over_time', now()->addMinutes(10), function () {
+            $months = [];
+            $currentDate = now();
+            
+            // Get data for the last 12 months
+            for ($i = 11; $i >= 0; $i--) {
+                $targetDate = $currentDate->copy()->subMonths($i);
+                $monthStart = $targetDate->startOfMonth();
+                $monthEnd = $targetDate->endOfMonth();
+                $monthLabel = $targetDate->format('M Y');
+                
+                // Count ICS transfers for this month
+                $icsTransfers = IcsTransfer::whereBetween('transfer_date', [
+                    $monthStart->toDateString(), 
+                    $monthEnd->toDateString()
+                ])->count();
+                
+                // Count PAR transfers for this month
+                $parTransfers = ParTransfer::whereBetween('transfer_date', [
+                    $monthStart->toDateString(), 
+                    $monthEnd->toDateString()
+                ])->count();
+                
+                $totalTransfers = $icsTransfers + $parTransfers;
+                
+                $months[] = [
+                    'month' => $monthLabel,
+                    'ics_transfers' => $icsTransfers,
+                    'par_transfers' => $parTransfers,
+                    'total_transfers' => $totalTransfers,
+                ];
+            }
+            
+            return $months;
+        });
+    }
+
+    #[Computed]
     public function userManagement(): array
     {
         return Cache::remember('admin.dashboard.user_management', now()->addMinutes(5), function () {
@@ -1054,6 +1108,35 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
             </div>
+
+            <!-- Chart 6: Transfer Activity Over Time -->
+            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="text-base font-semibold text-stone-700 dark:text-stone-300 mb-4">Transfer Activity Over Time</h3>
+                <div class="relative">
+                    <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
+                    <div wire:ignore class="h-64 relative">
+                        <canvas id="transfer-activity-chart-canvas" class="w-full h-full"></canvas>
+                    </div>
+                    <!-- Chart Legend -->
+                    <div class="flex flex-wrap justify-center mt-3 gap-4 text-xs">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
+                            <span class="text-stone-600 dark:text-stone-400">Total Transfers</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                            <span class="text-stone-600 dark:text-stone-400">ICS Transfers</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-orange-500 rounded-full mr-1"></div>
+                            <span class="text-stone-600 dark:text-stone-400">PAR Transfers</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-center text-stone-500 dark:text-stone-400">
+                        Monthly transfer activity across inventory systems (last 12 months)
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1380,6 +1463,124 @@ new #[Layout('components.layouts.app')] class extends Component {
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: 4
+                    }]
+                };
+                
+                window.updateChart(data[0].chartId, newData);
+            });
+
+            // Transfer Activity Chart Event Handlers
+            Livewire.on('initializeTransferActivityChart', (data) => {
+                const transferData = data[0].data;
+                
+                const lineChartData = {
+                    labels: transferData.map(d => d.month),
+                    datasets: [{
+                        label: 'Total Transfers',
+                        data: transferData.map(d => d.total_transfers),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }, {
+                        label: 'ICS Transfers',
+                        data: transferData.map(d => d.ics_transfers),
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }, {
+                        label: 'PAR Transfers',
+                        data: transferData.map(d => d.par_transfers),
+                        borderColor: '#F97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#F97316',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                };
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    if (value % 1 === 0) {
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                window.initializeChart(data[0].chartId, 'line', lineChartData, options);
+            });
+            
+            Livewire.on('updateTransferActivityChart', (data) => {
+                const transferData = data[0].data;
+                
+                const newData = {
+                    labels: transferData.map(d => d.month),
+                    datasets: [{
+                        label: 'Total Transfers',
+                        data: transferData.map(d => d.total_transfers),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#3B82F6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }, {
+                        label: 'ICS Transfers',
+                        data: transferData.map(d => d.ics_transfers),
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }, {
+                        label: 'PAR Transfers',
+                        data: transferData.map(d => d.par_transfers),
+                        borderColor: '#F97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointBackgroundColor: '#F97316',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
                     }]
                 };
                 
