@@ -43,20 +43,30 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-    <x-admin.layout heading="User Details">
-        <x-slot name="header">
-            <div class="flex space-x-2">
-                <flux:button :href="route('admin.system.users.index')" wire:navigate variant="ghost">
-                    {{ __('Back to Users') }}
-                </flux:button>
-                
-                @adminpermission('edit_users')
-                <flux:button :href="route('admin.system.users.edit', $user)" wire:navigate variant="primary">
-                    {{ __('Edit User') }}
-                </flux:button>
-                @endadminpermission
-            </div>
-        </x-slot>
+    <div class="flex items-center justify-between mb-4">
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item :href="route('admin.system.users.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">User Management</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">User Details</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+        </div>
+        <div class="flex space-x-2">
+            <flux:button :href="route('admin.system.users.index')" wire:navigate variant="ghost">
+                {{ __('Back to Users') }}
+            </flux:button>
+            
+            @adminpermission('edit_users')
+            <flux:button :href="route('admin.system.users.edit', $user)" wire:navigate variant="primary">
+                {{ __('Edit User') }}
+            </flux:button>
+            @endadminpermission
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto py-10 sm:px-6 lg:px-8">
 
         <div class="bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 shadow overflow-hidden sm:rounded-lg">
             <div class="px-4 py-5 sm:px-6 bg-stone-50 dark:bg-stone-800/50">
@@ -185,5 +195,5 @@ new #[Layout('components.layouts.app')] class extends Component {
                 @endif
             </div>
         </div>
-    </x-admin.layout>
+    </div>
 </div> 

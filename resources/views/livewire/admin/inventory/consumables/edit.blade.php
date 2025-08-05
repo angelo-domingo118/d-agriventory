@@ -133,6 +133,18 @@ new #[Layout('components.layouts.app')] class extends Component
 
 <div class="py-6">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <!-- Breadcrumbs -->
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <flux:breadcrumbs class="text-2xl font-semibold">
+                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.inventory.consumables.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Consumables</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit Record</flux:breadcrumbs.item>
+                </flux:breadcrumbs>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center justify-between">

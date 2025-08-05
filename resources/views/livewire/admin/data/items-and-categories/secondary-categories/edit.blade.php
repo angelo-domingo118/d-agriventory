@@ -68,6 +68,18 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <form wire:submit="save">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item :href="route('admin.data.items-and-categories', ['currentTab' => 'secondary'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Items & Categories</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit Secondary Category</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+        </div>
+    </div>
+
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
