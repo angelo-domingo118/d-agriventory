@@ -148,7 +148,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div>
             <flux:breadcrumbs class="text-2xl font-semibold">
                 <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item href="#" class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
                 <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Audit Logs</flux:breadcrumbs.item>
             </flux:breadcrumbs>
         </div>
