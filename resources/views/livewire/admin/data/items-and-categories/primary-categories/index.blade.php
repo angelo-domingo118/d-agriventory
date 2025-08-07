@@ -4,6 +4,7 @@ use App\Models\PrimaryCategory;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -44,6 +45,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedPerPage(): void
     {
         $this->resetPage();
+    }
+
+    #[On('primary-category-created')]
+    public function refreshCategories(): void
+    {
+        // Force refresh of computed property and reset to first page
+        unset($this->categories);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
     
     #[Computed]
@@ -115,9 +125,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
                 <span class="sr-only">Refresh</span>
             </flux:button>
-            <a href="{{ route('admin.data.items-and-categories.primary-categories.create', ['view' => 'table']) }}" wire:navigate>
-                <flux:button as="span" variant="primary">New Category</flux:button>
-            </a>
+            <flux:modal.trigger name="create-primary-category">
+                <flux:button variant="primary">New Category</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
     
@@ -208,6 +218,11 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4">
         {{ $categories->links() }}
     </div>
+
+    <!-- Create Primary Category Modal -->
+    <flux:modal name="create-primary-category" class="md:w-96">
+        <livewire:admin.data.items-and-categories.primary-categories.create />
+    </flux:modal>
 </div> 
 <script>
     document.addEventListener('alpine:init', () => {

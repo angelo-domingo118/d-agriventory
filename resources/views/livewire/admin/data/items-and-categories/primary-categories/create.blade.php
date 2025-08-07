@@ -2,22 +2,19 @@
 
 use App\Models\PrimaryCategory;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Flux\Flux;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new class extends Component {
     public string $name = '';
     public string $code = '';
     public string $description = '';
-    public string $previousView = 'tree';
 
     public function mount(): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-        
-        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
@@ -30,55 +27,41 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         PrimaryCategory::create($validated);
 
-        session()->flash('success', 'Primary category created successfully.');
-        $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => $this->previousView]), navigate: true);
+        // Close the modal and refresh the parent component
+        $this->dispatch('primary-category-created');
+        Flux::modal('create-primary-category')->close();
+        
+        // Reset form
+        $this->reset(['name', 'code', 'description']);
+    }
+
+    public function cancel(): void
+    {
+        Flux::modal('create-primary-category')->close();
+        $this->reset(['name', 'code', 'description']);
     }
 }; ?>
 
-<form wire:submit="save">
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <flux:breadcrumbs class="text-2xl font-semibold">
-                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item :href="route('admin.data.items-and-categories', ['currentTab' => 'primary'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Items & Categories</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create New Primary Category</flux:breadcrumbs.item>
-                </flux:breadcrumbs>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Create a new primary category for items.
-                </p>
-            </div>
-            <div class="flex items-center gap-x-4">
-                <x-action-message class="me-3" on="primary-category-created">
-                    {{ __('Primary category created successfully.') }}
-                </x-action-message>
-                <flux:button :href="route('admin.data.items-and-categories', ['currentTab' => 'primary', 'view' => $previousView])" variant="ghost" wire:navigate>
-                    Cancel
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    Save Category
-                </flux:button>
-            </div>
-        </div>
+<div class="space-y-6">
+    <div>
+        <flux:heading size="lg">Create Primary Category</flux:heading>
+        <flux:text class="mt-2">Create a new primary category for items.</flux:text>
     </div>
 
-    <div class="mt-8">
-        <div class="grid grid-cols-1 gap-8">
-            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Category Details</h3>
-                </div>
-                <div class="p-6">
-                    <div class="max-w-2xl">
-                        <div class="space-y-6">
-                           <flux:input wire:model="name" label="Category Name" required />
-                           <flux:input wire:model="code" label="Category Code" required />
-                           <flux:textarea wire:model="description" label="Description" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <form wire:submit="save" class="space-y-4">
+        <flux:input wire:model="name" label="Category Name" required />
+        <flux:input wire:model="code" label="Category Code" required />
+        <flux:textarea wire:model="description" label="Description" rows="3" />
+        
+        <div class="flex gap-2 pt-4">
+            <flux:spacer />
+            <flux:button type="button" variant="ghost" wire:click="cancel">
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                <span wire:loading.remove>Create Category</span>
+                <span wire:loading>Creating...</span>
+            </flux:button>
         </div>
-    </div>
-</form> 
+    </form>
+</div> 
