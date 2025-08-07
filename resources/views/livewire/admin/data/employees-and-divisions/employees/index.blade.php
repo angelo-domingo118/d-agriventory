@@ -10,6 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -28,6 +29,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     // Sorting properties
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
+    public ?Employee $editingEmployee = null;
 
     public function mount()
     {
@@ -54,6 +56,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedPerPage(): void
     {
         $this->resetPage();
+    }
+
+    public function editEmployee(Employee $employee): void
+    {
+        $this->editingEmployee = $employee;
+        Flux::modal('edit-employee')->show();
     }
 
     #[Computed]
@@ -91,12 +99,17 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[On('employee-created')]
+    #[On('employee-updated')]
+    #[On('employee-deleted')]
     public function refreshEmployees(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->employees);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing employee
+        $this->editingEmployee = null;
     }
 
     public function with(): array
@@ -260,11 +273,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->position?->title }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $employee->division?->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.employees.edit', $employee) }}?view=table" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editEmployee({{ $employee->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -287,6 +299,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-employee" maxWidth="xl">
         <livewire:admin.data.employees-and-divisions.employees.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Employee Modal -->
+    @if($editingEmployee)
+        <x-admin.modal-form-wrapper name="edit-employee" maxWidth="xl">
+            <livewire:admin.data.employees-and-divisions.employees.edit 
+                :employee="$editingEmployee" 
+                :key="'edit-employee-' . $editingEmployee->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 </div>
 
 <script>

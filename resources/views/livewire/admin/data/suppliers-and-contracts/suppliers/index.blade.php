@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -19,6 +20,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
     public bool $showFilters = false;
+    public ?Supplier $editingSupplier = null;
 
     // Filters
     // No specific filters for suppliers for now
@@ -56,13 +58,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         // No filters to reset yet
     }
 
+    public function editSupplier(Supplier $supplier): void
+    {
+        $this->editingSupplier = $supplier;
+        Flux::modal('edit-supplier')->show();
+    }
+
     #[On('supplier-created')]
+    #[On('supplier-updated')]
+    #[On('supplier-deleted')]
     public function refreshSuppliers(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->suppliers);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing supplier
+        $this->editingSupplier = null;
     }
     
     public function sortBy(string $field): void
@@ -221,10 +234,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->email }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $supplier->phone }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.suppliers-and-contracts.suppliers.edit', ['supplier' => $supplier, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editSupplier({{ $supplier->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                     <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                     Edit
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -248,6 +261,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-supplier" maxWidth="2xl">
         <livewire:admin.data.suppliers-and-contracts.suppliers.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Supplier Modal -->
+    @if($editingSupplier)
+        <x-admin.modal-form-wrapper name="edit-supplier" maxWidth="2xl">
+            <livewire:admin.data.suppliers-and-contracts.suppliers.edit 
+                :supplier="$editingSupplier" 
+                :key="'edit-supplier-' . $editingSupplier->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 </div>
 
 <script>
