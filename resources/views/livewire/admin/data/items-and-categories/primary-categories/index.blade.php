@@ -220,11 +220,9 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Create Primary Category Modal -->
-    <flux:modal name="create-primary-category" variant="bare" class="w-full max-w-lg">
-        <div class="rounded-lg bg-white p-6 shadow-xl dark:bg-stone-800">
-            <livewire:admin.data.items-and-categories.primary-categories.create />
-        </div>
-    </flux:modal>
+    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.primary-categories.create />
+    </x-admin.modal-form-wrapper>
 </div> 
 <script>
     document.addEventListener('alpine:init', () => {
