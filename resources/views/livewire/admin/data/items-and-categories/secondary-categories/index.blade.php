@@ -30,11 +30,27 @@ new #[Layout('components.layouts.app')] class extends Component {
     
     public ?SecondaryCategory $editingCategory = null;
 
+    public string $density = 'spacious';
+
     public function mount()
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage inventory data.');
         }
+
+        $this->density = session('secondary_categories_density', 'spacious');
+    }
+
+    public function setDensity(string $density): void
+    {
+        $this->density = $density;
+        session(['secondary_categories_density' => $density]);
+    }
+
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'name';
+        $this->sortDirection = 'asc';
     }
     
     public function sortBy(string $column): void
