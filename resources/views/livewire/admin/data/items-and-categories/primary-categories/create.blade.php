@@ -53,7 +53,7 @@ new class extends Component {
         <flux:input wire:model="code" label="Category Code" required />
         <flux:textarea wire:model="description" label="Description" rows="3" />
         
-        <div class="flex gap-2 pt-4">
+        <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
             <flux:spacer />
             <flux:button type="button" variant="ghost" wire:click="cancel">
                 Cancel

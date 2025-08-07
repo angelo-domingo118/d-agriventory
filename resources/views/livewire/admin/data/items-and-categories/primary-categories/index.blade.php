@@ -220,8 +220,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Create Primary Category Modal -->
-    <flux:modal name="create-primary-category" class="md:w-96">
-        <livewire:admin.data.items-and-categories.primary-categories.create />
+    <flux:modal name="create-primary-category" variant="bare" class="w-full max-w-lg">
+        <div class="rounded-lg bg-white p-6 shadow-xl dark:bg-stone-800">
+            <livewire:admin.data.items-and-categories.primary-categories.create />
+        </div>
     </flux:modal>
 </div> 
 <script>
