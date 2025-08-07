@@ -330,9 +330,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->primaryCategory?->name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                    <button wire:click="editItem({{ $item->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                       <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
-                                       Edit
+                                    <button wire:click="editItem({{ $item->id }})" wire:loading.attr="disabled" wire:target="editItem({{ $item->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                       <x-flux::icon.edit class="mr-1.5 h-4 w-4" wire:loading.remove wire:target="editItem({{ $item->id }})" />
+                                       <x-flux::icon.rotate-cw class="mr-1.5 h-4 w-4 animate-spin" wire:loading wire:target="editItem({{ $item->id }})" />
+                                       <span wire:loading.remove wire:target="editItem({{ $item->id }})">Edit</span>
+                                       <span wire:loading wire:target="editItem({{ $item->id }})">Loading...</span>
                                     </button>
                                 </td>
                             </tr>
