@@ -170,7 +170,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
             <flux:modal.trigger name="create-secondary-category">
-                <flux:button variant="primary">New Category</flux:button>
+                <flux:button variant="primary">New Secondary Category</flux:button>
             </flux:modal.trigger>
         </div>
     </div>

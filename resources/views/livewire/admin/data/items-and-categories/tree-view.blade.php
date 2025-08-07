@@ -187,7 +187,7 @@ new class extends Component {
         :is-searching="$this->isSearching"
         empty-message="No Categories Found"
         create-modal-name="tree-create-primary-category"
-        create-text="Create Primary Category"
+        create-text="New Primary Category"
     >
 
     
@@ -198,7 +198,7 @@ new class extends Component {
             :subtitle="$primary->secondary_categories_count . ' secondary categories'"
             :edit-click="'editPrimaryCategory('.$primary->id.')'"
             :add-click="'createSecondaryCategory('.$primary->id.')'"
-            add-text="Add Secondary"
+            add-text="New Secondary Category"
             :has-children="$primary->secondary_categories_count > 0"
             :search-terms="[$this->search]"
         >
@@ -209,7 +209,7 @@ new class extends Component {
                     :subtitle="$secondary->items_count . ' items'"
                     :edit-click="'editSecondaryCategory('.$secondary->id.')'"
                     :add-click="'createItem('.$secondary->id.')'"
-                    add-text="Add Item"
+                    add-text="New Item"
                     :level="1"
                     :has-children="$secondary->items_count > 0"
                     :search-terms="[$this->search]"
