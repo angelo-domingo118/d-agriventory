@@ -33,6 +33,16 @@ new class extends Component {
         $this->description = $item->description ?? '';
     }
 
+    public function confirmDelete(): void
+    {
+        Flux::modal('delete-item-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        Flux::modal('delete-item-confirmation')->close();
+    }
+
     #[Computed]
     public function secondaryCategories()
     {
@@ -77,6 +87,8 @@ new class extends Component {
 
             if ($isUsed) {
                 ToastService::relationshipError($this);
+                // Close the confirmation modal
+                Flux::modal('delete-item-confirmation')->close();
                 return;
             }
 
@@ -85,9 +97,10 @@ new class extends Component {
             // Show success toast
             ToastService::deleted($this, 'Item');
             
-            // Close the modal and refresh the parent component
-            $this->dispatch('item-deleted');
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-item-confirmation')->close();
             Flux::modal('edit-item')->close();
+            $this->dispatch('item-deleted');
         } catch (\Exception $e) {
             Log::error('Error deleting item: ' . $e->getMessage());
             $errorMessage = 'There was an error deleting the item. It might be in use in contracts or inventory records.';
@@ -95,6 +108,8 @@ new class extends Component {
                 $errorMessage .= ' ' . $e->getMessage();
             }
             ToastService::error($this, $errorMessage);
+            // Close the confirmation modal on error
+            Flux::modal('delete-item-confirmation')->close();
         }
     }
 
@@ -134,7 +149,7 @@ new class extends Component {
         <flux:textarea wire:model="description" label="Description" placeholder="Optional description for this item" rows="3" />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this item? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />
@@ -147,4 +162,15 @@ new class extends Component {
             </flux:button>
         </div>
     </form>
+
+    <!-- Delete Confirmation Modal -->
+    <x-admin.delete-confirmation-modal 
+        name="delete-item-confirmation"
+        title="Delete Item"
+        item-type="item"
+        :item-name="$item->name"
+        delete-action="delete"
+        cancel-action="cancelDelete"
+        message="Deleting this item will also affect all associated specifications and inventory records."
+    />
 </div> 

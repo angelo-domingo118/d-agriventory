@@ -28,6 +28,16 @@ new class extends Component {
         $this->description = $category->description ?? '';
     }
 
+    public function confirmDelete(): void
+    {
+        Flux::modal('delete-secondary-category-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        Flux::modal('delete-secondary-category-confirmation')->close();
+    }
+
     public function save(): void
     {
         $validated = $this->validate([
@@ -53,6 +63,8 @@ new class extends Component {
             // Check if there are items in this category
             if ($this->category->items()->exists()) {
                 ToastService::relationshipError($this);
+                // Close the confirmation modal
+                Flux::modal('delete-secondary-category-confirmation')->close();
                 return;
             }
 
@@ -61,9 +73,10 @@ new class extends Component {
             // Show success toast
             ToastService::deleted($this, 'Secondary category');
             
-            // Close the modal and refresh the parent component
-            $this->dispatch('secondary-category-deleted');
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-secondary-category-confirmation')->close();
             Flux::modal('edit-secondary-category')->close();
+            $this->dispatch('secondary-category-deleted');
         });
     }
 
@@ -97,7 +110,7 @@ new class extends Component {
         <flux:textarea wire:model="description" label="Description" placeholder="Optional description for this category" rows="3" />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this category? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />
@@ -110,4 +123,15 @@ new class extends Component {
             </flux:button>
         </div>
     </form>
+
+    <!-- Delete Confirmation Modal -->
+    <x-admin.delete-confirmation-modal 
+        name="delete-secondary-category-confirmation"
+        title="Delete Secondary Category"
+        item-type="secondary category"
+        :item-name="$category->name"
+        delete-action="delete"
+        cancel-action="cancelDelete"
+        message="Deleting this secondary category will also affect all associated items."
+    />
 </div> 
