@@ -68,7 +68,7 @@
                 @endif
             </div>
         </div>
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center gap-2">
             @if($addModalName)
                 <flux:modal.trigger :name="$addModalName">
                     <button
