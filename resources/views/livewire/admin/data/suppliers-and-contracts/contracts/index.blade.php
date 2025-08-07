@@ -140,7 +140,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <h3 class="font-semibold text-stone-800 dark:text-stone-200">Filter Options</h3>
             </div>
             <div class="p-4">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div class="grid grid-cols-1 gap-6">
                     <flux:select wire:model.live="supplier_id" label="Supplier">
                         <option value="">All Suppliers</option>
                         @foreach($this->suppliers as $supplier)
