@@ -30,12 +30,20 @@ new class extends Component {
 
     public function confirmDelete(): void
     {
+        // Close the edit modal first to prevent stacking
+        Flux::modal('edit-secondary-category')->close();
+        
+        // Then show the delete confirmation modal
         Flux::modal('delete-secondary-category-confirmation')->show();
     }
 
     public function cancelDelete(): void
     {
+        // Close the delete confirmation modal
         Flux::modal('delete-secondary-category-confirmation')->close();
+        
+        // Re-open the edit modal so user can continue editing
+        Flux::modal('edit-secondary-category')->show();
     }
 
     public function save(): void
