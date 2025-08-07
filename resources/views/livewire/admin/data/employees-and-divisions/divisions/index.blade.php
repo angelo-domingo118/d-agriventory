@@ -12,9 +12,8 @@ use Flux\Flux;
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
     
-    // View and filter state
+    // View state
     public string $search = '';
-    public bool $showFilters = false;
     public int $perPage = 10;
     
     // Sorting properties
@@ -39,17 +38,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
-    #[Computed]
-    public function filtersActive(): bool
-    {
-        // Add filter properties here in the future
-        return false;
-    }
 
-    public function resetFilters()
-    {
-        // No filters to reset yet
-    }
     
     public function updatedPerPage(): void
     {
@@ -134,28 +123,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
                 <span class="sr-only">Refresh</span>
             </flux:button>
-            <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2 @if($this->filtersActive) bg-primary-50 text-primary-600 dark:bg-primary-900/10 dark:text-primary-400 @endif">
-                <x-flux::icon.filter class="h-5 w-5" />
-                <span class="sr-only">Toggle Filters</span>
-            </flux:button>
             <flux:modal.trigger name="create-division">
                 <flux:button variant="primary">New Division</flux:button>
             </flux:modal.trigger>
-        </div>
-    </div>
-    
-    <div x-show="$wire.showFilters" x-collapse class="mt-4">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <div class="p-4">
-                <p class="text-sm text-center text-stone-500 dark:text-stone-400">No filters available for this view yet.</p>
-            </div>
-            @if($this->filtersActive)
-                <div class="border-t border-stone-200 bg-stone-50 p-4 text-right dark:border-stone-700 dark:bg-stone-800/50">
-                    <flux:button variant="ghost" wire:click="resetFilters">
-                        Reset Filters
-                    </flux:button>
-                </div>
-            @endif
         </div>
     </div>
     

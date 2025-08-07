@@ -272,10 +272,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="sm:col-span-2">
                             <flux:select wire:model.live="filterSecondaryCategory" label="Secondary Category">
                                 <option value="">Any Secondary Category</option>
-                                 @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                                    <optgroup label="{{ $primaryName }}">
+                                @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                                    <optgroup label="{{ $primaryName }}" class="font-semibold text-stone-600 dark:text-stone-300 bg-stone-50 dark:bg-stone-700">
                                         @foreach($secondaryGroup as $sCat)
-                                            <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
+                                            <option value="{{ $sCat->id }}" class="bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100">{{ $sCat->name }}</option>
                                         @endforeach
                                     </optgroup>
                                 @endforeach
