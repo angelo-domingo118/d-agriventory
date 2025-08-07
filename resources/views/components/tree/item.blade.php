@@ -103,8 +103,11 @@
                         'text-xs' => !$isTopLevel,
                     ])
                     wire:click.stop="{{ $addClick }}"
+                    wire:loading.attr="disabled"
+                    wire:target="{{ $addClick }}"
                 >
-                    <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" wire:loading.remove wire:target="{{ $addClick }}" />
+                    <x-flux::icon.rotate-cw class="-ml-0.5 mr-1.5 h-4 w-4 animate-spin" wire:loading wire:target="{{ $addClick }}" />
                     {{ $addText }}
                 </button>
             @endif
@@ -116,8 +119,11 @@
                         'text-xs' => !$isTopLevel,
                     ])
                     wire:click.stop="{{ $editClick }}"
+                    wire:loading.attr="disabled"
+                    wire:target="{{ $editClick }}"
                 >
-                    <x-flux::icon.pencil class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    <x-flux::icon.pencil class="-ml-0.5 mr-1.5 h-4 w-4" wire:loading.remove wire:target="{{ $editClick }}" />
+                    <x-flux::icon.rotate-cw class="-ml-0.5 mr-1.5 h-4 w-4 animate-spin" wire:loading wire:target="{{ $editClick }}" />
                     Edit
                 </button>
             @elseif($editModalName)
