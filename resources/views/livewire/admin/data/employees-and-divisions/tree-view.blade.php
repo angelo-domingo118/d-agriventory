@@ -3,6 +3,7 @@
 use App\Models\Division;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -13,6 +14,16 @@ new class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+    }
+
+    #[On('division-created')]
+    #[On('employee-created')]
+    public function refreshData(): void
+    {
+        // Force refresh of computed properties
+        unset($this->divisions);
+        unset($this->expandableIds);
+        $this->dispatch('$refresh');
     }
 
     #[Computed]
@@ -72,23 +83,26 @@ new class extends Component {
     }
 }; ?>
 
-<x-tree.index 
-    :items="$this->divisions" 
-    :expandable-ids="$this->expandableIds" 
-    :is-searching="$this->isSearching"
-    empty-message="No Divisions Found"
-    create-url="{{ route('admin.data.employees-and-divisions.divisions.create') }}" 
-    create-text="Create Division">
+<div>
+    <x-tree.index 
+        :items="$this->divisions" 
+        :expandable-ids="$this->expandableIds" 
+        :is-searching="$this->isSearching"
+        empty-message="No Divisions Found"
+        create-modal-name="create-division"
+        create-text="Create Division"
+    >
     @foreach ($this->divisions as $division)
         <x-tree.item 
             :id="'division-'.$division->id" 
             :title="$division->name" 
             :subtitle="$division->employees_count . ' employees'" 
             :edit-url="route('admin.data.employees-and-divisions.divisions.edit', $division)"
-            :add-url="route('admin.data.employees-and-divisions.employees.create', ['division_id' => $division->id])"
+            add-modal-name="create-employee"
             add-text="Add Employee"
             :has-children="$division->employees_count > 0"
-            :search-terms="[$this->search]">
+            :search-terms="[$this->search]"
+        >
             @forelse($division->employees as $employee)
                 <x-tree.item 
                     :id="'employee-'.$employee->id" 
@@ -105,4 +119,15 @@ new class extends Component {
             @endforelse
         </x-tree.item>
     @endforeach
-</x-tree.index> 
+    </x-tree.index>
+
+    <!-- Create Division Modal -->
+    <x-admin.modal-form-wrapper name="create-division" maxWidth="lg">
+        <livewire:admin.data.employees-and-divisions.divisions.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Employee Modal -->
+    <x-admin.modal-form-wrapper name="create-employee" maxWidth="xl">
+        <livewire:admin.data.employees-and-divisions.employees.create />
+    </x-admin.modal-form-wrapper>
+</div> 

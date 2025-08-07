@@ -4,6 +4,7 @@
     'subtitle' => null,
     'editUrl' => null,
     'addUrl' => null,
+    'addModalName' => null,
     'addText' => 'Add',
     'level' => 0,
     'hasChildren' => true,
@@ -65,7 +66,21 @@
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            @if($addUrl)
+            @if($addModalName)
+                <flux:modal.trigger :name="$addModalName">
+                    <button
+                        @class([
+                            'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',
+                            'text-sm' => $isTopLevel,
+                            'text-xs' => !$isTopLevel,
+                        ])
+                        @click.stop
+                    >
+                        <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" />
+                        {{ $addText }}
+                    </button>
+                </flux:modal.trigger>
+            @elseif($addUrl)
                 <a href="{{ $addUrl . (str_contains($addUrl, '?') ? '&' : '?') . 'view=tree' }}" wire:navigate
                     @class([
                         'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',

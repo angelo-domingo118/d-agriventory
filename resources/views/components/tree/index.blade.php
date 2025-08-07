@@ -4,6 +4,7 @@
     'emptyMessage' => 'No items found.',
     'createUrl' => null,
     'createText' => 'Create',
+    'createModalName' => null,
     'search' => true,
     'searchModel' => 'search',
     'isSearching' => false,
@@ -53,7 +54,14 @@
                 </div>
             @endif
 
-            @if ($createUrl)
+            @if ($createModalName)
+                <flux:modal.trigger :name="$createModalName">
+                    <flux:button variant="primary" class="whitespace-nowrap">
+                        <x-flux::icon.plus class="w-5 h-5 mr-2 -ml-1" />
+                        {{ $createText }}
+                    </flux:button>
+                </flux:modal.trigger>
+            @elseif ($createUrl)
                 <flux:button :href="$createUrl . (str_contains($createUrl, '?') ? '&' : '?') . 'view=tree'" variant="primary" class="whitespace-nowrap">
                     <x-flux::icon.plus class="w-5 h-5 mr-2 -ml-1" />
                     {{ $createText }}
@@ -70,7 +78,7 @@
         <div class="rounded-lg border border-dashed border-stone-300 p-12 text-center dark:border-stone-700">
             <h3 class="text-lg font-medium text-stone-900 dark:text-stone-100">{{ $emptyMessage }}</h3>
             <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
-                @if ($createUrl)
+                @if ($createModalName || $createUrl)
                     Get started by creating a new one.
                 @endif
             </p>

@@ -2,6 +2,7 @@
 use App\Models\Supplier;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -12,6 +13,16 @@ new class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+    }
+
+    #[On('supplier-created')]
+    #[On('contract-created')]
+    public function refreshData(): void
+    {
+        // Force refresh of computed properties
+        unset($this->suppliers);
+        unset($this->expandableIds);
+        $this->dispatch('$refresh');
     }
 
     #[Computed]
@@ -97,21 +108,22 @@ new class extends Component {
     }
 }; ?>
 
-<x-tree.index
-    :items="$this->suppliers"
-    :expandable-ids="$this->expandableIds"
-    :is-searching="$this->isSearching"
-    empty-message="No Suppliers Found"
-    create-url="{{ route('admin.data.suppliers-and-contracts.suppliers.create') }}"
-    create-text="Create Supplier"
->
+<div>
+    <x-tree.index
+        :items="$this->suppliers"
+        :expandable-ids="$this->expandableIds"
+        :is-searching="$this->isSearching"
+        empty-message="No Suppliers Found"
+        create-modal-name="create-supplier"
+        create-text="Create Supplier"
+    >
     @foreach ($this->suppliers as $supplier)
         <x-tree.item
             :id="'supplier-'.$supplier->id"
             :title="$supplier->name"
             :subtitle="$supplier->contracts_count . ' contracts'"
             :edit-url="route('admin.data.suppliers-and-contracts.suppliers.edit', $supplier)"
-            :add-url="route('admin.data.suppliers-and-contracts.contracts.create', ['supplier_id' => $supplier->id])"
+            add-modal-name="create-contract"
             add-text="Add Contract"
             :has-children="$supplier->contracts_count > 0"
             :search-terms="[$this->search]"
@@ -144,4 +156,15 @@ new class extends Component {
             @endforelse
         </x-tree.item>
     @endforeach
-</x-tree.index> 
+    </x-tree.index>
+
+    <!-- Create Supplier Modal -->
+    <x-admin.modal-form-wrapper name="create-supplier" maxWidth="2xl">
+        <livewire:admin.data.suppliers-and-contracts.suppliers.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Contract Modal -->
+    <x-admin.modal-form-wrapper name="create-contract" maxWidth="2xl">
+        <livewire:admin.data.suppliers-and-contracts.contracts.create />
+    </x-admin.modal-form-wrapper>
+</div> 

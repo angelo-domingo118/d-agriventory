@@ -3,6 +3,7 @@
 use App\Models\PrimaryCategory;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 
 new class extends Component {
@@ -13,6 +14,17 @@ new class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+    }
+
+    #[On('primary-category-created')]
+    #[On('secondary-category-created')]
+    #[On('item-created')]
+    public function refreshData(): void
+    {
+        // Force refresh of computed properties
+        unset($this->categories);
+        unset($this->expandableIds);
+        $this->dispatch('$refresh');
     }
 
     #[Computed]
@@ -122,21 +134,22 @@ new class extends Component {
     }
 }; ?>
 
-<x-tree.index
-    :items="$this->categories"
-    :expandable-ids="$this->expandableIds"
-    :is-searching="$this->isSearching"
-    empty-message="No Categories Found"
-    create-url="{{ route('admin.data.items-and-categories.primary-categories.create') }}"
-    create-text="Create Primary Category"
->
+<div>
+    <x-tree.index
+        :items="$this->categories"
+        :expandable-ids="$this->expandableIds"
+        :is-searching="$this->isSearching"
+        empty-message="No Categories Found"
+        create-modal-name="create-primary-category"
+        create-text="Create Primary Category"
+    >
     @foreach ($this->categories as $primary)
         <x-tree.item
             :id="'primary-'.$primary->id"
             :title="$primary->name"
             :subtitle="$primary->secondary_categories_count . ' secondary categories'"
             :edit-url="route('admin.data.items-and-categories.primary-categories.edit', $primary)"
-            :add-url="route('admin.data.items-and-categories.secondary-categories.create', ['primary_category_id' => $primary->id])"
+            add-modal-name="create-secondary-category"
             add-text="Add Secondary"
             :has-children="$primary->secondary_categories_count > 0"
             :search-terms="[$this->search]"
@@ -147,7 +160,7 @@ new class extends Component {
                     :title="$secondary->name"
                     :subtitle="$secondary->items_count . ' items'"
                     :edit-url="route('admin.data.items-and-categories.secondary-categories.edit', $secondary)"
-                    :add-url="route('admin.data.items-and-categories.items-catalog.create', ['secondary_category_id' => $secondary->id])"
+                    add-modal-name="create-item"
                     add-text="Add Item"
                     :level="1"
                     :has-children="$secondary->items_count > 0"
@@ -172,4 +185,20 @@ new class extends Component {
             @endforelse
         </x-tree.item>
     @endforeach
-</x-tree.index> 
+    </x-tree.index>
+
+    <!-- Create Primary Category Modal -->
+    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.primary-categories.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Secondary Category Modal -->
+    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.secondary-categories.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Item Modal -->
+    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.items-catalog.create />
+    </x-admin.modal-form-wrapper>
+</div> 
