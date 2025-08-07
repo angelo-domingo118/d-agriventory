@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PrimaryCategory;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Flux\Flux;
@@ -26,6 +27,9 @@ new class extends Component {
         ]);
 
         PrimaryCategory::create($validated);
+
+        // Show success toast
+        ToastService::created($this, 'Primary category');
 
         // Close the modal and refresh the parent component
         $this->dispatch('primary-category-created');

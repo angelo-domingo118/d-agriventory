@@ -3,6 +3,7 @@
 use App\Models\ItemsCatalog;
 use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
+use App\Services\ToastService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -53,12 +54,15 @@ new class extends Component {
         try {
             $this->item->update($validated);
             
+            // Show success toast
+            ToastService::updated($this, 'Item');
+            
             // Close the modal and refresh the parent component
             $this->dispatch('item-updated');
             Flux::modal('edit-item')->close();
         } catch (\Exception $e) {
             Log::error('Error updating item: ' . $e->getMessage());
-            session()->flash('error', 'There was an error updating the item. Please try again.');
+            ToastService::error($this, 'There was an error updating the item. Please try again.');
         }
     }
 
@@ -72,11 +76,14 @@ new class extends Component {
                 })->exists();
 
             if ($isUsed) {
-                session()->flash('error', 'This item cannot be deleted because it is associated with other records.');
+                ToastService::relationshipError($this);
                 return;
             }
 
             $this->item->delete();
+            
+            // Show success toast
+            ToastService::deleted($this, 'Item');
             
             // Close the modal and refresh the parent component
             $this->dispatch('item-deleted');
@@ -87,7 +94,7 @@ new class extends Component {
             if (config('app.debug')) {
                 $errorMessage .= ' ' . $e->getMessage();
             }
-            session()->flash('error', $errorMessage);
+            ToastService::error($this, $errorMessage);
         }
     }
 

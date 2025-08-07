@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PrimaryCategory;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Flux\Flux;
@@ -32,6 +33,9 @@ new class extends Component {
 
         $this->category->update($validated);
 
+        // Show success toast
+        ToastService::updated($this, 'Primary category');
+
         // Close the modal and refresh the parent component
         $this->dispatch('primary-category-updated');
         Flux::modal('edit-primary-category')->close();
@@ -40,12 +44,15 @@ new class extends Component {
     public function delete(): void
     {
         if ($this->category->secondaryCategories()->exists()) {
-            // Show error message but don't close modal
-            session()->flash('error', 'Cannot delete a primary category that has secondary categories linked to it.');
+            // Show error toast
+            ToastService::relationshipError($this);
             return;
         }
 
         $this->category->delete();
+
+        // Show success toast
+        ToastService::deleted($this, 'Primary category');
 
         // Close the modal and refresh the parent component
         $this->dispatch('primary-category-deleted');

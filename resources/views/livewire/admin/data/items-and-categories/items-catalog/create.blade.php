@@ -2,6 +2,7 @@
 
 use App\Models\ItemsCatalog;
 use App\Models\SecondaryCategory;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Volt\Component;
@@ -34,6 +35,9 @@ new class extends Component {
         ]);
 
         ItemsCatalog::create($validated);
+
+        // Show success toast
+        ToastService::created($this, 'Item');
 
         // Close the modal and refresh the parent component
         $this->dispatch('item-created');

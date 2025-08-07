@@ -2,6 +2,7 @@
 
 use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
+use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -38,6 +39,9 @@ new class extends Component {
 
         $this->category->update($validated);
 
+        // Show success toast
+        ToastService::updated($this, 'Secondary category');
+
         // Close the modal and refresh the parent component
         $this->dispatch('secondary-category-updated');
         Flux::modal('edit-secondary-category')->close();
@@ -48,11 +52,14 @@ new class extends Component {
         DB::transaction(function () {
             // Check if there are items in this category
             if ($this->category->items()->exists()) {
-                session()->flash('error', 'Cannot delete a category that has items linked to it.');
+                ToastService::relationshipError($this);
                 return;
             }
 
             $this->category->delete();
+            
+            // Show success toast
+            ToastService::deleted($this, 'Secondary category');
             
             // Close the modal and refresh the parent component
             $this->dispatch('secondary-category-deleted');
