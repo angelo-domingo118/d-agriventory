@@ -258,21 +258,21 @@ new class extends Component {
 
     <!-- Edit Primary Category Modal -->
     @if($editingPrimaryCategory)
-    <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg" x-data="{}" x-init="() => $nextTick(() => $dispatch('open-modal', 'edit-primary-category'))">
         <livewire:admin.data.items-and-categories.primary-categories.edit :category="$editingPrimaryCategory" :key="'primary-'.$editingPrimaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Secondary Category Modal -->
     @if($editingSecondaryCategory)
-    <x-admin.modal-form-wrapper name="edit-secondary-category" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="edit-secondary-category" maxWidth="lg" x-data="{}" x-init="() => $nextTick(() => $dispatch('open-modal', 'edit-secondary-category'))">
         <livewire:admin.data.items-and-categories.secondary-categories.edit :category="$editingSecondaryCategory" :key="'secondary-'.$editingSecondaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Item Modal -->
     @if($editingItem)
-    <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg" x-data="{}" x-init="() => $nextTick(() => $dispatch('open-modal', 'edit-item'))">
         <livewire:admin.data.items-and-categories.items-catalog.edit :item="$editingItem" :key="'item-'.$editingItem->id" />
     </x-admin.modal-form-wrapper>
     @endif
