@@ -3,8 +3,11 @@
     'title',
     'subtitle' => null,
     'editUrl' => null,
+    'editModalName' => null,
+    'editClick' => null,
     'addUrl' => null,
     'addModalName' => null,
+    'addClick' => null,
     'addText' => 'Add',
     'level' => 0,
     'hasChildren' => true,
@@ -93,7 +96,33 @@
                     {{ $addText }}
                 </a>
             @endif
-            @if ($editUrl)
+            @if($editClick)
+                <button
+                    @class([
+                        'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',
+                        'text-sm' => $isTopLevel,
+                        'text-xs' => !$isTopLevel,
+                    ])
+                    wire:click.stop="{{ $editClick }}"
+                >
+                    <x-flux::icon.pencil class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    Edit
+                </button>
+            @elseif($editModalName)
+                <flux:modal.trigger :name="$editModalName">
+                    <button
+                        @class([
+                            'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',
+                            'text-sm' => $isTopLevel,
+                            'text-xs' => !$isTopLevel,
+                        ])
+                        @click.stop
+                    >
+                        <x-flux::icon.pencil class="-ml-0.5 mr-1.5 h-4 w-4" />
+                        Edit
+                    </button>
+                </flux:modal.trigger>
+            @elseif ($editUrl)
                 <a href="{{ $editUrl . (str_contains($editUrl, '?') ? '&' : '?') . 'view=tree' }}" wire:navigate
                     @class([
                         'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',

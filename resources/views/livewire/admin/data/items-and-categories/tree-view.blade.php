@@ -8,6 +8,9 @@ use Livewire\Volt\Component;
 
 new class extends Component {
     public string $search = '';
+    public ?int $editingPrimaryCategoryId = null;
+    public ?int $editingSecondaryCategoryId = null;
+    public ?int $editingItemId = null;
 
     public function mount(): void
     {
@@ -16,11 +19,37 @@ new class extends Component {
         }
     }
 
+    public function editPrimaryCategory($id): void
+    {
+        $this->editingPrimaryCategoryId = $id;
+        $this->dispatch('open-modal', 'edit-primary-category');
+    }
+
+    public function editSecondaryCategory($id): void
+    {
+        $this->editingSecondaryCategoryId = $id;
+        $this->dispatch('open-modal', 'edit-secondary-category');
+    }
+
+    public function editItem($id): void
+    {
+        $this->editingItemId = $id;
+        $this->dispatch('open-modal', 'edit-item');
+    }
+
     #[On('primary-category-created')]
+    #[On('primary-category-updated')]
     #[On('secondary-category-created')]
+    #[On('secondary-category-updated')]
     #[On('item-created')]
+    #[On('item-updated')]
     public function refreshData(): void
     {
+        // Reset edit IDs
+        $this->editingPrimaryCategoryId = null;
+        $this->editingSecondaryCategoryId = null;
+        $this->editingItemId = null;
+        
         // Force refresh of computed properties
         unset($this->categories);
         unset($this->expandableIds);
@@ -150,7 +179,7 @@ new class extends Component {
             :id="'primary-'.$primary->id"
             :title="$primary->name"
             :subtitle="$primary->secondary_categories_count . ' secondary categories'"
-            :edit-url="route('admin.data.items-and-categories.primary-categories.edit', $primary)"
+            :edit-click="'editPrimaryCategory('.$primary->id.')'"
             add-modal-name="create-secondary-category"
             add-text="Add Secondary"
             :has-children="$primary->secondary_categories_count > 0"
@@ -161,7 +190,7 @@ new class extends Component {
                     :id="'secondary-'.$secondary->id"
                     :title="$secondary->name"
                     :subtitle="$secondary->items_count . ' items'"
-                    :edit-url="route('admin.data.items-and-categories.secondary-categories.edit', $secondary)"
+                    :edit-click="'editSecondaryCategory('.$secondary->id.')'"
                     add-modal-name="create-item"
                     add-text="Add Item"
                     :level="1"
@@ -173,10 +202,11 @@ new class extends Component {
                             :id="'item-'.$item->id"
                             :title="$item->name"
                             :subtitle="$item->specifications_count . ' specifications'"
-                            :edit-url="route('admin.data.items-and-categories.items-catalog.edit', $item)"
+                            :edit-click="'editItem('.$item->id.')'"
                             :level="2"
                             :has-children="false"
                             :search-terms="[$this->search]"
+                            icon="cube"
                         />
                     @empty
                         <p class="py-2 text-sm italic text-stone-500 dark:text-stone-400">No items in this category.</p>
@@ -189,4 +219,39 @@ new class extends Component {
     @endforeach
     </x-tree.index>
 
+    <!-- Create Primary Category Modal -->
+    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.primary-categories.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Secondary Category Modal -->
+    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.secondary-categories.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Create Item Modal -->
+    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.items-catalog.create />
+    </x-admin.modal-form-wrapper>
+
+    <!-- Edit Primary Category Modal -->
+    @if($editingPrimaryCategoryId)
+    <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.primary-categories.edit :primaryCategory="$editingPrimaryCategoryId" :key="'primary-'.$editingPrimaryCategoryId" />
+    </x-admin.modal-form-wrapper>
+    @endif
+
+    <!-- Edit Secondary Category Modal -->
+    @if($editingSecondaryCategoryId)
+    <x-admin.modal-form-wrapper name="edit-secondary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.secondary-categories.edit :secondaryCategory="$editingSecondaryCategoryId" :key="'secondary-'.$editingSecondaryCategoryId" />
+    </x-admin.modal-form-wrapper>
+    @endif
+
+    <!-- Edit Item Modal -->
+    @if($editingItemId)
+    <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.items-catalog.edit :itemsCatalog="$editingItemId" :key="'item-'.$editingItemId" />
+    </x-admin.modal-form-wrapper>
+    @endif
 </div> 
