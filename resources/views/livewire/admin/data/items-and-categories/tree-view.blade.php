@@ -1,16 +1,19 @@
 <?php
 
 use App\Models\PrimaryCategory;
+use App\Models\SecondaryCategory;
+use App\Models\ItemsCatalog;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
+use Flux\Flux;
 
 new class extends Component {
     public string $search = '';
-    public ?int $editingPrimaryCategoryId = null;
-    public ?int $editingSecondaryCategoryId = null;
-    public ?int $editingItemId = null;
+    public ?PrimaryCategory $editingPrimaryCategory = null;
+    public ?SecondaryCategory $editingSecondaryCategory = null;
+    public ?ItemsCatalog $editingItem = null;
 
     public function mount(): void
     {
@@ -19,22 +22,22 @@ new class extends Component {
         }
     }
 
-    public function editPrimaryCategory($id): void
+    public function editPrimaryCategory(int $id): void
     {
-        $this->editingPrimaryCategoryId = $id;
-        $this->dispatch('open-modal', 'edit-primary-category');
+        $this->editingPrimaryCategory = PrimaryCategory::findOrFail($id);
+        Flux::modal('edit-primary-category')->show();
     }
 
-    public function editSecondaryCategory($id): void
+    public function editSecondaryCategory(int $id): void
     {
-        $this->editingSecondaryCategoryId = $id;
-        $this->dispatch('open-modal', 'edit-secondary-category');
+        $this->editingSecondaryCategory = SecondaryCategory::findOrFail($id);
+        Flux::modal('edit-secondary-category')->show();
     }
 
-    public function editItem($id): void
+    public function editItem(int $id): void
     {
-        $this->editingItemId = $id;
-        $this->dispatch('open-modal', 'edit-item');
+        $this->editingItem = ItemsCatalog::findOrFail($id);
+        Flux::modal('edit-item')->show();
     }
 
     #[On('primary-category-created')]
@@ -46,9 +49,9 @@ new class extends Component {
     public function refreshData(): void
     {
         // Reset edit IDs
-        $this->editingPrimaryCategoryId = null;
-        $this->editingSecondaryCategoryId = null;
-        $this->editingItemId = null;
+        $this->editingPrimaryCategory = null;
+        $this->editingSecondaryCategory = null;
+        $this->editingItem = null;
         
         // Force refresh of computed properties
         unset($this->categories);
@@ -219,39 +222,24 @@ new class extends Component {
     @endforeach
     </x-tree.index>
 
-    <!-- Create Primary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.primary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Secondary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.secondary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Item Modal -->
-    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.items-catalog.create />
-    </x-admin.modal-form-wrapper>
-
     <!-- Edit Primary Category Modal -->
-    @if($editingPrimaryCategoryId)
+    @if($editingPrimaryCategory)
     <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.primary-categories.edit :primaryCategory="$editingPrimaryCategoryId" :key="'primary-'.$editingPrimaryCategoryId" />
+        <livewire:admin.data.items-and-categories.primary-categories.edit :category="$editingPrimaryCategory" :key="'primary-'.$editingPrimaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Secondary Category Modal -->
-    @if($editingSecondaryCategoryId)
+    @if($editingSecondaryCategory)
     <x-admin.modal-form-wrapper name="edit-secondary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.secondary-categories.edit :secondaryCategory="$editingSecondaryCategoryId" :key="'secondary-'.$editingSecondaryCategoryId" />
+        <livewire:admin.data.items-and-categories.secondary-categories.edit :category="$editingSecondaryCategory" :key="'secondary-'.$editingSecondaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Item Modal -->
-    @if($editingItemId)
+    @if($editingItem)
     <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.items-catalog.edit :itemsCatalog="$editingItemId" :key="'item-'.$editingItemId" />
+        <livewire:admin.data.items-and-categories.items-catalog.edit :item="$editingItem" :key="'item-'.$editingItem->id" />
     </x-admin.modal-form-wrapper>
     @endif
 </div> 
