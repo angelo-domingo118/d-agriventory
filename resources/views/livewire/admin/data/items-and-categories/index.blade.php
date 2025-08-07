@@ -101,20 +101,4 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </div>
     </div>
-    
-    <!-- Shared Modals - Outside Alpine scope to prevent conflicts -->
-    <!-- Create Primary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.primary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Secondary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.secondary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Item Modal -->
-    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.items-catalog.create />
-    </x-admin.modal-form-wrapper>
 </div> 
