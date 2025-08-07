@@ -70,7 +70,7 @@ new class extends Component {
     </div>
 
     <form wire:submit="save" class="space-y-4">
-        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required>
+        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required :value="$secondary_category_id">
             <option value="">Select a category</option>
             @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
                 <optgroup label="{{ $primaryName }}">
