@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -15,6 +16,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public int $perPage = 10;
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
+    public ?PrimaryCategory $editingCategory = null;
 
     public function mount()
     {
@@ -47,13 +49,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->resetPage();
     }
 
+    public function editCategory(PrimaryCategory $category): void
+    {
+        $this->editingCategory = $category;
+        Flux::modal('edit-primary-category')->show();
+    }
+
     #[On('primary-category-created')]
+    #[On('primary-category-updated')]
+    #[On('primary-category-deleted')]
     public function refreshCategories(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->categories);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing category
+        $this->editingCategory = null;
     }
     
     #[Computed]
@@ -196,10 +209,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.items-and-categories.primary-categories.edit', ['category' => $category, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editCategory({{ $category->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -223,6 +236,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
         <livewire:admin.data.items-and-categories.primary-categories.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Primary Category Modal -->
+    @if($editingCategory)
+        <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.primary-categories.edit 
+                :category="$editingCategory" 
+                :key="'edit-category-' . $editingCategory->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 </div> 
 <script>
     document.addEventListener('alpine:init', () => {
