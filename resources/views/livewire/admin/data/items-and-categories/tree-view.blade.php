@@ -143,6 +143,8 @@ new class extends Component {
         create-modal-name="create-primary-category"
         create-text="Create Primary Category"
     >
+
+    
     @foreach ($this->categories as $primary)
         <x-tree.item
             :id="'primary-'.$primary->id"
@@ -187,18 +189,4 @@ new class extends Component {
     @endforeach
     </x-tree.index>
 
-    <!-- Create Primary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-primary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.primary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Secondary Category Modal -->
-    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.secondary-categories.create />
-    </x-admin.modal-form-wrapper>
-
-    <!-- Create Item Modal -->
-    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
-        <livewire:admin.data.items-and-categories.items-catalog.create />
-    </x-admin.modal-form-wrapper>
 </div> 

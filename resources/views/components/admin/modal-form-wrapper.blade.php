@@ -10,7 +10,7 @@ $maxWidthClass = [
 ][$maxWidth];
 @endphp
 
-<flux:modal :name="$name" variant="bare" class="w-full {{ $maxWidthClass }}">
+<flux:modal :name="$name" variant="bare" class="w-full {{ $maxWidthClass }}" style="position: relative; z-index: 9999;">
     <div class="rounded-lg bg-white p-6 shadow-xl dark:bg-stone-800">
         {{ $slot }}
     </div>

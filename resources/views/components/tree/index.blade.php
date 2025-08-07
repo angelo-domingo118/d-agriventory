@@ -84,4 +84,6 @@
             </p>
         </div>
     @endif
+    
+    {{ $modals ?? '' }}
 </div> 
