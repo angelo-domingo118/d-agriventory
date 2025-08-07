@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -21,6 +22,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     // Sorting properties
     public string $sortColumn = 'title';
     public string $sortDirection = 'asc';
+    public ?Position $editingPosition = null;
 
     public function mount()
     {
@@ -49,6 +51,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->resetPage();
     }
 
+    public function editPosition(Position $position): void
+    {
+        $this->editingPosition = $position;
+        Flux::modal('edit-position')->show();
+    }
+
     #[Computed]
     public function positions()
     {
@@ -59,12 +67,17 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[On('position-created')]
+    #[On('position-updated')]
+    #[On('position-deleted')]
     public function refreshPositions(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->positions);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing position
+        $this->editingPosition = null;
     }
 
     public function with(): array
@@ -173,10 +186,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->title }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.positions.edit', ['position' => $position, 'view' => 'table']) }}" wire:navigate class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editPosition({{ $position->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -200,4 +213,14 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-position" maxWidth="lg">
         <livewire:admin.data.employees-and-divisions.positions.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Position Modal -->
+    @if($editingPosition)
+        <x-admin.modal-form-wrapper name="edit-position" maxWidth="lg">
+            <livewire:admin.data.employees-and-divisions.positions.edit 
+                :position="$editingPosition" 
+                :key="'edit-position-' . $editingPosition->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 </div> 

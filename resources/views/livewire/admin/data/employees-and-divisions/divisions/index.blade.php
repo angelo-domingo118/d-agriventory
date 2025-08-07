@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -19,6 +20,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     // Sorting properties
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
+    public ?Division $editingDivision = null;
 
     public function mount()
     {
@@ -54,13 +56,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->resetPage();
     }
 
+    public function editDivision(Division $division): void
+    {
+        $this->editingDivision = $division;
+        Flux::modal('edit-division')->show();
+    }
+
     #[On('division-created')]
+    #[On('division-updated')]
+    #[On('division-deleted')]
     public function refreshDivisions(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->divisions);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing division
+        $this->editingDivision = null;
     }
 
     #[Computed]
@@ -211,11 +224,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $division->name }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $division->code }}</td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('admin.data.employees-and-divisions.divisions.edit', $division) }}?view=table" wire:navigate
-                                   class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editDivision({{ $division->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -239,6 +251,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-division" maxWidth="lg">
         <livewire:admin.data.employees-and-divisions.divisions.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Division Modal -->
+    @if($editingDivision)
+        <x-admin.modal-form-wrapper name="edit-division" maxWidth="lg">
+            <livewire:admin.data.employees-and-divisions.divisions.edit 
+                :division="$editingDivision" 
+                :key="'edit-division-' . $editingDivision->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 </div> 
 
 <script>

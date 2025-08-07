@@ -11,6 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
@@ -30,6 +31,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     // Sorting properties
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
+    
+    public ?ItemsCatalog $editingItem = null;
 
     public function mount(): void
     {
@@ -64,6 +67,12 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (in_array($property, ['search', 'filterPrimaryCategory', 'filterSecondaryCategory', 'filterUnit', 'perPage'])) {
             $this->resetPage();
         }
+    }
+
+    public function editItem(ItemsCatalog $item): void
+    {
+        $this->editingItem = $item;
+        Flux::modal('edit-item')->show();
     }
     
     #[Computed]
@@ -116,12 +125,17 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 
     #[On('item-created')]
+    #[On('item-updated')]
+    #[On('item-deleted')]
     public function refreshItems(): void
     {
         // Force refresh of computed property and reset to first page
         unset($this->items);
         $this->resetPage();
         $this->dispatch('$refresh');
+        
+        // Reset editing item
+        $this->editingItem = null;
     }
 
     public function with(): array
@@ -316,11 +330,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $item->secondaryCategory?->primaryCategory?->name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                    <a href="{{ route('admin.data.items-and-categories.items-catalog.edit', $item) }}?view=table" wire:navigate
-                                       class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                    <button wire:click="editItem({{ $item->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                        <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                        Edit
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -344,6 +357,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
         <livewire:admin.data.items-and-categories.items-catalog.create />
     </x-admin.modal-form-wrapper>
+
+    <!-- Edit Item Modal -->
+    @if($editingItem)
+        <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.items-catalog.edit 
+                :item="$editingItem" 
+                :key="'edit-item-' . $editingItem->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
     </div>
 </div>
 

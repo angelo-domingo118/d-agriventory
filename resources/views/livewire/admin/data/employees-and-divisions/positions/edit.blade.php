@@ -2,14 +2,13 @@
 
 use App\Models\Position;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Flux\Flux;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new class extends Component {
     public Position $position;
     public string $title;
     public string $position_type;
-    public string $previousView = 'tree';
 
     public function mount(Position $position): void
     {
@@ -19,8 +18,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->position = $position;
         $this->title = $position->title;
         $this->position_type = $position->position_type ?? '';
-        
-        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
@@ -32,8 +29,9 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->position->update($validated);
 
-        session()->flash('success', 'Position updated successfully.');
-        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'positions', 'view' => $this->previousView]), navigate: true);
+        // Close the modal and refresh the parent component
+        $this->dispatch('position-updated');
+        Flux::modal('edit-position')->close();
     }
 
     public function delete(): void
@@ -45,70 +43,47 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->position->delete();
 
-        session()->flash('success', 'Position deleted successfully.');
-        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'positions', 'view' => $this->previousView]), navigate: true);
+        // Close the modal and refresh the parent component
+        $this->dispatch('position-deleted');
+        Flux::modal('edit-position')->close();
+    }
+
+    public function cancel(): void
+    {
+        Flux::modal('edit-position')->close();
     }
 }; ?>
 
-<form wire:submit="save">
-    <!-- Breadcrumbs -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <flux:breadcrumbs class="text-2xl font-semibold">
-                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item :href="route('admin.data.employees-and-divisions', ['currentTab' => 'positions'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Employees & Divisions</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit Position</flux:breadcrumbs.item>
-            </flux:breadcrumbs>
-        </div>
+<div class="space-y-6">
+    <div>
+        <flux:heading size="lg">Edit Position</flux:heading>
+        <flux:text class="mt-2">Update position details.</flux:text>
     </div>
 
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    Edit Position
-                </h1>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Update position details.
-                </p>
-            </div>
-            <div class="flex items-center gap-x-4">
-                <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this position? This action cannot be undone.">
-                    Delete
-                </flux:button>
-                <flux:button :href="route('admin.data.employees-and-divisions', ['currentTab' => 'positions', 'view' => $this->previousView])" variant="ghost" wire:navigate>
-                    Cancel
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    Save Changes
-                </flux:button>
-            </div>
+    <form wire:submit="save" class="space-y-4">
+        <flux:input wire:model="title" label="Position Title" placeholder="Enter position title (e.g., IT Officer, Chief Accountant)" required />
+        <flux:select wire:model="position_type" label="Position Type" placeholder="Select position type" required>
+            <option value="">Select position type</option>
+            <option value="DIVISION_CHIEF">Division Chief</option>
+            <option value="COORDINATOR">Coordinator</option>
+            <option value="FOCAL_PERSON">Focal Person</option>
+            <option value="OFFICER">Officer</option>
+            <option value="SPECIALIST">Specialist</option>
+            <option value="OTHER">Other</option>
+        </flux:select>
+        
+        <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
+            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this position? This action cannot be undone.">
+                Delete
+            </flux:button>
+            <flux:spacer />
+            <flux:button type="button" variant="ghost" wire:click="cancel">
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                <span wire:loading.remove>Save Changes</span>
+                <span wire:loading>Saving...</span>
+            </flux:button>
         </div>
-    </div>
-
-    <div class="mt-8">
-        <div class="grid grid-cols-1 gap-8">
-            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Position Details</h3>
-                </div>
-                <div class="p-6">
-                    <div class="max-w-2xl">
-                        <div class="space-y-6">
-                            <flux:input wire:model="title" label="Position Title" required />
-                            <flux:select wire:model="position_type" label="Position Type" required>
-                                <option value="DIVISION_CHIEF">Division Chief</option>
-                                <option value="COORDINATOR">Coordinator</option>
-                                <option value="FOCAL_PERSON">Focal Person</option>
-                                <option value="OFFICER">Officer</option>
-                                <option value="SPECIALIST">Specialist</option>
-                                <option value="OTHER">Other</option>
-                            </flux:select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</form> 
+    </form>
+</div> 

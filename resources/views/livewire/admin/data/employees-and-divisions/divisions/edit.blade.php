@@ -2,14 +2,13 @@
 
 use App\Models\Division;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Flux\Flux;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new class extends Component {
     public Division $division;
     public string $name = '';
     public string $code = '';
-    public string $previousView = 'tree';
 
     public function mount(Division $division): void
     {
@@ -20,8 +19,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->division = $division;
         $this->name = $division->name;
         $this->code = $division->code;
-        
-        $this->previousView = request()->query('view', 'tree');
     }
 
     public function save(): void
@@ -33,9 +30,9 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->division->update($validated);
 
-        session()->flash('success', 'Division updated successfully.');
-
-        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => $this->previousView]), navigate: true);
+        // Close the modal and refresh the parent component
+        $this->dispatch('division-updated');
+        Flux::modal('edit-division')->close();
     }
 
     public function delete(): void
@@ -47,64 +44,39 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->division->delete();
 
-        session()->flash('success', 'Division deleted successfully.');
+        // Close the modal and refresh the parent component
+        $this->dispatch('division-deleted');
+        Flux::modal('edit-division')->close();
+    }
 
-        $this->redirect(route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => $this->previousView]), navigate: true);
+    public function cancel(): void
+    {
+        Flux::modal('edit-division')->close();
     }
 }; ?>
 
-<form wire:submit="save">
-    <!-- Breadcrumbs -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <flux:breadcrumbs class="text-2xl font-semibold">
-                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item :href="route('admin.data.employees-and-divisions', ['currentTab' => 'divisions'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Employees & Divisions</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit Division</flux:breadcrumbs.item>
-            </flux:breadcrumbs>
-        </div>
+<div class="space-y-6">
+    <div>
+        <flux:heading size="lg">Edit Division</flux:heading>
+        <flux:text class="mt-2">Update division details.</flux:text>
     </div>
 
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    Edit Division
-                </h1>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Update division details.
-                </p>
-            </div>
-            <div class="flex items-center gap-x-4">
-                <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this division? This action cannot be undone.">
-                    Delete
-                </flux:button>
-                <flux:button :href="route('admin.data.employees-and-divisions', ['currentTab' => 'divisions', 'view' => $this->previousView])" variant="ghost" wire:navigate>
-                    Cancel
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    Save Changes
-                </flux:button>
-            </div>
+    <form wire:submit="save" class="space-y-4">
+        <flux:input wire:model="name" label="Division Name" placeholder="Enter division name" required />
+        <flux:input wire:model="code" label="Division Code" placeholder="Enter unique code (e.g., IT, HR, FINANCE)" required />
+        
+        <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
+            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this division? This action cannot be undone.">
+                Delete
+            </flux:button>
+            <flux:spacer />
+            <flux:button type="button" variant="ghost" wire:click="cancel">
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                <span wire:loading.remove>Save Changes</span>
+                <span wire:loading>Saving...</span>
+            </flux:button>
         </div>
-    </div>
-
-    <div class="mt-8">
-        <div class="grid grid-cols-1 gap-8">
-            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Division Details</h3>
-                </div>
-                <div class="p-6">
-                    <div class="max-w-2xl">
-                        <div class="space-y-6">
-                            <flux:input wire:model="name" label="Name" required />
-                            <flux:input wire:model="code" label="Code" required />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</form> 
+    </form>
+</div> 

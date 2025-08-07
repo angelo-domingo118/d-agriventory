@@ -6,19 +6,18 @@ use App\Models\SecondaryCategory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Flux\Flux;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new class extends Component {
     public ItemsCatalog $item;
     public string $name;
     public string $code;
     public string $unit;
     public ?int $secondary_category_id;
     public string $description;
-    public string $previousView = 'tree';
 
     public function mount(ItemsCatalog $item): void
     {
@@ -31,8 +30,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->unit = $item->unit;
         $this->secondary_category_id = $item->secondary_category_id;
         $this->description = $item->description ?? '';
-        
-        $this->previousView = request()->query('view', 'tree');
     }
 
     #[Computed]
@@ -55,8 +52,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         try {
             $this->item->update($validated);
-            session()->flash('success', 'Item updated successfully.');
-            $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView]), navigate: true);
+            
+            // Close the modal and refresh the parent component
+            $this->dispatch('item-updated');
+            Flux::modal('edit-item')->close();
         } catch (\Exception $e) {
             Log::error('Error updating item: ' . $e->getMessage());
             session()->flash('error', 'There was an error updating the item. Please try again.');
@@ -78,8 +77,10 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
 
             $this->item->delete();
-            session()->flash('success', 'Item deleted successfully.');
-            $this->redirect(route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView]), navigate: true);
+            
+            // Close the modal and refresh the parent component
+            $this->dispatch('item-deleted');
+            Flux::modal('edit-item')->close();
         } catch (\Exception $e) {
             Log::error('Error deleting item: ' . $e->getMessage());
             $errorMessage = 'There was an error deleting the item. It might be in use in contracts or inventory records.';
@@ -90,6 +91,11 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function cancel(): void
+    {
+        Flux::modal('edit-item')->close();
+    }
+
     public function with(): array
     {
         return [
@@ -98,70 +104,40 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<form wire:submit="save">
-    <!-- Breadcrumbs -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <flux:breadcrumbs class="text-2xl font-semibold">
-                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item :href="route('admin.data.items-and-categories', ['currentTab' => 'items'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Items & Categories</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit Item</flux:breadcrumbs.item>
-            </flux:breadcrumbs>
-        </div>
+<div class="space-y-6">
+    <div>
+        <flux:heading size="lg">Edit Item</flux:heading>
+        <flux:text class="mt-2">Update the details of this catalog item.</flux:text>
     </div>
 
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    Edit Catalog Item
-                </h1>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Update the details of this catalog item.
-                </p>
-            </div>
-            <div class="flex items-center gap-x-4">
-                <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this item? This action cannot be undone.">
-                    Delete
-                </flux:button>
-                <flux:button :href="route('admin.data.items-and-categories', ['currentTab' => 'items', 'view' => $this->previousView])" variant="ghost" wire:navigate>
-                    Cancel
-                </flux:button>
-                <flux:button type="submit" variant="primary">
-                    Save Changes
-                </flux:button>
-            </div>
+    <form wire:submit="save" class="space-y-4">
+        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required>
+            <option value="">Select a category</option>
+            @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                <optgroup label="{{ $primaryName }}">
+                    @foreach($secondaryGroup as $sCat)
+                        <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
+                    @endforeach
+                </optgroup>
+            @endforeach
+        </flux:select>
+        <flux:input wire:model="name" label="Item Name" placeholder="Enter item name" required />
+        <flux:input wire:model="code" label="Item Code" placeholder="Enter unique item code" required />
+        <flux:input wire:model="unit" label="Unit of Measure" placeholder="e.g., piece, box, ream, kilogram" required />
+        <flux:textarea wire:model="description" label="Description" placeholder="Optional description for this item" rows="3" />
+        
+        <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
+            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this item? This action cannot be undone.">
+                Delete
+            </flux:button>
+            <flux:spacer />
+            <flux:button type="button" variant="ghost" wire:click="cancel">
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                <span wire:loading.remove>Save Changes</span>
+                <span wire:loading>Saving...</span>
+            </flux:button>
         </div>
-    </div>
-
-    <div class="mt-8">
-        <div class="grid grid-cols-1 gap-8">
-            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
-                    <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Details</h3>
-                </div>
-                <div class="p-6">
-                    <div class="max-w-2xl">
-                        <div class="space-y-6">
-                            <flux:input wire:model="name" label="Item Name" required />
-                            <flux:input wire:model="code" label="Item Code" required />
-                            <flux:input wire:model="unit" label="Unit of Measure" required />
-                             <flux:textarea wire:model="description" label="Description" />
-                            <flux:select wire:model="secondary_category_id" label="Secondary Category" required>
-                                <option value="">Select a category</option>
-                                @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                                    <optgroup label="{{ $primaryName }}">
-                                        @foreach($secondaryGroup as $sCat)
-                                            <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
-                                        @endforeach
-                                    </optgroup>
-                                @endforeach
-                            </flux:select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</form> 
+    </form>
+</div> 
