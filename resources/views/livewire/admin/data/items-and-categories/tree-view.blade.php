@@ -15,6 +15,7 @@ new class extends Component {
     public ?SecondaryCategory $editingSecondaryCategory = null;
     public ?ItemsCatalog $editingItem = null;
     public ?PrimaryCategory $creatingForPrimary = null;
+    public ?SecondaryCategory $creatingForSecondary = null;
 
     public function mount(): void
     {
@@ -27,6 +28,12 @@ new class extends Component {
     {
         $this->creatingForPrimary = PrimaryCategory::findOrFail($primaryCategoryId);
         Flux::modal('create-secondary-category')->show();
+    }
+
+    public function createItem(int $secondaryCategoryId): void
+    {
+        $this->creatingForSecondary = SecondaryCategory::findOrFail($secondaryCategoryId);
+        Flux::modal('create-item')->show();
     }
     
     public function editPrimaryCategory(int $id): void
@@ -201,7 +208,7 @@ new class extends Component {
                     :title="$secondary->name"
                     :subtitle="$secondary->items_count . ' items'"
                     :edit-click="'editSecondaryCategory('.$secondary->id.')'"
-                    add-modal-name="create-item"
+                    :add-click="'createItem('.$secondary->id.')'"
                     add-text="Add Item"
                     :level="1"
                     :has-children="$secondary->items_count > 0"
@@ -235,6 +242,16 @@ new class extends Component {
             <livewire:admin.data.items-and-categories.secondary-categories.create 
                 :primaryCategoryId="$creatingForPrimary->id" 
                 :key="'create-secondary-for-'.$creatingForPrimary->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
+
+    <!-- Create Item Modal -->
+    @if($creatingForSecondary)
+        <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.items-catalog.create 
+                :secondaryCategoryId="$creatingForSecondary->id" 
+                :key="'create-item-for-'.$creatingForSecondary->id" 
             />
         </x-admin.modal-form-wrapper>
     @endif
