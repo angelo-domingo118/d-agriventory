@@ -17,6 +17,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     // View state
     public string $search = '';
     public int $perPage = 10;
+    public string $density = 'spacious';
     
     // Sorting properties
     public string $sortColumn = 'title';
@@ -28,6 +29,20 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
+
+        $this->density = session('positions_density', 'spacious');
+    }
+
+    public function setDensity(string $density): void
+    {
+        $this->density = $density;
+        session(['positions_density' => $density]);
+    }
+
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'title';
+        $this->sortDirection = 'asc';
     }
     
     public function sortBy(string $column): void
@@ -95,15 +110,62 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-flux::icon.settings-2 class="h-5 w-5" />
                     <span class="sr-only">Toggle View Options</span>
                 </flux:button>
-                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <!-- Density -->
                     <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Density</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                wire:click="setDensity('compact')" 
+                                class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Compact
+                            </button>
+                            <button 
+                                wire:click="setDensity('comfortable')" 
+                                class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $density === 'comfortable' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Comfortable
+                            </button>
+                            <button 
+                                wire:click="setDensity('spacious')" 
+                                class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'spacious' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Spacious
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Items per Page -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    wire:click="$set('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Table Customization -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="space-y-2">
+                            <flux:button
+                                variant="outline"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <div class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    Reset Sort Order
+                                </div>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,12 +198,35 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
 
+    @php
+        $densityClasses = [
+            'table_header' => match($density) {
+                'compact' => 'py-2 px-4',
+                'comfortable' => 'py-2.5 px-4',
+                default => 'py-3 px-4',
+            },
+            'table_cell' => match($density) {
+                'compact' => 'py-2 px-4',
+                'comfortable' => 'py-3 px-4',
+                default => 'py-4 px-4',
+            },
+            'text_header' => match($density) {
+                'compact' => 'text-xs',
+                default => 'text-xs',
+            },
+            'text_base' => match($density) {
+                'compact' => 'text-xs',
+                default => 'text-sm',
+            },
+        ];
+    @endphp
+
     <div class="mt-4 flow-root">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
                 <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
-                        <th scope="col" class="w-full px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" class="w-full {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('title')" class="flex cursor-pointer items-center">
                                 Name
                                 @if($sortColumn === 'title')
@@ -155,7 +240,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </div>
                         </th>
-                        <th scope="col" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             Actions
                         </th>
                     </tr>
@@ -163,9 +248,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($positions as $position)
                         <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $position->title }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <button wire:click="editPosition({{ $position->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">{{ $position->title }}</td>
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
+                                <button wire:click="editPosition({{ $position->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
@@ -173,7 +258,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                            <td colspan="2" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 No positions found.
                             </td>
                         </tr>
