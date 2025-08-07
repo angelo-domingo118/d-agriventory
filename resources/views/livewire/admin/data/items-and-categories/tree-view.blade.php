@@ -27,31 +27,31 @@ new class extends Component {
     public function createSecondaryCategory(int $primaryCategoryId): void
     {
         $this->creatingForPrimary = PrimaryCategory::findOrFail($primaryCategoryId);
-        Flux::modal('create-secondary-category')->show();
+        Flux::modal('tree-create-secondary-category')->show();
     }
 
     public function createItem(int $secondaryCategoryId): void
     {
         $this->creatingForSecondary = SecondaryCategory::findOrFail($secondaryCategoryId);
-        Flux::modal('create-item')->show();
+        Flux::modal('tree-create-item')->show();
     }
     
     public function editPrimaryCategory(int $id): void
     {
         $this->editingPrimaryCategory = PrimaryCategory::findOrFail($id);
-        Flux::modal('edit-primary-category')->show();
+        Flux::modal('tree-edit-primary-category')->show();
     }
 
     public function editSecondaryCategory(int $id): void
     {
         $this->editingSecondaryCategory = SecondaryCategory::findOrFail($id);
-        Flux::modal('edit-secondary-category')->show();
+        Flux::modal('tree-edit-secondary-category')->show();
     }
 
     public function editItem(int $id): void
     {
         $this->editingItem = ItemsCatalog::findOrFail($id);
-        Flux::modal('edit-item')->show();
+        Flux::modal('tree-edit-item')->show();
     }
 
     #[On('primary-category-created')]
@@ -186,7 +186,7 @@ new class extends Component {
         :expandable-ids="$this->expandableIds"
         :is-searching="$this->isSearching"
         empty-message="No Categories Found"
-        create-modal-name="create-primary-category"
+        create-modal-name="tree-create-primary-category"
         create-text="Create Primary Category"
     >
 
@@ -236,9 +236,14 @@ new class extends Component {
     @endforeach
     </x-tree.index>
 
+    <!-- Create Primary Category Modal -->
+    <x-admin.modal-form-wrapper name="tree-create-primary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.primary-categories.create />
+    </x-admin.modal-form-wrapper>
+
     <!-- Create Secondary Category Modal -->
     @if($creatingForPrimary)
-        <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
+        <x-admin.modal-form-wrapper name="tree-create-secondary-category" maxWidth="lg">
             <livewire:admin.data.items-and-categories.secondary-categories.create 
                 :primaryCategoryId="$creatingForPrimary->id" 
                 :key="'create-secondary-for-'.$creatingForPrimary->id" 
@@ -248,7 +253,7 @@ new class extends Component {
 
     <!-- Create Item Modal -->
     @if($creatingForSecondary)
-        <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
+        <x-admin.modal-form-wrapper name="tree-create-item" maxWidth="lg">
             <livewire:admin.data.items-and-categories.items-catalog.create 
                 :secondaryCategoryId="$creatingForSecondary->id" 
                 :key="'create-item-for-'.$creatingForSecondary->id" 
@@ -258,21 +263,21 @@ new class extends Component {
 
     <!-- Edit Primary Category Modal -->
     @if($editingPrimaryCategory)
-    <x-admin.modal-form-wrapper name="edit-primary-category" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="tree-edit-primary-category" maxWidth="lg">
         <livewire:admin.data.items-and-categories.primary-categories.edit :category="$editingPrimaryCategory" :key="'primary-'.$editingPrimaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Secondary Category Modal -->
     @if($editingSecondaryCategory)
-    <x-admin.modal-form-wrapper name="edit-secondary-category" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="tree-edit-secondary-category" maxWidth="lg">
         <livewire:admin.data.items-and-categories.secondary-categories.edit :category="$editingSecondaryCategory" :key="'secondary-'.$editingSecondaryCategory->id" />
     </x-admin.modal-form-wrapper>
     @endif
 
     <!-- Edit Item Modal -->
     @if($editingItem)
-    <x-admin.modal-form-wrapper name="edit-item" maxWidth="lg">
+    <x-admin.modal-form-wrapper name="tree-edit-item" maxWidth="lg">
         <livewire:admin.data.items-and-categories.items-catalog.edit :item="$editingItem" :key="'item-'.$editingItem->id" />
     </x-admin.modal-form-wrapper>
     @endif
