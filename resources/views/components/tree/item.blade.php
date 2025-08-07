@@ -95,6 +95,18 @@
                     <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" />
                     {{ $addText }}
                 </a>
+            @elseif($addClick)
+                <button
+                    @class([
+                        'inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50',
+                        'text-sm' => $isTopLevel,
+                        'text-xs' => !$isTopLevel,
+                    ])
+                    wire:click.stop="{{ $addClick }}"
+                >
+                    <x-flux::icon.plus class="-ml-0.5 mr-1.5 h-4 w-4" />
+                    {{ $addText }}
+                </button>
             @endif
             @if($editClick)
                 <button

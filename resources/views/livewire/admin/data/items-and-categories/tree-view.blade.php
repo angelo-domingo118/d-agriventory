@@ -14,6 +14,7 @@ new class extends Component {
     public ?PrimaryCategory $editingPrimaryCategory = null;
     public ?SecondaryCategory $editingSecondaryCategory = null;
     public ?ItemsCatalog $editingItem = null;
+    public ?PrimaryCategory $creatingForPrimary = null;
 
     public function mount(): void
     {
@@ -22,6 +23,12 @@ new class extends Component {
         }
     }
 
+    public function createSecondaryCategory(int $primaryCategoryId): void
+    {
+        $this->creatingForPrimary = PrimaryCategory::findOrFail($primaryCategoryId);
+        Flux::modal('create-secondary-category')->show();
+    }
+    
     public function editPrimaryCategory(int $id): void
     {
         $this->editingPrimaryCategory = PrimaryCategory::findOrFail($id);
@@ -183,7 +190,7 @@ new class extends Component {
             :title="$primary->name"
             :subtitle="$primary->secondary_categories_count . ' secondary categories'"
             :edit-click="'editPrimaryCategory('.$primary->id.')'"
-            add-modal-name="create-secondary-category"
+            :add-click="'createSecondaryCategory('.$primary->id.')'"
             add-text="Add Secondary"
             :has-children="$primary->secondary_categories_count > 0"
             :search-terms="[$this->search]"
@@ -221,6 +228,16 @@ new class extends Component {
         </x-tree.item>
     @endforeach
     </x-tree.index>
+
+    <!-- Create Secondary Category Modal -->
+    @if($creatingForPrimary)
+        <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.secondary-categories.create 
+                :primaryCategoryId="$creatingForPrimary->id" 
+                :key="'create-secondary-for-'.$creatingForPrimary->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
 
     <!-- Edit Primary Category Modal -->
     @if($editingPrimaryCategory)

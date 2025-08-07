@@ -13,10 +13,14 @@ new class extends Component {
     public ?int $primary_category_id = null;
     public string $description = '';
 
-    public function mount(): void
+    public function mount(?int $primaryCategoryId = null): void
     {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
+        }
+
+        if ($primaryCategoryId) {
+            $this->primary_category_id = $primaryCategoryId;
         }
     }
 
