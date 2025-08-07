@@ -40,24 +40,15 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <form wire:submit="save">
-    <!-- Breadcrumbs -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <flux:breadcrumbs class="text-2xl font-semibold">
-                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item :href="route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Suppliers & Contracts</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create Supplier</flux:breadcrumbs.item>
-            </flux:breadcrumbs>
-        </div>
-    </div>
-
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                    Create New Supplier
-                </h1>
+                <flux:breadcrumbs class="text-2xl font-semibold">
+                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Data</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.data.suppliers-and-contracts', ['currentTab' => 'suppliers'])" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Suppliers & Contracts</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create New Supplier</flux:breadcrumbs.item>
+                </flux:breadcrumbs>
                 <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
                     Add a new supplier to the system.
                 </p>
