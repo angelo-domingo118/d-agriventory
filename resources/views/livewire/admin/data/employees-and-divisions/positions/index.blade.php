@@ -4,14 +4,14 @@ use App\Models\Position;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?Position $editing = null;
-    public bool $showCreateModal = false;
+
     
     // View and filter state
     public string $search = '';
@@ -58,29 +58,13 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->paginate($this->perPage);
     }
 
-    public function newPosition(): void
+    #[On('position-created')]
+    public function refreshPositions(): void
     {
-        $this->editing = new Position();
-        $this->showCreateModal = true;
-    }
-
-    public function edit(Position $position): void
-    {
-        $this->editing = $position;
-        $this->showCreateModal = true;
-    }
-
-    public function save(): void
-    {
-        $validated = $this->validate([
-            'editing.title' => ['required', 'string', 'max:255', Rule::unique('positions', 'title')->ignore($this->editing->id)],
-        ]);
-
-        $this->editing->save();
-
-        $this->showCreateModal = false;
-        $this->dispatch('position-saved');
-        session()->flash('success', 'Position saved successfully.');
+        // Force refresh of computed property and reset to first page
+        unset($this->positions);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
 
     public function with(): array
@@ -122,9 +106,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <a href="{{ route('admin.data.employees-and-divisions.positions.create', ['view' => 'table']) }}" wire:navigate>
-                <flux:button as="span" variant="primary">New Position</flux:button>
-            </a>
+            <flux:modal.trigger name="create-position">
+                <flux:button variant="primary">New Position</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
     
@@ -212,25 +196,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{ $positions->links() }}
     </div>
 
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Position
-                </x-slot:title>
-
-                <div class="space-y-4 p-6">
-                    <flux:input wire:model="editing.title" label="Title" required />
-                </div>
-
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
+    <!-- Create Position Modal -->
+    <x-admin.modal-form-wrapper name="create-position" maxWidth="lg">
+        <livewire:admin.data.employees-and-divisions.positions.create />
+    </x-admin.modal-form-wrapper>
 </div> 

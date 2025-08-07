@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?SecondaryCategory $editing = null;
-    public bool $showCreateModal = false;
+
     
     // View and filter state
     public string $search = '';
@@ -89,31 +89,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         return PrimaryCategory::orderBy('name')->get();
     }
 
-    public function newCategory(): void
+    #[On('secondary-category-created')]
+    public function refreshCategories(): void
     {
-        $this->editing = new SecondaryCategory();
-        $this->showCreateModal = true;
-    }
-
-    public function edit(SecondaryCategory $category): void
-    {
-        $this->editing = $category;
-        $this->showCreateModal = true;
-    }
-
-    public function save(): void
-    {
-        $validated = $this->validate([
-            'editing.name' => ['required', 'string', 'max:255', Rule::unique('secondary_categories', 'name')->ignore($this->editing->id)],
-            'editing.code' => ['required', 'string', 'max:50', Rule::unique('secondary_categories', 'code')->ignore($this->editing->id)],
-            'editing.primary_category_id' => ['required', 'integer', Rule::exists('primary_categories', 'id')],
-        ]);
-
-        $this->editing->save();
-
-        $this->showCreateModal = false;
-        $this->dispatch('category-saved');
-        session()->flash('success', 'Secondary category saved successfully.');
+        // Force refresh of computed property and reset to first page
+        unset($this->categories);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
 
     #[Computed]
@@ -173,9 +155,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <a href="{{ route('admin.data.items-and-categories.secondary-categories.create', ['view' => 'table']) }}" wire:navigate>
-                <flux:button as="span" variant="primary">New Category</flux:button>
-            </a>
+            <flux:modal.trigger name="create-secondary-category">
+                <flux:button variant="primary">New Category</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
 
@@ -296,34 +278,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{ $categories->links() }}
     </div>
 
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal wire:model.live="showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Secondary Category
-                </x-slot:title>
-
-                <div class="space-y-4 p-6">
-                    <flux:select wire:model="editing.primary_category_id" label="Primary Category" required>
-                        <option value="">Select a primary category</option>
-                        @foreach($this->primaryCategories as $pCat)
-                            <option value="{{ $pCat->id }}">{{ $pCat->name }}</option>
-                        @endforeach
-                    </flux:select>
-                    <flux:input wire:model="editing.name" label="Name" required />
-                    <flux:input wire:model="editing.code" label="Code" required />
-                </div>
-
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
+    <!-- Create Secondary Category Modal -->
+    <x-admin.modal-form-wrapper name="create-secondary-category" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.secondary-categories.create />
+    </x-admin.modal-form-wrapper>
 </div> 
 <script>
     document.addEventListener('alpine:init', () => {

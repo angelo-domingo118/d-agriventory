@@ -4,14 +4,14 @@ use App\Models\Supplier;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?Supplier $editing = null;
-    public bool $showCreateModal = false;
+
 
     // View state
     public string $search = '';
@@ -56,33 +56,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         // No filters to reset yet
     }
 
-    public function newSupplier(): void
+    #[On('supplier-created')]
+    public function refreshSuppliers(): void
     {
-        $this->editing = new Supplier();
-        $this->showCreateModal = true;
-    }
-
-    public function edit(Supplier $supplier): void
-    {
-        $this->editing = $supplier;
-        $this->showCreateModal = true;
-    }
-
-    public function save(): void
-    {
-        $this->validate([
-            'editing.name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($this->editing->id)],
-            'editing.address' => ['nullable', 'string', 'max:255'],
-            'editing.contact_person' => ['nullable', 'string', 'max:255'],
-            'editing.email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->ignore($this->editing->id)],
-            'editing.phone' => ['nullable', 'string', 'max:50'],
-        ]);
-
-        $this->editing->save();
-
-        $this->showCreateModal = false;
-        $this->dispatch('supplier-saved');
-        session()->flash('success', 'Supplier saved successfully.');
+        // Force refresh of computed property and reset to first page
+        unset($this->suppliers);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
     
     public function sortBy(string $field): void
@@ -145,9 +125,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <a href="{{ route('admin.data.suppliers-and-contracts.suppliers.create', ['view' => 'table']) }}" wire:navigate>
-                <flux:button as="span" variant="primary">New Supplier</flux:button>
-            </a>
+            <flux:modal.trigger name="create-supplier">
+                <flux:button variant="primary">New Supplier</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
     
@@ -264,62 +244,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="xl" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit' : 'Create' }} Supplier
-                </x-slot:title>
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <flux:input
-                            wire:model="editing.name"
-                            label="Supplier Name"
-                            placeholder="Enter supplier name"
-                        />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:textarea
-                            wire:model="editing.address"
-                            label="Address"
-                            placeholder="Enter address"
-                        />
-                    </div>
-                    <div>
-                        <flux:input
-                            wire:model="editing.contact_person"
-                            label="Contact Person"
-                            placeholder="Enter contact person name"
-                        />
-                    </div>
-                    <div>
-                        <flux:input
-                            wire:model="editing.phone"
-                            label="Phone Number"
-                            placeholder="Enter phone number"
-                        />
-                    </div>
-                    <div class="sm:col-span-2">
-                        <flux:input
-                            wire:model="editing.email"
-                            type="email"
-                            label="Email Address"
-                            placeholder="Enter email address"
-                        />
-                    </div>
-                </div>
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-3">
-                        <flux:button variant="ghost" @click="$wire.showCreateModal = false">Cancel</flux:button>
-                        <flux:button type="submit">
-                            {{ $editing->exists ? 'Update' : 'Create' }} Supplier
-                        </flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
+    <!-- Create Supplier Modal -->
+    <x-admin.modal-form-wrapper name="create-supplier" maxWidth="2xl">
+        <livewire:admin.data.suppliers-and-contracts.suppliers.create />
+    </x-admin.modal-form-wrapper>
 </div>
 
 <script>

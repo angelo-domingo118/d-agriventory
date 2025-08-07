@@ -4,6 +4,7 @@ use App\Models\Division;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
@@ -51,6 +52,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedPerPage(): void
     {
         $this->resetPage();
+    }
+
+    #[On('division-created')]
+    public function refreshDivisions(): void
+    {
+        // Force refresh of computed property and reset to first page
+        unset($this->divisions);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
 
     #[Computed]
@@ -115,7 +125,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.employees-and-divisions.divisions.create') . '?view=table'" variant="primary">New Division</flux:button>
+            <flux:modal.trigger name="create-division">
+                <flux:button variant="primary">New Division</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
     
@@ -222,6 +234,11 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4">
         {{ $divisions->links() }}
     </div>
+
+    <!-- Create Division Modal -->
+    <x-admin.modal-form-wrapper name="create-division" maxWidth="lg">
+        <livewire:admin.data.employees-and-divisions.divisions.create />
+    </x-admin.modal-form-wrapper>
 </div> 
 
 <script>

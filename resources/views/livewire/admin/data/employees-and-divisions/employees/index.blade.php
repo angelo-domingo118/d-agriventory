@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?Employee $editing = null;
-    public bool $showCreateModal = false;
+
 
     // View and filter state
     public string $search = '';
@@ -90,32 +90,13 @@ new #[Layout('components.layouts.app')] class extends Component {
         return Division::orderBy('name')->get();
     }
 
-    public function newEmployee(): void
+    #[On('employee-created')]
+    public function refreshEmployees(): void
     {
-        $this->editing = new Employee();
-        $this->showCreateModal = true;
-    }
-
-    public function edit(Employee $employee): void
-    {
-        $this->editing = $employee;
-        $this->showCreateModal = true;
-    }
-
-    public function save(): void
-    {
-        $this->validate([
-            'editing.name' => ['required', 'string', 'max:255'],
-            'editing.employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->editing?->id)],
-            'editing.position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
-            'editing.division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
-        ]);
-
-        $this->editing->save();
-
-        $this->showCreateModal = false;
-        $this->dispatch('employee-saved');
-        session()->flash('success', 'Employee saved successfully.');
+        // Force refresh of computed property and reset to first page
+        unset($this->employees);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
 
     public function with(): array
@@ -170,7 +151,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button :href="route('admin.data.employees-and-divisions.employees.create') . '?view=table'" variant="primary">New Employee</flux:button>
+            <flux:modal.trigger name="create-employee">
+                <flux:button variant="primary">New Employee</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
 
@@ -300,31 +283,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         {{ $employees->links() }}
     </div>
 
-    <!-- Create/Edit Modal -->
-    @if($editing)
-        <flux:modal :show="$showCreateModal" max-width="2xl" @close="$set('showCreateModal', false)">
-            <form wire:submit.prevent="save">
-                <x-slot:title>
-                    {{ $editing->exists ? 'Edit Employee' : 'Create Employee' }}
-                </x-slot:title>
-                <x-slot:description>
-                    {{ $editing->exists ? 'Update the details of the existing employee.' : 'Add a new employee to the records.' }}
-                </x-slot:description>
-                <div class="space-y-6">
-                    <flux:input wire:model="editing.name" label="Full Name" required />
-                    <flux:input wire:model="editing.employee_number" label="Employee Number" required />
-                    <flux:select wire:model="editing.position_id" label="Position" :options="$this->positions" placeholder="Select a position" option-value="id" option-label="title" required />
-                    <flux:select wire:model="editing.division_id" label="Division" :options="$this->divisions" placeholder="Select a division" option-value="id" option-label="name" required />
-                </div>
-                <x-slot:footer>
-                    <div class="flex justify-end gap-x-4">
-                        <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                        <flux:button type="submit" variant="primary">Save</flux:button>
-                    </div>
-                </x-slot:footer>
-            </form>
-        </flux:modal>
-    @endif
+    <!-- Create Employee Modal -->
+    <x-admin.modal-form-wrapper name="create-employee" maxWidth="xl">
+        <livewire:admin.data.employees-and-divisions.employees.create />
+    </x-admin.modal-form-wrapper>
 </div>
 
 <script>

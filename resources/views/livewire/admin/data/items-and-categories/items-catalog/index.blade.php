@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-    public ?ItemsCatalog $editing = null;
-    public bool $showCreateModal = false;
+
 
     // View and filter state
     public string $search = '';
@@ -115,37 +115,13 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
 
-    public function newItem(): void
+    #[On('item-created')]
+    public function refreshItems(): void
     {
-        $this->editing = new ItemsCatalog();
-        $this->showCreateModal = true;
-    }
-
-    public function edit(ItemsCatalog $item): void
-    {
-        $this->editing = $item;
-        $this->showCreateModal = true;
-    }
-
-    public function save(): void
-    {
-        $this->validate([
-            'editing.name' => ['required', 'string', 'max:255', Rule::unique('items_catalog', 'name')->ignore($this->editing->id)],
-            'editing.code' => ['required', 'string', 'max:50', Rule::unique('items_catalog', 'code')->ignore($this->editing->id)],
-            'editing.unit' => ['required', 'string', 'max:50'],
-            'editing.secondary_category_id' => ['required', 'integer', Rule::exists('secondary_categories', 'id')],
-        ]);
-
-        try {
-            $this->editing->save();
-
-            $this->showCreateModal = false;
-            $this->dispatch('item-saved');
-            session()->flash('success', 'Item saved successfully.');
-        } catch (\Exception $e) {
-            Log::error('Error saving item: ' . $e->getMessage());
-            session()->flash('error', 'There was an error saving the item. Please try again.');
-        }
+        // Force refresh of computed property and reset to first page
+        unset($this->items);
+        $this->resetPage();
+        $this->dispatch('$refresh');
     }
 
     public function with(): array
@@ -201,7 +177,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-flux::icon.filter class="h-5 w-5" />
                     <span class="sr-only">Toggle Filters</span>
                 </flux:button>
-                <flux:button :href="route('admin.data.items-and-categories.items-catalog.create') . '?view=table'" variant="primary">New Item</flux:button>
+                <flux:modal.trigger name="create-item">
+                <flux:button variant="primary">New Item</flux:button>
+            </flux:modal.trigger>
             </div>
         </div>
         
@@ -362,39 +340,10 @@ new #[Layout('components.layouts.app')] class extends Component {
             {{ $items->links() }}
         </div>
 
-        <!-- Create/Edit Modal -->
-        @if($editing)
-            <flux:modal :show="$showCreateModal" max-width="lg" @close="$set('showCreateModal', false)">
-                <form wire:submit.prevent="save">
-                    <x-slot:title>
-                        {{ $editing->exists ? 'Edit' : 'Create' }} Item
-                    </x-slot:title>
-
-                    <div class="space-y-4 p-6">
-                        <flux:select wire:model="editing.secondary_category_id" label="Secondary Category" required>
-                            <option value="">Select a category</option>
-                            @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                                <optgroup label="{{ $primaryName }}">
-                                    @foreach($secondaryGroup as $sCat)
-                                        <option value="{{ $sCat->id }}">{{ $sCat->name }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </flux:select>
-                        <flux:input wire:model="editing.name" label="Item Name" required />
-                        <flux:input wire:model="editing.code" label="Item Code" required />
-                        <flux:input wire:model="editing.unit" label="Unit of Measure" placeholder="e.g., piece, box, ream" required />
-                    </div>
-
-                    <x-slot:footer>
-                        <div class="flex justify-end gap-x-4">
-                            <flux:button variant="ghost" @click="$set('showCreateModal', false)">Cancel</flux:button>
-                            <flux:button type="submit" variant="primary">Save</flux:button>
-                        </div>
-                    </x-slot:footer>
-                </form>
-            </flux:modal>
-        @endif
+    <!-- Create Item Modal -->
+    <x-admin.modal-form-wrapper name="create-item" maxWidth="lg">
+        <livewire:admin.data.items-and-categories.items-catalog.create />
+    </x-admin.modal-form-wrapper>
     </div>
 </div>
 
