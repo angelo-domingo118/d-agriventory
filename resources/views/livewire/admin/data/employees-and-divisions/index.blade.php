@@ -33,7 +33,16 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
-<div x-data="{ currentTab: @entangle('currentTab'), view: '{{ request()->query('view', 'tree') }}' }">
+<div x-data="{ 
+    currentTab: @entangle('currentTab'), 
+    view: localStorage.getItem('employees_divisions_view') || '{{ request()->query('view', 'tree') }}',
+    init() {
+        // Watch for view changes and save to localStorage
+        this.$watch('view', value => {
+            localStorage.setItem('employees_divisions_view', value);
+        });
+    }
+}">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700 sm:flex sm:items-center sm:justify-between">
         <div>
             <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
