@@ -152,47 +152,47 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Audit Logs</flux:breadcrumbs.item>
             </flux:breadcrumbs>
         </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-x-2">
+            <div x-data="{ open: false }" class="relative">
+                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                    <x-flux::icon.settings-2 class="h-5 w-5" />
+                    <span class="sr-only">Toggle View Options</span>
+                </flux:button>
+
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </flux:select>
+                    </div>
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
+                        <flux:button variant="ghost" x-on:click="$dispatch('reset-column-widths')" class="w-full justify-center">
+                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                            Reset Column Widths
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
+            <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2">
+                <x-flux::icon.filter class="h-5 w-5" />
+                <span class="sr-only">Toggle Filters</span>
+            </flux:button>
+        </div>
     </div>
 
     <div x-data="tableResizer('audit_logs_column_widths', { user: 180, action: 120, table: 180, record: 100, description: 300, timestamp: 180, actions: 100 })">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-x-2">
-                <div x-data="{ open: false }" class="relative">
-                    <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
-                        <x-flux::icon.settings-2 class="h-5 w-5" />
-                        <span class="sr-only">Toggle View Options</span>
-                    </flux:button>
-    
-                    <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
-                        <div class="px-3 py-2">
-                            <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
-                            <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                                <option value="5">5</option>
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </flux:select>
-                        </div>
-                        <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                            <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                            <flux:button variant="ghost" x-on:click="$dispatch('reset-column-widths')" class="w-full justify-center">
-                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                                Reset Column Widths
-                            </flux:button>
-                        </div>
-                    </div>
-                </div>
-                <flux:button variant="outline" wire:click="$refresh" class="!p-2">
-                    <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
-                    <span class="sr-only">Refresh</span>
-                </flux:button>
-                <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2">
-                    <x-flux::icon.filter class="h-5 w-5" />
-                    <span class="sr-only">Toggle Filters</span>
-                </flux:button>
-            </div>
-        </div>
     
         <div x-show="$wire.showFilters" x-collapse class="mt-4">
             <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
