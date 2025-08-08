@@ -5,6 +5,7 @@ use App\Models\SecondaryCategory;
 use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -51,6 +52,14 @@ new class extends Component {
     {
         Flux::modal('create-secondary-category')->close();
         $this->reset(['name', 'code', 'primary_category_id', 'description']);
+    }
+
+    #[On('primary-category-created')]
+    #[On('primary-category-updated')]
+    #[On('primary-category-deleted')]
+    public function refreshPrimaryCategories(): void
+    {
+        unset($this->primaryCategories);
     }
 
     #[Computed]
