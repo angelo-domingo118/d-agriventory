@@ -20,6 +20,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'name';
     public string $sortDirection = 'asc';
     public string $density = 'spacious';
+    public string $textOverflow = 'nowrap';
     public ?Supplier $editingSupplier = null;
 
     public function mount(): void
@@ -127,6 +128,31 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                     </div>
 
+                    <!-- Text Overflow -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Text Overflow</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                @click="updateSetting('textOverflow', 'nowrap')" 
+                                class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'nowrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                No Wrap
+                            </button>
+                            <button 
+                                @click="updateSetting('textOverflow', 'wrap')" 
+                                class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $textOverflow === 'wrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Wrap Text
+                            </button>
+                            <button 
+                                @click="updateSetting('textOverflow', 'scroll')" 
+                                class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'scroll' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Scroll
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Items per Page -->
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
@@ -216,11 +242,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'compact' => 'text-xs',
                 default => 'text-sm',
             },
+            'text_overflow' => match($textOverflow) {
+                'wrap' => 'break-words',
+                'scroll' => 'whitespace-nowrap',
+                default => 'whitespace-nowrap truncate',
+            },
+            'table_wrapper' => match($textOverflow) {
+                'scroll' => 'overflow-x-auto',
+                default => 'overflow-hidden',
+            },
         ];
     @endphp
 
     <div class="mt-4 flow-root">
-        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+        <div class="{{ $densityClasses['table_wrapper'] }} rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                 <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
@@ -271,10 +306,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($suppliers as $supplier)
                         <tr wire:key="supplier-{{ $supplier->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">{{ $supplier->name }}</td>
-                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">{{ $supplier->contact_person }}</td>
-                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">{{ $supplier->email }}</td>
-                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">{{ $supplier->phone }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $supplier->name }}">{{ $supplier->name }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->contact_person }}">{{ $supplier->contact_person }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->email }}">{{ $supplier->email }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->phone }}">{{ $supplier->phone }}</td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editSupplier({{ $supplier->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                     <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
@@ -356,6 +391,21 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 window.addEventListener('mousemove', mouseMoveHandler);
                 window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+
+        Alpine.data('tableSettings', (storageKey) => ({
+            init() {
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                if (saved.density) this.$wire.density = saved.density;
+                if (saved.perPage) this.$wire.perPage = saved.perPage;
+                if (saved.textOverflow) this.$wire.textOverflow = saved.textOverflow;
+            },
+            updateSetting(key, value) {
+                this.$wire[key] = value;
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                saved[key] = value;
+                localStorage.setItem(storageKey, JSON.stringify(saved));
             }
         }));
     });
