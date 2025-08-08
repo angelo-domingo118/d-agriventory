@@ -443,6 +443,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-item-' . $editingItem->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Delete Confirmation Modal -->
+        <x-admin.delete-confirmation-modal 
+            name="delete-item-confirmation"
+            title="Delete Item"
+            item-type="item"
+            :item-name="$editingItem->name"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+            message="Deleting this item will also affect all associated specifications and inventory records."
+        />
     @endif
     </div>
 </div>

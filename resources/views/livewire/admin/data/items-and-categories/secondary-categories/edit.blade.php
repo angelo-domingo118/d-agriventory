@@ -6,6 +6,7 @@ use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -29,11 +30,8 @@ new class extends Component {
     }
 
     public function confirmDelete(): void
-    {
-        // Close the edit modal first to prevent stacking
-        Flux::modal('edit-secondary-category')->close();
-        
-        // Then show the delete confirmation modal
+    {        
+        // Show the delete confirmation modal
         Flux::modal('delete-secondary-category-confirmation')->show();
     }
 
@@ -41,9 +39,6 @@ new class extends Component {
     {
         // Close the delete confirmation modal
         Flux::modal('delete-secondary-category-confirmation')->close();
-        
-        // Re-open the edit modal so user can continue editing
-        Flux::modal('edit-secondary-category')->show();
     }
 
     public function save(): void
@@ -93,6 +88,18 @@ new class extends Component {
         Flux::modal('edit-secondary-category')->close();
     }
 
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
+    }
+
     #[Computed]
     public function primaryCategories()
     {
@@ -132,14 +139,5 @@ new class extends Component {
         </div>
     </form>
 
-    <!-- Delete Confirmation Modal -->
-    <x-admin.delete-confirmation-modal 
-        name="delete-secondary-category-confirmation"
-        title="Delete Secondary Category"
-        item-type="secondary category"
-        :item-name="$category->name"
-        delete-action="delete"
-        cancel-action="cancelDelete"
-        message="Deleting this secondary category will also affect all associated items."
-    />
+
 </div> 

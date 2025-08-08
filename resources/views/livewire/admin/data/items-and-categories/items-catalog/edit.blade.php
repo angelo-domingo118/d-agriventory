@@ -7,6 +7,7 @@ use App\Services\ToastService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -34,11 +35,8 @@ new class extends Component {
     }
 
     public function confirmDelete(): void
-    {
-        // Close the edit modal first to prevent stacking
-        Flux::modal('edit-item')->close();
-        
-        // Then show the delete confirmation modal
+    {        
+        // Show the delete confirmation modal
         Flux::modal('delete-item-confirmation')->show();
     }
 
@@ -46,9 +44,6 @@ new class extends Component {
     {
         // Close the delete confirmation modal
         Flux::modal('delete-item-confirmation')->close();
-        
-        // Re-open the edit modal so user can continue editing
-        Flux::modal('edit-item')->show();
     }
 
     #[Computed]
@@ -126,6 +121,18 @@ new class extends Component {
         Flux::modal('edit-item')->close();
     }
 
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
+    }
+
     public function with(): array
     {
         return [
@@ -171,14 +178,5 @@ new class extends Component {
         </div>
     </form>
 
-    <!-- Delete Confirmation Modal -->
-    <x-admin.delete-confirmation-modal 
-        name="delete-item-confirmation"
-        title="Delete Item"
-        item-type="item"
-        :item-name="$item->name"
-        delete-action="delete"
-        cancel-action="cancelDelete"
-        message="Deleting this item will also affect all associated specifications and inventory records."
-    />
+
 </div> 

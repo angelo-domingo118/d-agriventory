@@ -385,6 +385,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-category-' . $editingCategory->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Delete Confirmation Modal -->
+        <x-admin.delete-confirmation-modal 
+            name="delete-secondary-category-confirmation"
+            title="Delete Secondary Category"
+            item-type="secondary category"
+            :item-name="$editingCategory->name"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+            message="Deleting this secondary category will also affect all associated items."
+        />
     @endif
 </div> 
 <script>
