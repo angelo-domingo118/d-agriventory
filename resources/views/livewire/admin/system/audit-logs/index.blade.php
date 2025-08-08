@@ -16,6 +16,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $search = '';
     public bool $showFilters = false;
     public int $perPage = 10;
+    public string $density = 'spacious';
     
     public string $actionType = '';
     public string $tableName = '';
@@ -45,6 +46,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function updatedDateTo()
     {
         $this->resetPage();
+    }
+    
+    public function resetSorting(): void
+    {
+        $this->sortField = 'created_at';
+        $this->sortDirection = 'desc';
     }
     
     public function sortBy($field)
@@ -142,57 +149,105 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div>
-    <div class="flex items-center justify-between mb-4">
-        <!-- Breadcrumbs as Title -->
-        <div>
-            <flux:breadcrumbs class="text-2xl font-semibold">
-                <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
-                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Audit Logs</flux:breadcrumbs.item>
-            </flux:breadcrumbs>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex items-center gap-x-2">
-            <div x-data="{ open: false }" class="relative">
-                <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
-                    <x-flux::icon.settings-2 class="h-5 w-5" />
-                    <span class="sr-only">Toggle View Options</span>
-                </flux:button>
+<div x-data="{ 
+    showFilters: @entangle('showFilters'),
+    ...tableSettings('audit_logs_settings')
+}">
+    <div x-data="tableResizer('audit_logs_column_widths', { user: 180, action: 120, table: 180, record: 100, description: 300, timestamp: 180, actions: 100 })">
+        <div class="flex items-center justify-between mb-4">
+            <!-- Breadcrumbs as Title -->
+            <div>
+                <flux:breadcrumbs class="text-2xl font-semibold">
+                    <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">System</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Audit Logs</flux:breadcrumbs.item>
+                </flux:breadcrumbs>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-x-2">
+                <div x-data="{ open: false }" class="relative">
+                    <flux:button variant="outline" x-on:click="open = !open" class="!p-2">
+                        <x-flux::icon.settings-2 class="h-5 w-5" />
+                        <span class="sr-only">Toggle View Options</span>
+                    </flux:button>
+                    <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                        <!-- Density -->
+                        <div class="px-3 py-2">
+                            <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Density</div>
+                            <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                                <button 
+                                    @click="updateSetting('density', 'compact')" 
+                                    class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    Compact
+                                </button>
+                                <button 
+                                    @click="updateSetting('density', 'comfortable')" 
+                                    class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $density === 'comfortable' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    Comfortable
+                                </button>
+                                <button 
+                                    @click="updateSetting('density', 'spacious')" 
+                                    class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'spacious' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    Spacious
+                                </button>
+                            </div>
+                        </div>
 
-                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
-                    <div class="px-3 py-2">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="100">100</option>
-                        </flux:select>
-                    </div>
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button variant="ghost" x-on:click="$dispatch('reset-column-widths')" class="w-full justify-center">
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <!-- Items per Page -->
+                        <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                            <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                            <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                                @foreach ([5, 10, 25, 50, 100] as $count)
+                                    <button
+                                        @click="updateSetting('perPage', {{ $count }})"
+                                        class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                    >
+                                        {{ $count }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Table Customization -->
+                        <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                            <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                            <div class="space-y-2">
+                                <flux:button
+                                    variant="outline"
+                                    x-on:click="$dispatch('reset-column-widths')"
+                                    class="w-full justify-center"
+                                >
+                                    <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                    Reset Column Widths
+                                </flux:button>
+                                <flux:button
+                                    variant="outline"
+                                    wire:click="resetSorting"
+                                    class="w-full justify-center"
+                                >
+                                    <div class="flex items-center">
+                                        <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                        Reset Sort Order
+                                    </div>
+                                </flux:button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <flux:button variant="outline" wire:click="$refresh" class="!p-2">
+                    <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
+                    <span class="sr-only">Refresh</span>
+                </flux:button>
+                <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2">
+                    <x-flux::icon.filter class="h-5 w-5" />
+                    <span class="sr-only">Toggle Filters</span>
+                </flux:button>
             </div>
-            <flux:button variant="outline" wire:click="$refresh" class="!p-2">
-                <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
-                <span class="sr-only">Refresh</span>
-            </flux:button>
-            <flux:button variant="outline" x-on:click="$wire.showFilters = !$wire.showFilters" class="!p-2">
-                <x-flux::icon.filter class="h-5 w-5" />
-                <span class="sr-only">Toggle Filters</span>
-            </flux:button>
         </div>
-    </div>
-
-    <div x-data="tableResizer('audit_logs_column_widths', { user: 180, action: 120, table: 180, record: 100, description: 300, timestamp: 180, actions: 100 })">
     
         <div x-show="$wire.showFilters" x-collapse class="mt-4">
             <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
@@ -263,6 +318,29 @@ new #[Layout('components.layouts.app')] class extends Component {
                 />
             </div>
         </div>
+
+        @php
+            $densityClasses = [
+                'table_header' => match($density) {
+                    'compact' => 'py-2 px-4',
+                    'comfortable' => 'py-2.5 px-4',
+                    default => 'py-3 px-4',
+                },
+                'table_cell' => match($density) {
+                    'compact' => 'py-2 px-4',
+                    'comfortable' => 'py-3 px-4',
+                    default => 'py-4 px-4',
+                },
+                'text_header' => match($density) {
+                    'compact' => 'text-xs',
+                    default => 'text-xs',
+                },
+                'text_base' => match($density) {
+                    'compact' => 'text-xs',
+                    default => 'text-sm',
+                },
+            ];
+        @endphp
     
         <div class="mt-4 flow-root">
             <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -271,7 +349,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
                             <thead class="bg-stone-50 dark:bg-stone-800">
                                 <tr class="divide-x divide-stone-200 dark:divide-stone-700">
-                                    <th scope="col" :style="`width: ${columnWidths.user}px`" class="relative py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-stone-900 dark:text-stone-100 sm:pl-6">
+                                    <th scope="col" :style="`width: ${columnWidths.user}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         <div wire:click="sortBy('user_id')" class="flex items-center cursor-pointer">
                                             User
                                             @if($sortField === 'user_id')
@@ -282,7 +360,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'user')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.action}px`" class="relative px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.action}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         <div wire:click="sortBy('action_type')" class="flex items-center cursor-pointer">
                                             Action
                                             @if($sortField === 'action_type')
@@ -293,7 +371,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'action')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.table}px`" class="relative px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.table}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         <div wire:click="sortBy('table_name')" class="flex items-center cursor-pointer">
                                             Table
                                             @if($sortField === 'table_name')
@@ -304,7 +382,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'table')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.record}px`" class="relative px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.record}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         <div wire:click="sortBy('record_id')" class="flex items-center cursor-pointer">
                                             Record ID
                                             @if($sortField === 'record_id')
@@ -315,11 +393,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'record')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.description}px`" class="relative px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.description}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         Description
                                         <div @mousedown="startResize($event, 'description')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.timestamp}px`" class="relative px-3 py-3.5 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.timestamp}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         <div wire:click="sortBy('created_at')" class="flex items-center cursor-pointer">
                                             Timestamp
                                             @if($sortField === 'created_at')
@@ -330,15 +408,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'timestamp')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative py-3.5 pl-3 pr-4 sm:pr-6 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                    <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                                 @forelse ($auditLogs as $log)
-                                    <tr wire:key="{{ $log->id }}" class="divide-x divide-stone-200 dark:divide-stone-700">
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                                    <tr wire:key="{{ $log->id }}" class="divide-x divide-stone-200 dark:divide-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }}">
                                             @if($log->user)
                                                 <div class="flex items-center">
                                                     <div class="h-8 w-8 flex-shrink-0">
@@ -355,30 +433,30 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="text-stone-500 dark:text-stone-400 italic">System</span>
                                             @endif
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 {{ $this->getActionTypeBadgeClass($log->action_type) }}">
                                                 {{ $log->action_type }}
                                             </span>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100">
+                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100">
                                             <div class="font-medium">{{ $this->formatTableName($log->table_name) }}</div>
                                             <div class="text-stone-500 dark:text-stone-400 text-xs">{{ $log->table_name }}</div>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-stone-900 dark:text-stone-100">
+                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100">
                                             <span class="font-mono bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded text-xs">
                                                 {{ $log->record_id }}
                                             </span>
                                         </td>
-                                        <td class="px-3 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                        <td class="{{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             <div class="max-w-xs truncate" title="{{ $log->description }}">
                                                 {{ $log->description ?: 'No description' }}
                                             </div>
                                         </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-stone-500 dark:text-stone-400">
+                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             <div class="text-stone-900 dark:text-stone-100">{{ $log->created_at->format('M j, Y') }}</div>
                                             <div class="text-stone-500 dark:text-stone-400 text-xs">{{ $log->created_at->format('g:i A') }}</div>
                                         </td>
-                                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                        <td class="relative whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                             <div x-data="{ open: false }" class="relative">
                                                 <flux:button variant="ghost" x-on:click="open = !open" class="!p-2">
                                                     <x-flux::icon.eye class="h-4 w-4" />
@@ -413,7 +491,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="whitespace-nowrap px-3 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                                        <td colspan="7" class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             <div class="flex flex-col items-center">
                                                 <x-flux::icon.document-text class="h-12 w-12 text-stone-400 dark:text-stone-500 mb-3" />
                                                 <p class="text-lg font-medium text-stone-900 dark:text-stone-100 mb-1">No audit logs found</p>
@@ -429,7 +507,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </div>
         
-        <div class="mt-4">
+                <div class="mt-4">
             {{ $auditLogs->links() }}
         </div>
     </div>
@@ -445,7 +523,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             init() {
                 const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 this.columnWidths = { ...defaultWidths, ...storedWidths };
-
+                
                 this.$root.addEventListener('reset-column-widths', () => {
                     this.columnWidths = { ...defaultWidths };
                     localStorage.removeItem(storageKey);
@@ -476,6 +554,20 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 window.addEventListener('mousemove', mouseMoveHandler);
                 window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+
+        Alpine.data('tableSettings', (storageKey) => ({
+            init() {
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                if (saved.density) this.$wire.density = saved.density;
+                if (saved.perPage) this.$wire.perPage = saved.perPage;
+            },
+            updateSetting(key, value) {
+                this.$wire[key] = value;
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                saved[key] = value;
+                localStorage.setItem(storageKey, JSON.stringify(saved));
             }
         }));
     });
