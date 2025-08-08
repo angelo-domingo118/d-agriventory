@@ -17,6 +17,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public bool $showFilters = false;
     public int $perPage = 10;
     public string $density = 'spacious';
+    public string $textOverflow = 'nowrap';
     
     public string $actionType = '';
     public string $tableName = '';
@@ -194,10 +195,35 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 >
                                     Spacious
                                 </button>
-                            </div>
-                        </div>
+                                                    </div>
+                    </div>
 
-                        <!-- Items per Page -->
+                    <!-- Text Overflow -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Text Overflow</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                @click="updateSetting('textOverflow', 'nowrap')" 
+                                class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'nowrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                No Wrap
+                            </button>
+                            <button 
+                                @click="updateSetting('textOverflow', 'wrap')" 
+                                class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $textOverflow === 'wrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Wrap Text
+                            </button>
+                            <button 
+                                @click="updateSetting('textOverflow', 'scroll')" 
+                                class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'scroll' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Scroll
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Items per Page -->
                         <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                             <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
                             <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
@@ -339,11 +365,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'compact' => 'text-xs',
                     default => 'text-sm',
                 },
+                'text_overflow' => match($textOverflow) {
+                    'wrap' => 'break-words',
+                    'scroll' => 'whitespace-nowrap',
+                    default => 'whitespace-nowrap truncate',
+                },
+                'table_wrapper' => match($textOverflow) {
+                    'scroll' => 'overflow-x-auto',
+                    default => 'overflow-x-auto',
+                },
             ];
         @endphp
     
         <div class="mt-4 flow-root">
-            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="-mx-4 -my-2 {{ $densityClasses['table_wrapper'] }} sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
                         <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
@@ -416,7 +451,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                                 @forelse ($auditLogs as $log)
                                     <tr wire:key="{{ $log->id }}" class="divide-x divide-stone-200 dark:divide-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }}">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }}" title="@if($log->user){{ $log->user->name }} ({{ $log->user->username }})@else System @endif">
                                             @if($log->user)
                                                 <div class="flex items-center">
                                                     <div class="h-8 w-8 flex-shrink-0">
@@ -433,26 +468,26 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="text-stone-500 dark:text-stone-400 italic">System</span>
                                             @endif
                                         </td>
-                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $log->action_type }}">
                                             <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 {{ $this->getActionTypeBadgeClass($log->action_type) }}">
                                                 {{ $log->action_type }}
                                             </span>
                                         </td>
-                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100" title="{{ $this->formatTableName($log->table_name) }} ({{ $log->table_name }})">
                                             <div class="font-medium">{{ $this->formatTableName($log->table_name) }}</div>
                                             <div class="text-stone-500 dark:text-stone-400 text-xs">{{ $log->table_name }}</div>
                                         </td>
-                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100" title="{{ $log->record_id }}">
                                             <span class="font-mono bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded text-xs">
                                                 {{ $log->record_id }}
                                             </span>
                                         </td>
-                                        <td class="{{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
-                                            <div class="max-w-xs truncate" title="{{ $log->description }}">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $log->description }}">
+                                            <div>
                                                 {{ $log->description ?: 'No description' }}
                                             </div>
                                         </td>
-                                        <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $log->created_at->format('Y-m-d H:i:s T') }}">
                                             <div class="text-stone-900 dark:text-stone-100">{{ $log->created_at->format('M j, Y') }}</div>
                                             <div class="text-stone-500 dark:text-stone-400 text-xs">{{ $log->created_at->format('g:i A') }}</div>
                                         </td>
@@ -562,6 +597,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 if (saved.density) this.$wire.density = saved.density;
                 if (saved.perPage) this.$wire.perPage = saved.perPage;
+                if (saved.textOverflow) this.$wire.textOverflow = saved.textOverflow;
             },
             updateSetting(key, value) {
                 this.$wire[key] = value;
