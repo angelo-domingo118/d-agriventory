@@ -377,15 +377,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             />
         </x-admin.modal-form-wrapper>
 
-        <!-- Delete Confirmation Modal -->
-        <x-admin.delete-confirmation-modal 
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.primary-category-delete-modal 
             name="delete-primary-category-confirmation"
-            title="Delete Primary Category"
-            item-type="primary category"
-            :item-name="$editingCategory->name"
+            :category="$editingCategory"
             delete-action="$dispatch('call-delete')"
             cancel-action="$dispatch('call-cancel-delete')"
-            message="Deleting this primary category will also affect all associated secondary categories and items."
         />
     @endif
 </div> 

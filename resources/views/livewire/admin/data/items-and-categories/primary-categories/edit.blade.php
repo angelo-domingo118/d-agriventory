@@ -2,6 +2,7 @@
 
 use App\Models\PrimaryCategory;
 use App\Services\ToastService;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
@@ -56,23 +57,44 @@ new class extends Component {
 
     public function delete(): void
     {
-        if ($this->category->secondaryCategories()->exists()) {
-            // Show error toast
-            ToastService::relationshipError($this);
-            // Close the confirmation modal
+        try {
+            // Check if there are associations and force delete them
+            if (!$this->category->canBeDeletedSafely()) {
+                $impact = $this->category->getDeletionImpact();
+                
+                // Use force delete to remove all associations
+                $this->category->forceDeleteWithAssociations();
+                
+                // Show specific success message about what was deleted
+                $message = 'Primary category deleted successfully';
+                if ($impact['has_associated_data']) {
+                    $parts = [];
+                    if ($impact['secondary_categories'] > 0) {
+                        $parts[] = $impact['secondary_categories'] . ' secondary ' . Str::plural('category', $impact['secondary_categories']);
+                    }
+                    if ($impact['items'] > 0) {
+                        $parts[] = $impact['items'] . ' catalog ' . Str::plural('item', $impact['items']);
+                    }
+                    $message .= ' along with ' . implode(' and ', $parts);
+                }
+                
+                ToastService::success($this, $message . '.');
+            } else {
+                // Safe to delete normally
+                $this->category->delete();
+                ToastService::deleted($this, 'Primary category');
+            }
+
+            // Close both modals and refresh the parent component
             Flux::modal('delete-primary-category-confirmation')->close();
-            return;
+            Flux::modal('edit-primary-category')->close();
+            $this->dispatch('primary-category-deleted');
+            
+        } catch (\Exception $e) {
+            // Handle any errors during deletion
+            ToastService::error($this, 'An error occurred while deleting the primary category. Please try again.');
+            Flux::modal('delete-primary-category-confirmation')->close();
         }
-
-        $this->category->delete();
-
-        // Show success toast
-        ToastService::deleted($this, 'Primary category');
-
-        // Close both modals and refresh the parent component
-        Flux::modal('delete-primary-category-confirmation')->close();
-        Flux::modal('edit-primary-category')->close();
-        $this->dispatch('primary-category-deleted');
     }
 
     public function cancel(): void
