@@ -28,8 +28,8 @@ new class extends Component {
     public function save(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('items_catalog', 'name')],
-            'code' => ['required', 'string', 'max:50', Rule::unique('items_catalog', 'code')],
+            'name' => ['required', 'string', 'max:255', Rule::unique('items_catalog', 'name')->whereNull('deleted_at')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('items_catalog', 'code')->whereNull('deleted_at')],
             'unit' => ['required', 'string', 'max:50'],
             'secondary_category_id' => ['required', 'integer', Rule::exists('secondary_categories', 'id')],
         ]);

@@ -44,8 +44,8 @@ new class extends Component {
     public function save(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('primary_categories', 'name')->ignore($this->category->id)],
-            'code' => ['required', 'string', 'max:50', Rule::unique('primary_categories', 'code')->ignore($this->category->id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('primary_categories', 'name')->ignore($this->category->id)->whereNull('deleted_at')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('primary_categories', 'code')->ignore($this->category->id)->whereNull('deleted_at')],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
