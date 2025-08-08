@@ -32,14 +32,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage this data.');
         }
-
-        $this->density = session('contracts_density', 'spacious');
-    }
-
-    public function setDensity(string $density): void
-    {
-        $this->density = $density;
-        session(['contracts_density' => $density]);
     }
 
     public function resetSorting(): void
@@ -103,7 +95,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="tableResizer('contracts_widths', { contract_number: 300, supplier: 250, items: 150, date: 180, actions: 100 })">
+<div x-data="{ 
+    ...tableResizer('contracts_widths', { contract_number: 300, supplier: 250, items: 150, date: 180, actions: 100 }),
+    ...tableSettings('contracts_settings')
+}">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Contracts
@@ -120,19 +115,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Density</div>
                         <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
                             <button 
-                                wire:click="setDensity('compact')" 
+                                @click="updateSetting('density', 'compact')" 
                                 class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                             >
                                 Compact
                             </button>
                             <button 
-                                wire:click="setDensity('comfortable')" 
+                                @click="updateSetting('density', 'comfortable')" 
                                 class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $density === 'comfortable' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                             >
                                 Comfortable
                             </button>
                             <button 
-                                wire:click="setDensity('spacious')" 
+                                @click="updateSetting('density', 'spacious')" 
                                 class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'spacious' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                             >
                                 Spacious
@@ -146,7 +141,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
                             @foreach ([5, 10, 25, 50] as $count)
                                 <button
-                                    wire:click="$set('perPage', {{ $count }})"
+                                    @click="updateSetting('perPage', {{ $count }})"
                                     class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
                                 >
                                     {{ $count }}
