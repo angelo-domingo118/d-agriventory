@@ -4,6 +4,7 @@ use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
 use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -62,25 +63,37 @@ new class extends Component {
 
     public function delete(): void
     {
-        DB::transaction(function () {
-            // Check if there are items in this category
-            if ($this->category->items()->exists()) {
-                ToastService::relationshipError($this);
-                // Close the confirmation modal
-                Flux::modal('delete-secondary-category-confirmation')->close();
-                return;
+        try {
+            // Check if there are associations and force delete them
+            if (!$this->category->canBeDeletedSafely()) {
+                $impact = $this->category->getDeletionImpact();
+                
+                // Use force delete to remove all associations
+                $this->category->forceDeleteWithAssociations();
+                
+                // Show specific success message about what was deleted
+                $message = 'Secondary category deleted successfully';
+                if ($impact['has_associated_data']) {
+                    $message .= ' along with ' . $impact['items'] . ' catalog ' . Str::plural('item', $impact['items']);
+                }
+                
+                ToastService::success($this, $message . '.');
+            } else {
+                // Safe to delete normally
+                $this->category->delete();
+                ToastService::deleted($this, 'Secondary category');
             }
 
-            $this->category->delete();
-            
-            // Show success toast
-            ToastService::deleted($this, 'Secondary category');
-            
             // Close both modals and refresh the parent component
             Flux::modal('delete-secondary-category-confirmation')->close();
             Flux::modal('edit-secondary-category')->close();
             $this->dispatch('secondary-category-deleted');
-        });
+            
+        } catch (\Exception $e) {
+            // Handle any errors during deletion
+            ToastService::error($this, 'An error occurred while deleting the secondary category. Please try again.');
+            Flux::modal('delete-secondary-category-confirmation')->close();
+        }
     }
 
     public function cancel(): void

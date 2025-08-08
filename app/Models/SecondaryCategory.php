@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class SecondaryCategory extends Model
 {
@@ -39,5 +40,40 @@ class SecondaryCategory extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ItemsCatalog::class);
+    }
+
+    /**
+     * Get deletion impact statistics.
+     */
+    public function getDeletionImpact(): array
+    {
+        $itemsCount = $this->items()->count();
+
+        return [
+            'items' => $itemsCount,
+            'has_associated_data' => $itemsCount > 0,
+        ];
+    }
+
+    /**
+     * Force delete this secondary category and all associated data.
+     */
+    public function forceDeleteWithAssociations(): bool
+    {
+        return DB::transaction(function () {
+            // Delete all catalog items in this secondary category
+            $this->items()->delete();
+
+            // Finally delete the secondary category
+            return $this->delete();
+        });
+    }
+
+    /**
+     * Check if this category can be safely deleted (has no associations).
+     */
+    public function canBeDeletedSafely(): bool
+    {
+        return !$this->items()->exists();
     }
 }

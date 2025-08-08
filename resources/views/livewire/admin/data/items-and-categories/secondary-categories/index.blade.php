@@ -127,6 +127,19 @@ new #[Layout('components.layouts.app')] class extends Component {
         return $this->filterPrimaryCategory !== null;
     }
 
+    #[Computed]
+    public function editingCategoryDeletionImpact(): array
+    {
+        if (!$this->editingCategory) {
+            return [
+                'items' => 0,
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingCategory->getDeletionImpact();
+    }
+
     public function with(): array
     {
         return [
@@ -421,15 +434,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             />
         </x-admin.modal-form-wrapper>
 
-        <!-- Delete Confirmation Modal -->
-        <x-admin.delete-confirmation-modal 
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
             name="delete-secondary-category-confirmation"
             title="Delete Secondary Category"
-            item-type="secondary category"
-            :item-name="$editingCategory->name"
+            entity-type="secondary category"
+            :entity-name="$editingCategory->name"
+            :association-counts="[
+                'catalog items' => $this->editingCategoryDeletionImpact['items']
+            ]"
+            :has-associated-data="$this->editingCategoryDeletionImpact['has_associated_data']"
             delete-action="$dispatch('call-delete')"
             cancel-action="$dispatch('call-cancel-delete')"
-            message="Deleting this secondary category will also affect all associated items."
         />
     @endif
 </div> 
