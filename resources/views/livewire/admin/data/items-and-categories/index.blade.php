@@ -4,7 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public string $currentTab = 'items';
+    public string $currentTab = 'primary';
 
     public function mount()
     {
@@ -12,7 +12,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403, 'You do not have permission to manage this data.');
         }
 
-        $this->currentTab = request()->query('currentTab', 'items');
+        $this->currentTab = request()->query('currentTab', 'primary');
     }
 
     public function setTab(string $tab): void
@@ -79,33 +79,33 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div x-show="view === 'table'" x-cloak>
             <div class="border-b border-stone-200 dark:border-stone-700">
                 <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button @click="currentTab = 'items'"
-                       :class="currentTab === 'items' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
+                    <button @click="currentTab = 'primary'"
+                       :class="currentTab === 'primary' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
-                        Items Catalog
+                        Primary Categories
                     </button>
                     <button @click="currentTab = 'secondary'"
                        :class="currentTab === 'secondary' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
                         Secondary Categories
                     </button>
-                     <button @click="currentTab = 'primary'"
-                       :class="currentTab === 'primary' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
+                     <button @click="currentTab = 'items'"
+                       :class="currentTab === 'items' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
-                        Primary Categories
+                        Items Catalog
                     </button>
                 </nav>
             </div>
 
             <div class="mt-8">
-                <div x-show="currentTab === 'items'" x-cloak>
-                    <livewire:admin.data.items-and-categories.items-catalog.index />
-                </div>
+                <div x-show="currentTab === 'primary'" x-cloak>
+                   <livewire:admin.data.items-and-categories.primary-categories.index />
+               </div>
                 <div x-show="currentTab === 'secondary'" x-cloak>
                     <livewire:admin.data.items-and-categories.secondary-categories.index />
                 </div>
-                 <div x-show="currentTab === 'primary'" x-cloak>
-                    <livewire:admin.data.items-and-categories.primary-categories.index />
+                 <div x-show="currentTab === 'items'" x-cloak>
+                    <livewire:admin.data.items-and-categories.items-catalog.index />
                 </div>
             </div>
         </div>
