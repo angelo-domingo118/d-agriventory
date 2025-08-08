@@ -17,6 +17,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public bool $showFilters = false;
     public string $view = 'table';
     public string $density = 'spacious';
+    public string $textOverflow = 'nowrap';
     public int $perPage = 10;
 
     // Filter properties
@@ -91,6 +92,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
         $this->view = session('idr_view_mode', 'table');
         $this->density = session('idr_density', 'spacious');
+        $this->textOverflow = session('idr_text_overflow', 'nowrap');
 
         $defaultColumns = [];
         foreach ($this->columnGroups as $group) {
@@ -116,6 +118,12 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->density = $density;
         session(['idr_density' => $density]);
+    }
+
+    public function setTextOverflow(string $textOverflow): void
+    {
+        $this->textOverflow = $textOverflow;
+        session(['idr_text_overflow' => $textOverflow]);
     }
 
     public function sortBy(string $column): void
@@ -329,6 +337,32 @@ new #[Layout('components.layouts.app')] class extends Component {
                              <button wire:click="setDensity('spacious')" class="-ml-px flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'spacious' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">Spacious</button>
                         </div>
                     </div>
+
+                    <!-- Text Overflow -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Text Overflow</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                wire:click="setTextOverflow('nowrap')" 
+                                class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'nowrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                No Wrap
+                            </button>
+                            <button 
+                                wire:click="setTextOverflow('wrap')" 
+                                class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $textOverflow === 'wrap' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Wrap Text
+                            </button>
+                            <button 
+                                wire:click="setTextOverflow('scroll')" 
+                                class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $textOverflow === 'scroll' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Scroll
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <label for="perPage" class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</label>
                         <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
@@ -534,11 +568,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'comfortable' => false,
                     default => true,
                 },
+                'text_overflow' => match($textOverflow) {
+                    'wrap' => 'break-words',
+                    'scroll' => 'whitespace-nowrap',
+                    default => 'whitespace-nowrap truncate',
+                },
+                'table_wrapper' => match($textOverflow) {
+                    'scroll' => 'overflow-x-auto',
+                    default => 'overflow-x-auto',
+                },
             ];
         @endphp
 
         @if ($view === 'table')
-            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="-mx-4 -my-2 {{ $densityClasses['table_wrapper'] }} sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
                         <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
