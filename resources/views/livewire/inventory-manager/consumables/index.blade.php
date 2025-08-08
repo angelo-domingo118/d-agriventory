@@ -218,20 +218,20 @@ new #[Layout('components.layouts.app')] class extends Component
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end space-x-2">
-                                        <flux:button 
-                                            variant="ghost" 
-                                            size="sm"
+                                        <button 
+                                            class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50"
                                             :href="route('inventory-manager.consumables.show', $record)" 
                                             wire:navigate>
+                                            <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
                                             View
-                                        </flux:button>
-                                        <flux:button 
-                                            variant="ghost" 
-                                            size="sm"
+                                        </button>
+                                        <button 
+                                            class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50"
                                             :href="route('inventory-manager.consumables.edit', $record)" 
                                             wire:navigate>
+                                            <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
                                             Edit
-                                        </flux:button>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>

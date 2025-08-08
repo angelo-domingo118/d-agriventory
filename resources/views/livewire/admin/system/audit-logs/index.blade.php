@@ -493,10 +493,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </td>
                                         <td class="relative whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                             <div x-data="{ open: false }" class="relative">
-                                                <flux:button variant="ghost" x-on:click="open = !open" class="!p-2">
-                                                    <x-flux::icon.eye class="h-4 w-4" />
-                                                    <span class="sr-only">View Details</span>
-                                                </flux:button>
+                                                <button 
+                                                    class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50"
+                                                    x-on:click="open = !open">
+                                                    <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                                                    View
+                                                </button>
                                                 
                                                 <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-96 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
                                                     <div class="px-4 py-3">

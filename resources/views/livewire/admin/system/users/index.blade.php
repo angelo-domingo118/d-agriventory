@@ -374,15 +374,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <td class="relative whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                             <div class="flex justify-end space-x-2">
                                                 @adminpermission('view_users')
-                                                    <flux:button variant="ghost" :href="route('admin.system.users.show', $user)" wire:navigate icon="eye">
+                                                    <button 
+                                                        class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50"
+                                                        :href="route('admin.system.users.show', $user)" 
+                                                        wire:navigate>
+                                                        <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
                                                         {{ __('View') }}
-                                                    </flux:button>
+                                                    </button>
                                                 @endadminpermission
                                                 
                                                 @adminpermission('edit_users')
-                                                    <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate icon="pencil">
+                                                    <button 
+                                                        class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50"
+                                                        :href="route('admin.system.users.edit', $user)" 
+                                                        wire:navigate>
+                                                        <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
                                                         {{ __('Edit') }}
-                                                    </flux:button>
+                                                    </button>
                                                 @endadminpermission
                                             </div>
                                         </td>
