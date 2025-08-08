@@ -173,6 +173,33 @@
                         if (!window.Alpine) return;
                         if (Alpine?.data?.tableResizer) return; // already registered
 
+                        Alpine.data('tableSettings', (storageKey, defaults = {}) => ({
+                            init() {
+                                // Load settings from localStorage and apply them on next tick
+                                this.$nextTick(() => {
+                                    const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                                    
+                                    // Apply stored values to Livewire properties
+                                    Object.keys(stored).forEach(key => {
+                                        if (this.$wire && this.$wire[key] !== undefined) {
+                                            this.$wire.set(key, stored[key]);
+                                        }
+                                    });
+                                });
+                            },
+                            updateSetting(key, value) {
+                                // Update Livewire property
+                                if (this.$wire && this.$wire[key] !== undefined) {
+                                    this.$wire.set(key, value);
+                                }
+                                
+                                // Save to localStorage
+                                const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                                stored[key] = value;
+                                localStorage.setItem(storageKey, JSON.stringify(stored));
+                            }
+                        }));
+
                         Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
                             columnWidths: {},
                             resizingColumn: null,

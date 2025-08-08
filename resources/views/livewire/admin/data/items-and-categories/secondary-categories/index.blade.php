@@ -37,14 +37,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('manage_data')) {
             abort(403, 'You do not have permission to manage inventory data.');
         }
-
-        $this->density = session('secondary_categories_density', 'spacious');
-    }
-
-    public function setDensity(string $density): void
-    {
-        $this->density = $density;
-        session(['secondary_categories_density' => $density]);
     }
 
     public function resetSorting(): void
@@ -143,7 +135,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="tableResizer('secondary_categories_widths', { name: 400, code: 200, primary_category: 400, actions: 120 })">
+<div x-data="{ 
+    ...tableResizer('secondary_categories_widths', { name: 400, code: 200, primary_category: 400, actions: 120 }),
+    ...tableSettings('secondary_categories_settings')
+}">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Secondary Categories
@@ -154,26 +149,70 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-flux::icon.settings-2 class="h-5 w-5" />
                     <span class="sr-only">Toggle View Options</span>
                 </flux:button>
-                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-72 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
+                    <!-- Density -->
                     <div class="px-3 py-2">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Density</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                @click="updateSetting('density', 'compact')" 
+                                class="flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'compact' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Compact
+                            </button>
+                            <button 
+                                @click="updateSetting('density', 'comfortable')" 
+                                class="-ml-px flex-1 border-x border-stone-200 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-stone-700 {{ $density === 'comfortable' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Comfortable
+                            </button>
+                            <button 
+                                @click="updateSetting('density', 'spacious')" 
+                                class="-ml-px flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $density === 'spacious' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Spacious
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- Items per Page -->
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button
-                            variant="ghost"
-                            x-on:click="$dispatch('reset-column-widths')"
-                            class="w-full justify-center"
-                        >
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    @click="updateSetting('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1.5 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Table Customization -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="space-y-2">
+                            <flux:button
+                                variant="outline"
+                                x-on:click="$dispatch('reset-column-widths')"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="outline"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <div class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    Reset Sort Order
+                                </div>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
