@@ -53,6 +53,26 @@ new #[Layout('components.layouts.app')] class extends Component {
         return $this->filterSecondaryCategory || $this->filterPrimaryCategory || $this->filterUnit;
     }
 
+    #[Computed]
+    public function editingItemDeletionImpact(): array
+    {
+        if (!$this->editingItem) {
+            return [
+                'specifications' => 0,
+                'contract_items' => 0,
+                'consumable_items' => 0,
+                'ics_numbers' => 0,
+                'par_numbers' => 0,
+                'idr_numbers' => 0,
+                'risk_level' => 'safe',
+                'risk_message' => '',
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingItem->getDeletionImpact();
+    }
+
     public function sortBy(string $column): void
     {
         if ($this->sortColumn === $column) {
@@ -479,15 +499,27 @@ new #[Layout('components.layouts.app')] class extends Component {
             />
         </x-admin.modal-form-wrapper>
 
-        <!-- Delete Confirmation Modal -->
-        <x-admin.delete-confirmation-modal 
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
             name="delete-item-confirmation"
-            title="Delete Item"
-            item-type="item"
-            :item-name="$editingItem->name"
+            title="Delete Catalog Item"
+            entity-type="catalog item"
+            :entity-name="$editingItem->name"
+            :association-counts="[
+                'specifications' => $this->editingItemDeletionImpact['specifications'],
+                'contract items' => $this->editingItemDeletionImpact['contract_items'],
+                'consumable items' => $this->editingItemDeletionImpact['consumable_items'],
+                'ICS records' => $this->editingItemDeletionImpact['ics_numbers'],
+                'PAR records' => $this->editingItemDeletionImpact['par_numbers'],
+                'IDR records' => $this->editingItemDeletionImpact['idr_numbers']
+            ]"
+            :has-associated-data="$this->editingItemDeletionImpact['has_associated_data']"
+            :risk-level="$this->editingItemDeletionImpact['risk_level']"
+            :risk-message="$this->editingItemDeletionImpact['risk_message']"
+            :block-deletion="$this->editingItemDeletionImpact['risk_level'] === 'high'"
             delete-action="$dispatch('call-delete')"
             cancel-action="$dispatch('call-cancel-delete')"
-            message="Deleting this item will also affect all associated specifications and inventory records."
+            max-width="xl"
         />
     @endif
     </div>

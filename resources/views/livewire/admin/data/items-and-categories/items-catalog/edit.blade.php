@@ -5,6 +5,7 @@ use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
 use App\Services\ToastService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -82,36 +83,48 @@ new class extends Component {
     public function delete(): void
     {
         try {
-            $isUsed = $this->item->specifications()
-                ->where(function ($query) {
-                    $query->has('contractItems')
-                          ->orHas('consumableItems');
-                })->exists();
-
-            if ($isUsed) {
-                ToastService::relationshipError($this);
-                // Close the confirmation modal
+            // Check if deletion should be blocked
+            if ($this->item->isDeletionBlocked()) {
+                ToastService::error($this, 'Cannot delete this item because it has active inventory records. Consider archiving instead.');
                 Flux::modal('delete-item-confirmation')->close();
                 return;
             }
 
-            $this->item->delete();
+            // Get impact assessment for detailed success message
+            $impact = $this->item->getDeletionImpact();
             
-            // Show success toast
-            ToastService::deleted($this, 'Item');
-            
+            if (!$this->item->canBeDeletedSafely()) {
+                // Use force delete to remove all associations
+                $this->item->forceDeleteWithAssociations();
+                
+                // Show detailed success message about what was deleted
+                $message = 'Item deleted successfully';
+                if ($impact['has_associated_data']) {
+                    $summary = $this->item->getDeletionSummary();
+                    if ($summary) {
+                        $message .= ' along with ' . $summary;
+                    }
+                }
+                
+                ToastService::success($this, $message . '.');
+            } else {
+                // Safe to delete normally
+                $this->item->delete();
+                ToastService::deleted($this, 'Item');
+            }
+
             // Close both modals and refresh the parent component
             Flux::modal('delete-item-confirmation')->close();
             Flux::modal('edit-item')->close();
             $this->dispatch('item-deleted');
+            
         } catch (\Exception $e) {
             Log::error('Error deleting item: ' . $e->getMessage());
-            $errorMessage = 'There was an error deleting the item. It might be in use in contracts or inventory records.';
+            $errorMessage = 'An error occurred while deleting the item. Please try again.';
             if (config('app.debug')) {
-                $errorMessage .= ' ' . $e->getMessage();
+                $errorMessage .= ' Error: ' . $e->getMessage();
             }
             ToastService::error($this, $errorMessage);
-            // Close the confirmation modal on error
             Flux::modal('delete-item-confirmation')->close();
         }
     }
