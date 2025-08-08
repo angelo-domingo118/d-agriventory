@@ -380,7 +380,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 @endadminpermission
                                                 
                                                 @adminpermission('edit_users')
-                                                    <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate icon="edit">
+                                                    <flux:button variant="ghost" :href="route('admin.system.users.edit', $user)" wire:navigate icon="pencil">
                                                         {{ __('Edit') }}
                                                     </flux:button>
                                                 @endadminpermission

@@ -386,7 +386,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->division?->name }}">{{ $employee->division?->name }}</td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editEmployee({{ $employee->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
                             </td>
