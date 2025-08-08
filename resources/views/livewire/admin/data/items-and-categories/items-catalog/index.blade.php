@@ -426,7 +426,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </th>
                             <th scope="col" :style="`width: ${columnWidths.secondary_category}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                 <div wire:click="sortBy('category')" class="flex cursor-pointer items-center">
-                                    Category
+                                    Secondary Category
                                     @if($sortColumn === 'category')
                                         @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                     @else
