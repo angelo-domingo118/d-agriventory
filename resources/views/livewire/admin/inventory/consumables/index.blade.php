@@ -26,25 +26,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'division_name';
     public string $sortDirection = 'asc';
 
-    // Column visibility properties
-    public array $columns;
-    public array $columnGroups = [
-        'details' => [
-            'label' => 'Division Details',
-            'columns' => [
-                'division_code' => 'Division Code',
-                'total_items' => 'Total Items',
-            ],
-        ],
-        'quantity' => [
-            'label' => 'Quantity Summary',
-            'columns' => [
-                'total_initial' => 'Total Initial',
-                'total_current' => 'Total Available',
-                'utilization_rate' => 'Utilization Rate',
-            ],
-        ],
-    ];
+
 
     #[Computed]
     public function filtersActive(): bool
@@ -60,20 +42,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->view = session('consumables_view_mode', 'table');
         $this->density = session('consumables_density', 'spacious');
         $this->textOverflow = session('consumables_text_overflow', 'nowrap');
-
-        $defaultColumns = [];
-        foreach ($this->columnGroups as $group) {
-            foreach (array_keys($group['columns']) as $key) {
-                $defaultColumns[$key] = true;
-            }
-        }
-        $this->columns = session('consumables_column_visibility', $defaultColumns);
+        $this->perPage = session('consumables_per_page', 10);
     }
 
-    public function updatedColumns($value, $key): void
-    {
-        session(['consumables_column_visibility' => $this->columns]);
-    }
+
 
     public function setView(string $view): void
     {
@@ -103,8 +75,15 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'division_name';
+        $this->sortDirection = 'asc';
+    }
+
     public function updatedPerPage(): void
     {
+        session(['consumables_per_page' => $this->perPage]);
         $this->resetPage();
     }
 
@@ -328,36 +307,42 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
 
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <label for="perPage" class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</label>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
-                    </div>
-
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Visible Columns</div>
-                        <div class="mt-2 space-y-2">
-                            @foreach ($this->columnGroups as $group)
-                                <div class="">
-                                    <div class="mb-1 text-xs font-medium text-stone-600 dark:text-stone-300">{{ $group['label'] }}</div>
-                                    <div class="space-y-1">
-                                        @foreach ($group['columns'] as $key => $label)
-                                            <flux:checkbox wire:model.live="columns.{{ $key }}" label="{{ $label }}" id="column-{{ $key }}" />
-                                        @endforeach
-                                    </div>
-                                </div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    wire:click="$set('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
                             @endforeach
                         </div>
                     </div>
+
+
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button variant="ghost" x-on:click="resetColumnWidths()" class="w-full justify-center">
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="mt-2 space-y-2">
+                            <flux:button
+                                variant="outline"
+                                x-on:click="resetColumnWidths()"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="outline"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <span class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    <span>Reset Sort Order</span>
+                                </span>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -552,7 +537,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <div class="space-y-2">
                                         <div>
                                             <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($division->division_name, $this->search) !!}</div>
-                                            @if ($this->columns['division_code'] && $densityClasses['show_secondary'] && $division->division_code)
+                                            @if ($densityClasses['show_secondary'] && $division->division_code)
                                             <div class="{{ $densityClasses['text_meta'] }} text-stone-500">
                                                 Code: {!! \App\Helpers\TextHelper::highlight($division->division_code, $this->search) !!}
                                             </div>
@@ -562,10 +547,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 </td>
 
                                 <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
-                                    @if ($this->columns['total_items'])
                                     <div class="font-semibold text-stone-900 dark:text-stone-100">{{ $division->total_items }} Items</div>
-                                    @endif
-                                    @if ($this->columns['utilization_rate'] && $densityClasses['show_secondary'])
+                                    @if ($densityClasses['show_secondary'])
                                     <div class="mt-1 {{ $densityClasses['text_meta'] }} text-stone-600 dark:text-stone-400">
                                         <span class="font-medium">Utilization:</span> {{ $division->utilization_rate }}%
                                     </div>
@@ -576,12 +559,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <div class="font-semibold text-stone-900 dark:text-stone-100">{{ number_format($division->total_current_quantity) }} Available</div>
                                     @if($densityClasses['show_secondary'])
                                     <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                        @if($this->columns['total_initial'])
                                         <div><span class="font-medium">Initial:</span> {{ number_format($division->total_initial_quantity) }}</div>
-                                        @endif
-                                        @if($this->columns['total_current'])
                                         <div><span class="font-medium">Consumed:</span> {{ number_format($division->total_initial_quantity - $division->total_current_quantity) }}</div>
-                                        @endif
                                     </div>
                                     @endif
                                 </td>

@@ -40,44 +40,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortColumn = 'idr_number.date_prepared';
     public string $sortDirection = 'desc';
 
-    // Column visibility properties
-    public array $columns;
-    public array $columnGroups = [
-        'article' => [
-            'label' => 'Article & Description',
-            'columns' => [
-                'brand_model' => 'Brand/Model',
-                'specifications' => 'Specifications',
-                'serials' => 'Serial # / Batches'
-            ]
-        ],
-        'idr' => [
-            'label' => 'IDR Details',
-            'columns' => [
-                'quantity' => 'Qty & Batches',
-                'unit_cost' => 'Unit Cost',
-                'inventory_code' => 'Inventory Code',
-                'ors' => 'ORS Number'
-            ]
-        ],
-        'source' => [
-            'label' => 'Document Source',
-            'columns' => [
-                'contract' => 'Contract/PO',
-                'dates' => 'Prepared/Accepted Dates',
-                'remarks' => 'Remarks'
-            ]
-        ],
-        'personnel' => [
-            'label' => 'Personnel',
-            'columns' => [
-                'assigned_employee' => 'Assigned To',
-                'approving_employee' => 'Approving Official',
-                'received_by' => 'Received By',
-                'received_from' => 'Received From',
-            ]
-        ]
-    ];
+
 
     #[Computed]
     public function filtersActive(): bool
@@ -93,20 +56,10 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->view = session('idr_view_mode', 'table');
         $this->density = session('idr_density', 'spacious');
         $this->textOverflow = session('idr_text_overflow', 'nowrap');
-
-        $defaultColumns = [];
-        foreach ($this->columnGroups as $group) {
-            foreach (array_keys($group['columns']) as $key) {
-                $defaultColumns[$key] = true;
-            }
-        }
-        $this->columns = session('idr_column_visibility', $defaultColumns);
+        $this->perPage = session('idr_per_page', 10);
     }
 
-    public function updatedColumns($value, $key): void
-    {
-        session(['idr_column_visibility' => $this->columns]);
-    }
+
 
     public function setView(string $view): void
     {
@@ -136,8 +89,15 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function resetSorting(): void
+    {
+        $this->sortColumn = 'idr_number.date_prepared';
+        $this->sortDirection = 'desc';
+    }
+
     public function updatedPerPage(): void
     {
+        session(['idr_per_page' => $this->perPage]);
         $this->resetPage();
     }
 
@@ -364,35 +324,41 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <label for="perPage" class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</label>
-                        <flux:select wire:model.live="perPage" id="perPage" class="mt-1">
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                        </flux:select>
-                    </div>
-                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Visible Columns</div>
-                        <div class="mt-2 space-y-2">
-                             @foreach ($this->columnGroups as $group)
-                                <div class="">
-                                     <div class="mb-1 text-xs font-medium text-stone-600 dark:text-stone-300">{{ $group['label'] }}</div>
-                                     <div class="space-y-1">
-                                        @foreach ($group['columns'] as $key => $label)
-                                            <flux:checkbox wire:model.live="columns.{{ $key }}" label="{{ $label }}" id="column-{{ $key }}" />
-                                        @endforeach
-                                     </div>
-                                </div>
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Items per Page</div>
+                        <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            @foreach ([5, 10, 25, 50] as $count)
+                                <button
+                                    wire:click="$set('perPage', {{ $count }})"
+                                    class="@if(!$loop->first) -ml-px border-l border-stone-200 dark:border-stone-700 @endif flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $perPage == $count ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                                >
+                                    {{ $count }}
+                                </button>
                             @endforeach
                         </div>
                     </div>
+
                      <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
-                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Column Layout</div>
-                        <flux:button variant="ghost" x-on:click="resetColumnWidths()" class="w-full justify-center">
-                            <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
-                            Reset Column Widths
-                        </flux:button>
+                        <div class="mb-2 text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Table Customization</div>
+                        <div class="mt-2 space-y-2">
+                            <flux:button
+                                variant="outline"
+                                x-on:click="resetColumnWidths()"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="outline"
+                                wire:click="resetSorting"
+                                class="w-full justify-center"
+                            >
+                                <span class="flex items-center">
+                                    <x-flux::icon.chevrons-up-down class="mr-2 h-4 w-4" />
+                                    <span>Reset Sort Order</span>
+                                </span>
+                            </flux:button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -613,37 +579,35 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div class="space-y-2">
                                                 <div>
                                                     <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
-                                                    @if ($this->columns['brand_model'] && $densityClasses['show_secondary'])
+                                                    @if ($densityClasses['show_secondary'])
                                                         <div class="{{ $densityClasses['text_meta'] }} text-stone-500">{!! \App\Helpers\TextHelper::highlight(collect([$idrNumber->contractItem->itemSpecification->brand, $idrNumber->contractItem->itemSpecification->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}</div>
                                                     @endif
                                                 </div>
-                                                @if ($this->columns['specifications'] && $densityClasses['show_tertiary'])
+                                                @if ($densityClasses['show_tertiary'])
                                                     <div class="{{ $densityClasses['text_meta'] }}"><p class="text-stone-600 dark:text-stone-300 break-words">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->detailed_specifications, [$this->search, $this->filterArticle]) !!}</p></div>
                                                 @endif
-                                                @if($this->columns['serials'])
-                                                    <div class="{{ $densityClasses['text_meta'] }}">
-                                                        <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Batches:</p>
-                                                        @if($idrNumber->itemBatches->isNotEmpty())
-                                                            <ul class="mt-1 space-y-1">
-                                                                @foreach($idrNumber->itemBatches as $batch)
-                                                                    <li class="text-stone-600 dark:text-stone-400">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) ?: 'No batch data' !!}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @else
-                                                            <p class="italic text-stone-500">No batches recorded.</p>
-                                                        @endif
-                                                    </div>
-                                                @endif
+                                                <div class="{{ $densityClasses['text_meta'] }}">
+                                                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Batches:</p>
+                                                    @if($idrNumber->itemBatches->isNotEmpty())
+                                                        <ul class="mt-1 space-y-1">
+                                                            @foreach($idrNumber->itemBatches as $batch)
+                                                                <li class="text-stone-600 dark:text-stone-400">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) ?: 'No batch data' !!}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @else
+                                                        <p class="italic text-stone-500">No batches recorded.</p>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
                                             <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->number, $this->search) !!}</div>
                                             @if($densityClasses['show_secondary'])
                                             <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                               @if($this->columns['quantity'])<div><span class="font-medium">Qty:</span> {{ $idrNumber->quantity }} {{ $idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>@endif
-                                               @if($this->columns['unit_cost'])<div><span class="font-medium">Cost:</span> ₱{{ number_format($idrNumber->contractItem?->unit_price ?? 0, 2) }}</div>@endif
-                                               @if($this->columns['inventory_code'])<div><span class="font-medium">Inv. Code:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->inventory_code, [$this->search, $this->filterInventoryNumber]) !!}</div>@endif
-                                               @if($this->columns['ors'])<div><span class="font-medium">ORS:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->ors, [$this->search, $this->filterOrs]) !!}</div>@endif
+                                               <div><span class="font-medium">Qty:</span> {{ $idrNumber->quantity }} {{ $idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
+                                               <div><span class="font-medium">Cost:</span> ₱{{ number_format($idrNumber->contractItem?->unit_price ?? 0, 2) }}</div>
+                                               <div><span class="font-medium">Inv. Code:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->inventory_code, [$this->search, $this->filterInventoryNumber]) !!}</div>
+                                               <div><span class="font-medium">ORS:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->ors, [$this->search, $this->filterOrs]) !!}</div>
                                             </div>
                                             @endif
                                         </td>
@@ -651,22 +615,22 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->contract->supplier->name ?? 'N/A', $this->search) !!}</div>
                                             @if($densityClasses['show_secondary'])
                                             <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
-                                                @if($this->columns['contract'])<div><span class="font-medium">Contract:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->contract->contract_po_ib_number, [$this->search, $this->filterContract]) !!}</div>@endif
-                                                @if($this->columns['dates'] && $densityClasses['show_tertiary'])
+                                                <div><span class="font-medium">Contract:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->contract->contract_po_ib_number, [$this->search, $this->filterContract]) !!}</div>
+                                                @if($densityClasses['show_tertiary'])
                                                     <div><span class="font-medium">Prepared:</span> {{ $idrNumber->date_prepared->format('M d, Y') }}</div>
                                                     <div><span class="font-medium">Accepted:</span> {{ $idrNumber->date_accepted->format('M d, Y') }}</div>
                                                 @endif
                                             </div>
                                             @endif
-                                             @if($this->columns['remarks'] && $idrNumber->remarks)
+                                             @if($idrNumber->remarks)
                                                 <div class="mt-2 text-xs text-stone-500 italic">"{!! \App\Helpers\TextHelper::highlight($idrNumber->remarks, [$this->search, $this->filterRemarks]) !!}"</div>
                                             @endif
                                         </td>
                                         <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} sm:table-cell border-r border-stone-300 dark:border-stone-700">
-                                            @if($this->columns['assigned_employee'])<div><span class="font-medium">Assigned:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->assignedEmployee->name, $this->search) !!}</div>@endif
-                                            @if($this->columns['approving_employee'])<div><span class="font-medium">Approved:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->approvingEmployee->name, $this->search) !!}</div>@endif
-                                            @if($this->columns['received_by'])<div><span class="font-medium">Received By:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedBy->name, $this->search) !!}</div>@endif
-                                            @if($this->columns['received_from'])<div><span class="font-medium">Received From:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedFrom->name, $this->search) !!}</div>@endif
+                                            <div><span class="font-medium">Assigned:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->assignedEmployee->name, $this->search) !!}</div>
+                                            <div><span class="font-medium">Approved:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->approvingEmployee->name, $this->search) !!}</div>
+                                            <div><span class="font-medium">Received By:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedBy->name, $this->search) !!}</div>
+                                            <div><span class="font-medium">Received From:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedFrom->name, $this->search) !!}</div>
                                         </td>
                                         <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
                                             <div class="flex items-center justify-end gap-x-2">
