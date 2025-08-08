@@ -275,12 +275,35 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
     </div>
 
+    @php
+        $densityClasses = [
+            'table_header' => match($density) {
+                'compact' => 'py-2 px-4',
+                'comfortable' => 'py-2.5 px-4',
+                default => 'py-3 px-4',
+            },
+            'table_cell' => match($density) {
+                'compact' => 'py-2 px-4',
+                'comfortable' => 'py-3 px-4',
+                default => 'py-4 px-4',
+            },
+            'text_header' => match($density) {
+                'compact' => 'text-xs',
+                default => 'text-xs',
+            },
+            'text_base' => match($density) {
+                'compact' => 'text-xs',
+                default => 'text-sm',
+            },
+        ];
+    @endphp
+
     <div class="mt-4 flow-root">
         <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
             <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                 <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
-                        <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
                                 Name
                                 @if($sortColumn === 'name')
@@ -291,7 +314,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
                                 Code
                                 @if($sortColumn === 'code')
@@ -302,7 +325,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.primary_category}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                              <div wire:click="sortBy('primary_category')" class="flex cursor-pointer items-center">
                                 Primary Category
                                 @if($sortColumn === 'primary_category')
@@ -313,7 +336,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'primary_category')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             Actions
                         </th>
                     </tr>
@@ -321,11 +344,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($this->categories as $category)
                         <tr wire:key="category-{{ $category->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-400">{{ $category->primaryCategory->name }}</td>
-                            <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <button wire:click="editCategory({{ $category->id }})" wire:loading.attr="disabled" wire:target="editCategory({{ $category->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">{{ $category->name }}</td>
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">{{ $category->code }}</td>
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">{{ $category->primaryCategory->name }}</td>
+                            <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
+                                <button wire:click="editCategory({{ $category->id }})" wire:loading.attr="disabled" wire:target="editCategory({{ $category->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                     <x-flux::icon.edit class="mr-1.5 h-4 w-4" wire:loading.remove wire:target="editCategory({{ $category->id }})" />
                                     <x-flux::icon.rotate-cw class="mr-1.5 h-4 w-4 animate-spin" wire:loading wire:target="editCategory({{ $category->id }})" />
                                     <span wire:loading.remove wire:target="editCategory({{ $category->id }})">Edit</span>
@@ -335,7 +358,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-12 text-center text-sm text-stone-500 dark:text-stone-400">
+                            <td colspan="4" class="{{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 No secondary categories found.
                             </td>
                         </tr>
@@ -405,6 +428,20 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                 window.addEventListener('mousemove', mouseMoveHandler);
                 window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+
+        Alpine.data('tableSettings', (storageKey) => ({
+            init() {
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                if (saved.density) this.$wire.density = saved.density;
+                if (saved.perPage) this.$wire.perPage = saved.perPage;
+            },
+            updateSetting(key, value) {
+                this.$wire[key] = value;
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                saved[key] = value;
+                localStorage.setItem(storageKey, JSON.stringify(saved));
             }
         }));
     });
