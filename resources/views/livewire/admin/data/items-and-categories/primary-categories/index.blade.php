@@ -90,6 +90,20 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->paginate($this->perPage);
     }
 
+    #[Computed]
+    public function editingCategoryDeletionImpact(): array
+    {
+        if (!$this->editingCategory) {
+            return [
+                'secondary_categories' => 0,
+                'items' => 0,
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingCategory->getDeletionImpact();
+    }
+
     public function with(): array
     {
         return [
@@ -378,9 +392,16 @@ new #[Layout('components.layouts.app')] class extends Component {
         </x-admin.modal-form-wrapper>
 
         <!-- Enhanced Delete Confirmation Modal -->
-        <x-admin.primary-category-delete-modal 
+        <x-admin.enhanced-delete-modal 
             name="delete-primary-category-confirmation"
-            :category="$editingCategory"
+            title="Delete Primary Category"
+            entity-type="primary category"
+            :entity-name="$editingCategory->name"
+            :association-counts="[
+                'secondary categories' => $this->editingCategoryDeletionImpact['secondary_categories'],
+                'catalog items' => $this->editingCategoryDeletionImpact['items']
+            ]"
+            :has-associated-data="$this->editingCategoryDeletionImpact['has_associated_data']"
             delete-action="$dispatch('call-delete')"
             cancel-action="$dispatch('call-cancel-delete')"
         />
