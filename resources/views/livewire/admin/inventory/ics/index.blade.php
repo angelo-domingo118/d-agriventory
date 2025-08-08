@@ -97,6 +97,7 @@ public string $sortDirection = 'desc';
         $this->viewMode = session('ics_view_mode', 'table');
         $this->density = session('ics_density', 'spacious');
         $this->textOverflow = session('ics_text_overflow', 'nowrap');
+        $this->perPage = session('ics_per_page', 10);
         $this->highlightedIcsId = session('highlighted_ics');
     }
 
@@ -143,6 +144,7 @@ public string $sortDirection = 'desc';
 
     public function updatedPerPage(): void
     {
+        session(['ics_per_page' => $this->perPage]);
         $this->resetPage();
     }
 
