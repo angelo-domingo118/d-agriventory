@@ -115,3 +115,37 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Custom dark mode styling for select dropdowns */
+.dark select {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+    color-scheme: dark;
+}
+
+.dark select option {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+}
+
+.dark select optgroup {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+    font-weight: bold;
+}
+
+/* Force dark mode on all select elements in dark theme */
+.dark [data-flux-select] select {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+}
+
+.dark [data-flux-select] select option {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+}
+
+.dark [data-flux-select] select optgroup {
+    background-color: #292524 !important;
+    color: #f5f5f4 !important;
+}
