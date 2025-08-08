@@ -67,7 +67,6 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 4. **Run migrations and seed data**:
    ```bash
    php artisan migrate && php artisan db:seed
-   php artisan storage:link
    ```
    
    **Alternative commands** (if you prefer to run them separately):
@@ -77,9 +76,6 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
    
    # Seed the database with initial data
    php artisan db:seed
-   
-   # Create storage symbolic link
-   php artisan storage:link
    ```
 
 ## first-run
@@ -103,9 +99,6 @@ npm run dev
 # Start Laravel development server
 php artisan serve
 
-# Start queue worker (in separate terminal)
-php artisan queue:work
-
 # Start task scheduler (in separate terminal, if needed)
 php artisan schedule:work
 ```
@@ -115,7 +108,6 @@ php artisan schedule:work
 - **Backend**: [Laravel 12](https://laravel.com/docs/12.x), [PHP 8.2+](https://www.php.net/manual/en/)
 - **Frontend**: [Livewire 3](https://livewire.laravel.com/docs), [Volt](https://livewire.laravel.com/docs/volt), [Tailwind CSS 4](https://tailwindcss.com/docs/v4-alpha), [Flux UI](https://flux-ui.com/docs), [Alpine.js](https://alpinejs.dev/start-here)
 - **Database**: [MySQL 8.0+](https://dev.mysql.com/doc/refman/8.0/en/) (Recommended - partial SQLite support available)
-- **Testing**: [Pest](https://pestphp.com/docs) (unit/feature)
 - **Build**: [Vite 6](https://vitejs.dev/guide/), [Concurrently](https://www.npmjs.com/package/concurrently)
 
 ## key-features
@@ -127,25 +119,6 @@ php artisan schedule:work
 
 ## documentation
 
-- [Complete Documentation Summary](summary.md)
-- [Prerequisites Installation Guide](docs/installation.md)
-- [Project Overview](docs/overview.md)
-- [Development Workflow](docs/workflow.md)
-- [Coding Standards](docs/coding-standards.md)
-- [Database Guide](docs/database.md)
-- [Entity Relationship Diagram](docs/erd.md)
-- [Laragon Setup Guide](docs/laragon.md) 
-- [UI Stack Guide](docs/ui-stack.md)
-- [Testing Guide](docs/testing.md)
-- [Production Deployment](docs/deployment.md)
-- [CodeRabbit AI Reviews](docs/coderabbit.md)
-- [FAQ](docs/faq.md)
-- [Contributing](CONTRIBUTING.md)
-
-## support
-
-- 🐛 [Report Issues](../../issues)
-- 📖 [View Documentation](docs/)
-- 💬 [Discussions](../../discussions)
+For complete documentation, see [Documentation Summary](summary.md) - an organized index of all project guides, technical references, and development resources.
 
 ---
