@@ -14,7 +14,6 @@ new class extends Component {
     public string $code = '';
     public ?int $primary_category_id = null;
     public string $description = '';
-    public string $primaryCategorySearch = '';
 
     public function mount(?int $primaryCategoryId = null): void
     {
@@ -67,7 +66,6 @@ new class extends Component {
     public function primaryCategories()
     {
         return PrimaryCategory::query()
-            ->when($this->primaryCategorySearch, fn($query) => $query->where('name', 'like', '%' . $this->primaryCategorySearch . '%'))
             ->orderBy('name')
             ->get();
     }
@@ -87,16 +85,13 @@ new class extends Component {
     </div>
 
     <form wire:submit="save" class="space-y-4">
-        <div class="space-y-2">
-            <flux:input wire:model.live.debounce.300ms="primaryCategorySearch" placeholder="Search primary categories..." />
-            <flux:select wire:model="primary_category_id" label="Primary Category" placeholder="Select a primary category" required 
-                         class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100"
-                         style="color-scheme: dark;">
-                @foreach($this->primaryCategories as $pCat)
-                    <option value="{{ $pCat->id }}" class="dark:bg-stone-800 dark:text-stone-100">{{ $pCat->name }}</option>
-                @endforeach
-            </flux:select>
-        </div>
+        <flux:select wire:model="primary_category_id" label="Primary Category" placeholder="Select a primary category" required 
+                     class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100"
+                     style="color-scheme: dark;">
+            @foreach($this->primaryCategories as $pCat)
+                <option value="{{ $pCat->id }}" class="dark:bg-stone-800 dark:text-stone-100">{{ $pCat->name }}</option>
+            @endforeach
+        </flux:select>
         <flux:input wire:model="name" label="Category Name" placeholder="Enter category name" required />
         <flux:input wire:model="code" label="Category Code" placeholder="Enter unique code (e.g., LAPTOP, PRINTER)" required />
         <flux:textarea wire:model="description" label="Description" placeholder="Optional description for this category" rows="3" />

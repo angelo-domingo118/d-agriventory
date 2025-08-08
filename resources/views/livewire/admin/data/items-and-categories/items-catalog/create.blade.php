@@ -13,8 +13,7 @@ new class extends Component {
     public string $name = '';
     public string $code = '';
     public string $unit = '';
-        public ?int $secondary_category_id = null;
-    public string $secondaryCategorySearch = '';
+    public ?int $secondary_category_id = null;
 
     public function mount(?int $secondaryCategoryId = null): void
     {
@@ -67,7 +66,6 @@ new class extends Component {
     public function secondaryCategories()
     {
         return SecondaryCategory::query()
-            ->when($this->secondaryCategorySearch, fn($query) => $query->where('name', 'like', '%' . $this->secondaryCategorySearch . '%'))
             ->with('primaryCategory')
             ->orderBy('name')
             ->get();
@@ -88,20 +86,17 @@ new class extends Component {
     </div>
 
     <form wire:submit="save" class="space-y-4">
-        <div class="space-y-2">
-            <flux:input wire:model.live.debounce.300ms="secondaryCategorySearch" placeholder="Search secondary categories..." />
-            <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required 
-                         class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100 dark:[&>optgroup]:bg-stone-800 dark:[&>optgroup]:text-stone-100"
-                         style="color-scheme: dark;">
-                @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                    <optgroup label="{{ $primaryName }}" class="dark:bg-stone-800 dark:text-stone-100">
-                        @foreach($secondaryGroup as $sCat)
-                            <option value="{{ $sCat->id }}" class="dark:bg-stone-800 dark:text-stone-100">{{ $sCat->name }}</option>
-                        @endforeach
-                    </optgroup>
-                @endforeach
-            </flux:select>
-        </div>
+        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required 
+                     class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100 dark:[&>optgroup]:bg-stone-800 dark:[&>optgroup]:text-stone-100"
+                     style="color-scheme: dark;">
+            @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
+                <optgroup label="{{ $primaryName }}" class="dark:bg-stone-800 dark:text-stone-100">
+                    @foreach($secondaryGroup as $sCat)
+                        <option value="{{ $sCat->id }}" class="dark:bg-stone-800 dark:text-stone-100">{{ $sCat->name }}</option>
+                    @endforeach
+                </optgroup>
+            @endforeach
+        </flux:select>
         <flux:input wire:model="name" label="Item Name" placeholder="Enter item name" required />
         <flux:input wire:model="code" label="Item Code" placeholder="Enter unique item code" required />
         <flux:input wire:model="unit" label="Unit of Measure" placeholder="e.g., piece, box, ream, kilogram" required />
