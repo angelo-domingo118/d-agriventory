@@ -4,6 +4,7 @@ use App\Models\Contract;
 use App\Models\ContractItem;
 use App\Models\Employee;
 use App\Models\IdrNumber;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -274,7 +275,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->idrNumber->itemBatches()->whereNotIn('id', $activeBatchIds)->delete();
         });
 
-        session()->flash('success', "IDR record {$this->idrNumber->number} updated successfully.");
+        ToastService::updated($this, "IDR record {$this->idrNumber->number}");
         $this->redirect(route('admin.inventory.idr.show', $this->idrNumber), navigate: true);
     }
 
@@ -284,7 +285,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
         $this->idrNumber->delete();
-        session()->flash('success', 'IDR record deleted successfully.');
+        ToastService::deleted($this, 'IDR record');
         $this->redirect(route('admin.inventory.idr.index'), navigate: true);
     }
 }; ?>

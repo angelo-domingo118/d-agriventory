@@ -6,6 +6,7 @@ use App\Models\ConsumableRecord;
 use App\Models\ConsumableItem;
 use App\Models\ItemSpecification;
 use App\Models\ItemsCatalog;
+use App\Services\ToastService;
 use Livewire\Attributes\Validate;
 
 new #[Layout('components.layouts.app')] class extends Component
@@ -96,7 +97,7 @@ new #[Layout('components.layouts.app')] class extends Component
             ]);
         }
         
-        session()->flash('success', 'Consumable record created successfully.');
+        ToastService::created($this, 'Consumable record');
         return redirect()->route('inventory-manager.consumables.index');
     }
 }

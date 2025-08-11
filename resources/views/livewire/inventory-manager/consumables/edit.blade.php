@@ -5,6 +5,7 @@ use Livewire\Attributes\Layout;
 use App\Models\ConsumableRecord;
 use App\Models\ConsumableItem;
 use App\Models\ItemSpecification;
+use App\Services\ToastService;
 use Livewire\Attributes\Validate;
 
 new #[Layout('components.layouts.app')] class extends Component
@@ -128,7 +129,7 @@ new #[Layout('components.layouts.app')] class extends Component
             }
         }
         
-        session()->flash('success', 'Consumable record updated successfully.');
+        ToastService::updated($this, 'Consumable record');
         return redirect()->route('inventory-manager.consumables.show', $this->record);
     }
 }

@@ -4,6 +4,7 @@ use App\Models\ContractItem;
 use App\Models\Employee;
 use App\Models\ParNumber;
 use App\Models\ParItemBatch;
+use App\Services\ToastService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -130,7 +131,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
         });
 
-        session()->flash('success', "PAR record updated successfully.");
+        ToastService::updated($this, "PAR record");
         $this->redirect(route('admin.inventory.par.index'), navigate: true);
     }
 }; ?>

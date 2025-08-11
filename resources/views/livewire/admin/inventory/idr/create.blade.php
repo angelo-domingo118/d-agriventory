@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\IdrNumber;
 use App\Models\IdrItemBatch;
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
@@ -578,7 +579,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
         });
 
-        session()->flash('success', "IDR record #{$this->number} created successfully.");
+        ToastService::created($this, "IDR record #{$this->number}");
         $this->redirect(route('admin.inventory.idr.index'), navigate: true);
     }
 }; ?>

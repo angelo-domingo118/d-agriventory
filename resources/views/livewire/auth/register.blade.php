@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Services\ToastService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
         event(new Registered(($user = User::create($validated))));
 
         Auth::login($user);
+
+        ToastService::success($this, "Welcome to D'Agriventory! Your account has been created successfully.", "Registration Complete");
 
         $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
     }
