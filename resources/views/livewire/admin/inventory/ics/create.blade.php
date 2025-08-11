@@ -1305,7 +1305,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                     // For now, let's assume a simple case.
                     $newEmployee = Employee::create([
                         'name' => $this->employee_search,
-                        'employee_number' => 'EMP-' . str_pad(Employee::count() + 1, 4, '0', STR_PAD_LEFT),
                     ]);
                     $this->assigned_employee_id = $newEmployee->id;
                 }

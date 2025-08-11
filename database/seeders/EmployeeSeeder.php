@@ -214,8 +214,6 @@ class EmployeeSeeder extends Seeder
             'ZABALA, Ma. Isabel',
         ];
 
-        $employeeNumberCounter = 1;
-
         foreach ($employeeNames as $fullName) {
             $parts = explode(', ', $fullName);
             if (count($parts) >= 2) {
@@ -223,11 +221,8 @@ class EmployeeSeeder extends Seeder
                 $firstNameAndSuffix = implode(', ', $parts); // Re-join the first name and any suffixes
                 $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
 
-                $employeeNumber = 'EMP-'.str_pad((string) $employeeNumberCounter++, 4, '0', STR_PAD_LEFT);
-
                 Employee::firstOrCreate(
-                    ['name' => $formattedName],
-                    ['employee_number' => $employeeNumber]
+                    ['name' => $formattedName]
                 );
             } else {
                 $this->command->warn("Skipping malformed employee name: {$fullName}");

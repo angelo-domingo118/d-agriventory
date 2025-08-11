@@ -28,7 +28,6 @@ class EmployeeFactory extends Factory
     {
         return [
             'name' => $this->faker->name(),
-            'employee_number' => $this->faker->unique()->numerify('EMP-#####'),
             'division_id' => Division::factory(),
             'position_id' => Position::factory(),
         ];

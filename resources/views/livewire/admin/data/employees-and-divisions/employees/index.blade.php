@@ -85,7 +85,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->withCount(['icsNumbers', 'parNumbers', 'assignedIdrNumbers'])
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('employee_number', 'like', "%{$search}%")
                     ->orWhereHas('position', fn ($q) => $q->where('title', 'like', "%{$search}%"))
                     ->orWhereHas('division', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
@@ -386,7 +385,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                     @forelse($employees as $employee)
                         <tr wire:key="employee-{{ $employee->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $employee->name }} ({{ $employee->employee_number }})">{{ $employee->name }} <span class="text-stone-500">({{ $employee->employee_number }})</span></td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $employee->name }}">{{ $employee->name }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->position?->title }}">{{ $employee->position?->title }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->division?->name }}">{{ $employee->division?->name }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">

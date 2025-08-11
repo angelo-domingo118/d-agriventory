@@ -95,7 +95,6 @@ class AuditLogSeeder extends Seeder
             ],
             'employees' => [
                 'name' => $type === 'old' ? 'Jane Smith' : 'Jane Updated',
-                'employee_number' => $type === 'old' ? 'EMP-001' : 'EMP-001-UPD',
                 'division_id' => $type === 'old' ? 1 : 2,
             ],
             'items_catalog' => [

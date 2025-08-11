@@ -11,7 +11,6 @@ use Flux\Flux;
 new class extends Component {
     public Employee $employee;
     public string $name;
-    public string $employee_number;
     public ?int $position_id;
     public ?int $division_id;
 
@@ -22,7 +21,6 @@ new class extends Component {
         }
         $this->employee = $employee;
         $this->name = $employee->name;
-        $this->employee_number = $employee->employee_number;
         $this->position_id = $employee->position_id;
         $this->division_id = $employee->division_id;
     }
@@ -31,7 +29,6 @@ new class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')->ignore($this->employee->id)],
             'position_id' => ['nullable', 'integer', Rule::exists('positions', 'id')],
             'division_id' => ['nullable', 'integer', Rule::exists('divisions', 'id')],
         ]);
@@ -92,7 +89,6 @@ new class extends Component {
 
     <form wire:submit="save" class="space-y-4">
         <flux:input wire:model="name" label="Full Name" placeholder="Enter employee's full name" required />
-        <flux:input wire:model="employee_number" label="Employee Number" placeholder="Enter unique employee number" required />
         <flux:select wire:model="position_id" label="Position (Optional)" placeholder="Select a position">
             <option value="">Select a position</option>
             @foreach ($this->positions as $position)

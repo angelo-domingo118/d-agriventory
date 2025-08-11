@@ -10,7 +10,6 @@ use Flux\Flux;
 
 new class extends Component {
     public string $name = '';
-    public string $employee_number = '';
     public ?int $position_id = null;
     public ?int $division_id = null;
 
@@ -37,7 +36,6 @@ new class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')],
             'position_id' => ['nullable', 'integer', Rule::exists('positions', 'id')],
             'division_id' => ['nullable', 'integer', Rule::exists('divisions', 'id')],
         ]);
@@ -49,13 +47,13 @@ new class extends Component {
         Flux::modal('create-employee')->close();
         
         // Reset form
-        $this->reset(['name', 'employee_number', 'position_id', 'division_id']);
+        $this->reset(['name', 'position_id', 'division_id']);
     }
 
     public function cancel(): void
     {
         Flux::modal('create-employee')->close();
-        $this->reset(['name', 'employee_number', 'position_id', 'division_id']);
+        $this->reset(['name', 'position_id', 'division_id']);
     }
 
     public function with(): array
@@ -75,7 +73,6 @@ new class extends Component {
 
     <form wire:submit="save" class="space-y-4">
         <flux:input wire:model="name" label="Full Name" placeholder="Enter employee's full name" required />
-        <flux:input wire:model="employee_number" label="Employee Number" placeholder="Enter unique employee number" required />
         <flux:select wire:model="position_id" label="Position (Optional)" placeholder="Select a position">
             <option value="">Select a position</option>
             @foreach ($this->positions as $position)

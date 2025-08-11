@@ -65,7 +65,6 @@ erDiagram
     employees {
         bigint id PK "Primary key"
         varchar name "Full name of the employee"
-        varchar employee_number UK "Unique employee identifier"
         bigint division_id FK "nullable - Employee's division assignment"
         bigint position_id FK "nullable - Employee's position/role"
         timestamp created_at "Record creation timestamp"
