@@ -563,6 +563,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                     default => 'overflow-x-auto',
                 },
             ];
+
+            // Define which columns/sections to show
+            $columns = [
+                'brand_model' => true,
+                'specifications' => true,
+                'serials' => true,
+                'quantity' => true,
+                'unit_cost' => true,
+                'codes' => true,
+                'contract' => true,
+                'dates' => true,
+                'remarks' => true,
+                'division' => true,
+            ];
         @endphp
 
         @if($this->groupBy === 'employee')
@@ -600,6 +614,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <x-admin.inventory.par.table-row
                                                     :par="$par"
                                                     :densityClasses="$densityClasses"
+                                                    :columns="$columns"
                                                     :search="$this->search"
                                                     :filterArticle="$this->filterArticle"
                                                     :filterSerialNumber="$this->filterSerialNumber"
@@ -619,6 +634,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <x-admin.inventory.par.card
                                                 :par="$par"
                                                 :densityClasses="$densityClasses"
+                                                :columns="$columns"
                                                 :search="$this->search"
                                                 :filterArticle="$this->filterArticle"
                                                 :filterSerialNumber="$this->filterSerialNumber"
@@ -714,6 +730,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-admin.inventory.par.table-row
                                         :par="$par"
                                         :densityClasses="$densityClasses"
+                                        :columns="$columns"
                                         :search="$this->search"
                                         :filterArticle="$this->filterArticle"
                                         :filterSerialNumber="$this->filterSerialNumber"
@@ -740,6 +757,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-admin.inventory.par.card
                         :par="$par"
                         :densityClasses="$densityClasses"
+                        :columns="$columns"
                         :search="$this->search"
                         :filterArticle="$this->filterArticle"
                         :filterSerialNumber="$this->filterSerialNumber"

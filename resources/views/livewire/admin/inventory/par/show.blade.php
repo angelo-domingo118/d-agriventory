@@ -13,15 +13,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
-        $this->par = $par->load('assignedEmployee', 'itemBatches.contractItem.itemSpecification.itemCatalog');
+        $this->par = $par->load([
+            'assignedEmployee.division',
+            'contractItem.itemSpecification.itemCatalog',
+            'contractItem.contract.supplier',
+            'itemBatches'
+        ]);
     }
 
     #[Computed]
     public function totalValue()
     {
-        return $this->par->itemBatches->reduce(function ($carry, $batch) {
-            return $carry + ($batch->quantity * $batch->contractItem->unit_price);
-        }, 0);
+        return $this->par->quantity * $this->par->contractItem->unit_price;
     }
 }; ?>
 
@@ -71,99 +74,146 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="border-t border-stone-200 px-4 py-5 dark:border-stone-700 sm:p-0">
                         <dl class="sm:divide-y sm:divide-stone-200 dark:sm:divide-stone-700">
-                             <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
                                 <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">PAR Number</dt>
                                 <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->par_number }}</dd>
                             </div>
                             <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
                                 <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Assigned Employee</dt>
-<dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-    {{ $par->assignedEmployee?->name ?? 'Employee not found' }}
-</dd>                            </div>
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Acquired</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->date_acquired->format('F j, Y') }}</dd>
-                            </div>
-                             <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Area / Building / Room</dt>
                                 <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    {{ $par->area_code ?? 'N/A' }} / {{ $par->building_code ?? 'N/A' }}
+                                    {{ $par->assignedEmployee?->name ?? 'Employee not found' }}
+                                    @if($par->assignedEmployee?->division)
+                                        <br><span class="text-stone-500">{{ $par->assignedEmployee->division->name }}</span>
+                                    @endif
                                 </dd>
                             </div>
                             <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Account Code</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->account_code ?? 'N/A' }}</dd>
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Item</dt>
+                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
+                                    {{ $par->contractItem?->itemSpecification?->itemCatalog?->name ?? 'Item not found' }}
+                                    @if($par->contractItem?->itemSpecification)
+                                        @php $spec = $par->contractItem->itemSpecification; @endphp
+                                        @if($spec->brand || $spec->model)
+                                            <br><span class="text-stone-500">{{ collect([$spec->brand, $spec->model])->filter()->join(' / ') }}</span>
+                                        @endif
+                                    @endif
+                                </dd>
                             </div>
-                             <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Remarks</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->remarks ?: 'No remarks.' }}</dd>
+                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Supplier</dt>
+                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
+                                    {{ $par->contractItem?->contract?->supplier?->name ?? 'Supplier not found' }}
+                                    @if($par->contractItem?->contract?->contract_po_ib_number)
+                                        <br><span class="text-stone-500">Contract: {{ $par->contractItem->contract->contract_po_ib_number }}</span>
+                                    @endif
+                                </dd>
                             </div>
+                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Quantity & Cost</dt>
+                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
+                                    {{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)
+                                    <br><span class="text-stone-500">₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }} per unit</span>
+                                </dd>
+                            </div>
+                            @if($par->date_prepared || $par->date_accepted || $par->date_acquired)
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Dates</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
+                                        @if($par->date_prepared)
+                                            <div>Prepared: {{ $par->date_prepared->format('F j, Y') }}</div>
+                                        @endif
+                                        @if($par->date_accepted)
+                                            <div>Accepted: {{ $par->date_accepted->format('F j, Y') }}</div>
+                                        @endif
+                                        @if($par->date_acquired)
+                                            <div>Acquired: {{ $par->date_acquired->format('F j, Y') }}</div>
+                                        @endif
+                                    </dd>
+                                </div>
+                            @endif
+                            @if($par->inventory_code)
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->inventory_code }}</dd>
+                                </div>
+                            @endif
+                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Location Codes</dt>
+                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
+                                    <div>Area: {{ $par->area_code ?? 'N/A' }}</div>
+                                    <div>Building: {{ $par->building_code ?? 'N/A' }}</div>
+                                    <div>Account: {{ $par->account_code ?? 'N/A' }}</div>
+                                </dd>
+                            </div>
+                            @if($par->remarks)
+                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
+                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Remarks</dt>
+                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->remarks }}</dd>
+                                </div>
+                            @endif
                         </dl>
                     </div>
                 </div>
             </div>
 
-            {{-- Totals --}}
+            {{-- Summary --}}
             <div class="lg:col-span-1">
                 <div class="rounded-lg bg-white p-6 shadow dark:bg-stone-800">
                     <h3 class="text-lg font-medium text-stone-900 dark:text-white">Summary</h3>
                     <div class="mt-6 space-y-4">
                         <div class="flex justify-between">
-                            <p class="text-stone-600 dark:text-stone-300">Total Items</p>
-                            <p class="font-semibold text-stone-900 dark:text-white">{{ $par->itemBatches->sum('quantity') }}</p>
+                            <p class="text-stone-600 dark:text-stone-300">Quantity</p>
+                            <p class="font-semibold text-stone-900 dark:text-white">{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</p>
                         </div>
                         <div class="flex justify-between">
+                            <p class="text-stone-600 dark:text-stone-300">Unit Price</p>
+                            <p class="font-semibold text-stone-900 dark:text-white">₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</p>
+                        </div>
+                        <div class="flex justify-between border-t pt-4">
                             <p class="text-stone-600 dark:text-stone-300">Total Value</p>
                             <p class="font-semibold text-stone-900 dark:text-white">₱{{ number_format($this->totalValue, 2) }}</p>
+                        </div>
+                        <div class="flex justify-between">
+                            <p class="text-stone-600 dark:text-stone-300">Identification Batches</p>
+                            <p class="font-semibold text-stone-900 dark:text-white">{{ $par->itemBatches->count() }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Item Batches Table --}}
-        <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-800">
-             <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-base font-semibold leading-7 text-stone-900 dark:text-white">
-                    Items Included
-                </h3>
+        {{-- Identification Data Batches --}}
+        @if($par->itemBatches->isNotEmpty())
+            <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-800">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-base font-semibold leading-7 text-stone-900 dark:text-white">
+                        Identification Data
+                    </h3>
+                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                        Serial numbers, asset tags, and other identification data for individual items.
+                    </p>
+                </div>
+                <div class="border-t border-stone-200 dark:border-stone-700">
+                    <div class="divide-y divide-stone-200 dark:divide-stone-700">
+                        @foreach($par->itemBatches as $batch)
+                            <div wire:key="batch-{{ $batch->id }}" class="px-6 py-4">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="text-sm font-medium text-stone-900 dark:text-stone-100">
+                                            Batch #{{ $loop->iteration }}
+                                        </h4>
+                                        @if($batch->identification_data)
+                                            <div class="mt-1 text-sm text-stone-600 dark:text-stone-300 whitespace-pre-wrap">{{ $batch->identification_data }}</div>
+                                        @else
+                                            <div class="mt-1 text-sm italic text-stone-500 dark:text-stone-400">No identification data recorded</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
-                    <thead class="bg-stone-50 dark:bg-stone-700/50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Item Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Serial Number</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Quantity</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Unit Cost</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-300">Total Cost</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
-                        @forelse($par->itemBatches as $batch)
-                            <tr>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->contractItem?->itemSpecification?->itemCatalog?->name ?? 'Item not found' }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->serial_number }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-900 dark:text-stone-100">{{ $batch->quantity }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->contractItem?->unit_price ?? 0, 2) }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-stone-500 dark:text-stone-300">₱{{ number_format($batch->quantity * ($batch->contractItem?->unit_price ?? 0), 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-stone-500 dark:text-stone-400">No items found for this PAR.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                     <tfoot class="bg-stone-50 dark:bg-stone-700/50">
-                        <tr>
-                            <td colspan="2" class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">Total</td>
-                            <td class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">{{ $par->itemBatches->sum('quantity') }}</td>
-                            <td class="px-6 py-3"></td>
-                            <td class="px-6 py-3 text-left text-sm font-semibold text-stone-900 dark:text-white">₱{{ number_format($this->totalValue, 2) }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
+        @endif
     </div>
 </div> 

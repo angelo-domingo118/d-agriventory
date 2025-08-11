@@ -1,6 +1,7 @@
 @props([
     'par',
     'densityClasses',
+    'columns',
     'search' => '',
     'filterArticle' => '',
     'filterSerialNumber' => '',
