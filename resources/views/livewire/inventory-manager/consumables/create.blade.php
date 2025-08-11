@@ -104,32 +104,30 @@ new #[Layout('components.layouts.app')] class extends Component
 ?>
 
 <div>
-    <x-inventory-manager.layout 
-        heading="Create Consumable Record" 
-        :subheading="'Add new consumable inventory for ' . $this->division->name">
-        
-        <form wire:submit="save" novalidate>
-            <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                            Create New Consumable Record
-                        </h1>
-                        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                            Add consumable items to your division's inventory
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-x-4">
-                        <flux:button variant="ghost" :href="route('inventory-manager.consumables.index')" wire:navigate>
-                            Cancel
-                        </flux:button>
-                        <flux:button type="submit" variant="primary">
-                            <span wire:loading.remove>Save Record</span>
-                            <span wire:loading>Saving...</span>
-                        </flux:button>
-                    </div>
-                </div>
-            </div>
+    <div class="flex items-center justify-between mb-6">
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('inventory-manager.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item :href="route('inventory-manager.consumables.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Consumables</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+            <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                Add consumable items to your division's inventory
+            </p>
+        </div>
+        <div class="flex items-center gap-x-2">
+            <flux:button variant="outline" :href="route('inventory-manager.consumables.index')" wire:navigate>
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" form="consumable-form">
+                <span wire:loading.remove wire:target="save">Save Record</span>
+                <span wire:loading wire:target="save">Saving...</span>
+            </flux:button>
+        </div>
+    </div>
+
+    <form wire:submit="save" id="consumable-form" novalidate>
 
             <div class="mt-6">
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -181,9 +179,9 @@ new #[Layout('components.layouts.app')] class extends Component
                             <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
                                 <div class="flex items-center justify-between">
                                     <h3 class="font-semibold text-stone-800 dark:text-stone-200">Items</h3>
-                                    <flux:button 
+                                                                                        <flux:button 
                                         type="button"
-                                        variant="ghost" 
+                                        variant="outline" 
                                         size="sm"
                                         wire:click="addItem">
                                         <flux:icon.plus class="h-4 w-4 mr-2" />
@@ -264,5 +262,4 @@ new #[Layout('components.layouts.app')] class extends Component
                 </div>
             </div>
         </form>
-    </x-inventory-manager.layout>
 </div>

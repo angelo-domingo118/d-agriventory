@@ -57,10 +57,6 @@ Route::prefix('inventory-manager')
         Volt::route('consumables/{record}', 'inventory-manager.consumables.show')->name('consumables.show');
         Volt::route('consumables/{record}/edit', 'inventory-manager.consumables.edit')->name('consumables.edit');
 
-        // Transfers management
-        Volt::route('transfers', 'inventory-manager.transfers.index')->name('transfers.index');
-        Volt::route('transfers/create', 'inventory-manager.transfers.create')->name('transfers.create');
-
         // Reports
         Volt::route('reports', 'inventory-manager.reports.index')->name('reports.index');
     });

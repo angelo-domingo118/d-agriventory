@@ -50,27 +50,27 @@ new #[Layout('components.layouts.app')] class extends Component
 ?>
 
 <div>
-    <x-inventory-manager.layout 
-        :heading="'Consumable Record: ' . $record->record_number"
-        :subheading="'Division: ' . $record->division->name">
-        
-        <x-slot name="header">
-            <div class="flex space-x-3">
-                <flux:button 
-                    variant="ghost"
-                    :href="route('inventory-manager.consumables.index')" 
-                    wire:navigate>
-                    ← Back to List
-                </flux:button>
-                
-                <flux:button 
-                    variant="primary"
-                    :href="route('inventory-manager.consumables.edit', $record)" 
-                    wire:navigate>
-                    Edit Record
-                </flux:button>
-            </div>
-        </x-slot>
+    <div class="flex items-center justify-between mb-6">
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('inventory-manager.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item :href="route('inventory-manager.consumables.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Consumables</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">{{ $record->record_number }}</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+            <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                Division: {{ $record->division->name }} • Created {{ $record->date_received->format('M d, Y') }}
+            </p>
+        </div>
+        <div class="flex items-center gap-x-2">
+            <flux:button variant="outline" :href="route('inventory-manager.consumables.index')" wire:navigate>
+                Back to List
+            </flux:button>
+            <flux:button variant="primary" :href="route('inventory-manager.consumables.edit', $record)" wire:navigate>
+                Edit Record
+            </flux:button>
+        </div>
+    </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Record Details -->
@@ -212,5 +212,4 @@ new #[Layout('components.layouts.app')] class extends Component
                 </div>
             </div>
         </div>
-    </x-inventory-manager.layout>
 </div>

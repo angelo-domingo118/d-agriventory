@@ -136,24 +136,33 @@ new #[Layout('components.layouts.app')] class extends Component
 ?>
 
 <div>
-    <x-inventory-manager.layout 
-        :heading="'Edit Consumable Record: ' . $record->record_number"
-        :subheading="'Division: ' . $division->name">
-        
-        <x-slot name="header">
-            <div class="flex space-x-3">
-                <flux:button 
-                    variant="ghost"
-                    :href="route('inventory-manager.consumables.show', $record)" 
-                    wire:navigate>
-                    ← Cancel
-                </flux:button>
-            </div>
-        </x-slot>
-        
-        <div class="bg-white dark:bg-stone-800 shadow sm:rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-                <form wire:submit="save">
+    <div class="flex items-center justify-between mb-6">
+        <!-- Breadcrumbs as Title -->
+        <div>
+            <flux:breadcrumbs class="text-2xl font-semibold">
+                <flux:breadcrumbs.item :href="route('inventory-manager.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
+                <flux:breadcrumbs.item :href="route('inventory-manager.consumables.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Consumables</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item :href="route('inventory-manager.consumables.show', $record)" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">{{ $record->record_number }}</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Edit</flux:breadcrumbs.item>
+            </flux:breadcrumbs>
+            <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
+                Update consumable record for {{ $division->name }}
+            </p>
+        </div>
+        <div class="flex items-center gap-x-2">
+            <flux:button variant="outline" :href="route('inventory-manager.consumables.show', $record)" wire:navigate>
+                Cancel
+            </flux:button>
+            <flux:button type="submit" variant="primary" form="consumable-edit-form">
+                <span wire:loading.remove wire:target="save">Update Record</span>
+                <span wire:loading wire:target="save">Updating...</span>
+            </flux:button>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-stone-800 shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <form wire:submit="save" id="consumable-edit-form">
                     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                         <div class="sm:col-span-3">
                             <flux:input 
@@ -191,8 +200,9 @@ new #[Layout('components.layouts.app')] class extends Component
                             <h3 class="text-lg font-medium text-stone-800 dark:text-stone-200">Items</h3>
                             <flux:button 
                                 type="button"
-                                variant="ghost" 
+                                variant="outline" 
                                 wire:click="addItem">
+                                <flux:icon.plus class="h-4 w-4 mr-2" />
                                 Add Item
                             </flux:button>
                         </div>
@@ -212,10 +222,10 @@ new #[Layout('components.layouts.app')] class extends Component
                                     @if(count($items) > 1)
                                         <flux:button 
                                             type="button"
-                                            variant="ghost" 
+                                            variant="danger" 
                                             size="sm"
                                             wire:click="removeItem({{ $index }})">
-                                            Remove
+                                            <flux:icon.trash class="h-4 w-4" />
                                         </flux:button>
                                     @endif
                                 </div>
@@ -264,23 +274,7 @@ new #[Layout('components.layouts.app')] class extends Component
                             @endforeach
                         </div>
                     </div>
-                    
-                    <div class="mt-8 flex justify-end space-x-3">
-                        <flux:button 
-                            variant="ghost" 
-                            :href="route('inventory-manager.consumables.show', $record)" 
-                            wire:navigate>
-                            Cancel
-                        </flux:button>
-                        
-                        <flux:button 
-                            variant="primary" 
-                            type="submit">
-                            Update Record
-                        </flux:button>
-                    </div>
                 </form>
             </div>
         </div>
-    </x-inventory-manager.layout>
 </div>
