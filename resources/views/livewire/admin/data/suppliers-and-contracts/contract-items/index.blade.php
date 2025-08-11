@@ -131,10 +131,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div x-data="{ 
-    ...tableResizer('contract_items_widths', { contract: 250, item: 300, type: 100, price: 150, date: 180, actions: 100 }),
-    ...tableSettings('contract_items_settings')
-}">
+ <div x-data="{ 
+     ...tableResizer('contract_items_widths', { contract: 250, item: 300, type: 100, price: 150, usage: 150, date: 180, actions: 100 }),
+     ...tableSettings('contract_items_settings')
+ }">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-stone-900 dark:text-stone-100">
             Contract Items
@@ -374,15 +374,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                     <div @mousedown="startResize($event, 'price')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                 </th>
-                                <th scope="col" :style="`width: ${columnWidths.date}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                    <div wire:click="sort('created_at')" class="flex cursor-pointer items-center">
-                                        Date Added
-                                        @if ($sortBy === 'created_at')
-                                            <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
-                                        @endif
-                                    </div>
-                                    <div @mousedown="startResize($event, 'date')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                </th>
+                                                                 <th scope="col" :style="`width: ${columnWidths.usage}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                     <div class="flex items-center">
+                                         Usage
+                                     </div>
+                                     <div @mousedown="startResize($event, 'usage')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                 </th>
+                                 <th scope="col" :style="`width: ${columnWidths.date}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                     <div wire:click="sort('created_at')" class="flex cursor-pointer items-center">
+                                         Date Added
+                                         @if ($sortBy === 'created_at')
+                                             <x-flux::icon.chevron-down class="ml-2 inline-block h-4 w-4 {{ $sortDirection === 'asc' ? 'rotate-180' : '' }}" />
+                                         @endif
+                                     </div>
+                                     <div @mousedown="startResize($event, 'date')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                 </th>
                                 <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }}">
                                     <span class="sr-only">Edit</span>
                                 </th>
@@ -412,7 +418,30 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             {{ $contractItem->item_type }}
                                         </span>
                                     </td>
-                                    <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="₱{{ number_format($contractItem->unit_price, 2) }}">₱{{ number_format($contractItem->unit_price, 2) }}</td>
+                                                                         <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="₱{{ number_format($contractItem->unit_price, 2) }} per {{ $contractItem->itemSpecification->itemCatalog->unit }}">
+                                         <span>₱{{ number_format($contractItem->unit_price, 2) }}</span>
+                                         <span class="text-stone-400 dark:text-stone-500"> / {{ $contractItem->itemSpecification->itemCatalog->unit }}</span>
+                                     </td>
+                                     <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                         @php
+                                             $icsCount = $contractItem->icsNumbers()->count();
+                                             $parCount = $contractItem->parNumbers()->count();
+                                             $idrCount = $contractItem->idrNumbers()->count();
+                                             $totalUsage = $icsCount + $parCount + $idrCount;
+                                         @endphp
+                                         @if($totalUsage > 0)
+                                             <div class="space-y-1">
+                                                 <div class="text-sm font-medium">{{ $totalUsage }} allocated</div>
+                                                 <div class="text-xs text-stone-400 dark:text-stone-500">
+                                                     @if($icsCount > 0)ICS: {{ $icsCount }}@endif
+                                                     @if($parCount > 0){{ $icsCount > 0 ? ' • ' : '' }}PAR: {{ $parCount }}@endif
+                                                     @if($idrCount > 0){{ ($icsCount > 0 || $parCount > 0) ? ' • ' : '' }}IDR: {{ $idrCount }}@endif
+                                                 </div>
+                                             </div>
+                                         @else
+                                             <span class="text-stone-400 dark:text-stone-500">Not used</span>
+                                         @endif
+                                     </td>
                                     <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $contractItem->created_at->format('M d, Y') }}">{{ $contractItem->created_at->format('M d, Y') }}</td>
                                     <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                         <button wire:click="editContractItem({{ $contractItem->id }})" wire:loading.attr="disabled" wire:target="editContractItem({{ $contractItem->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
@@ -423,9 +452,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </button>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="{{ $densityClasses['table_cell'] }} py-12 text-center">
+                                                         @empty
+                                 <tr>
+                                     <td colspan="7" class="{{ $densityClasses['table_cell'] }} py-12 text-center">
                                         <div class="flex flex-col items-center">
                                             <x-flux::icon.package class="h-12 w-12 text-stone-400" />
                                             <h3 class="mt-2 {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">No contract items found</h3>
