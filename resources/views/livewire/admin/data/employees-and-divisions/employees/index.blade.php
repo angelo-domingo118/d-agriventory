@@ -82,6 +82,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function employees()
     {
         return Employee::with(['position', 'division'])
+            ->withCount(['icsNumbers', 'parNumbers', 'assignedIdrNumbers'])
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('employee_number', 'like', "%{$search}%")
@@ -131,7 +132,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div x-data="{ 
-    ...tableResizer('employees_widths', { name: 350, position: 250, division: 250, actions: 100 }),
+    ...tableResizer('employees_widths', { name: 300, position: 200, division: 200, inventory: 150, actions: 100 }),
     ...tableSettings('employees_settings')
 }">
     <div class="flex items-center justify-between">
@@ -373,6 +374,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'division')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
+                        <th scope="col" :style="`width: ${columnWidths.inventory}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            Inventory Items
+                            <div @mousedown="startResize($event, 'inventory')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
                         <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             Actions
                         </th>
@@ -384,16 +389,40 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $employee->name }} ({{ $employee->employee_number }})">{{ $employee->name }} <span class="text-stone-500">({{ $employee->employee_number }})</span></td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->position?->title }}">{{ $employee->position?->title }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->division?->name }}">{{ $employee->division?->name }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                <div class="flex flex-wrap gap-1">
+                                    @if($employee->ics_numbers_count > 0)
+                                        <span class="inline-flex items-center rounded-md bg-purple-50 px-1.5 py-0.5 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10 dark:bg-purple-400/10 dark:text-purple-400 dark:ring-purple-400/20" title="{{ $employee->ics_numbers_count }} ICS items">
+                                            ICS: {{ $employee->ics_numbers_count }}
+                                        </span>
+                                    @endif
+                                    @if($employee->par_numbers_count > 0)
+                                        <span class="inline-flex items-center rounded-md bg-green-50 px-1.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10 dark:bg-green-400/10 dark:text-green-400 dark:ring-green-400/20" title="{{ $employee->par_numbers_count }} PAR items">
+                                            PAR: {{ $employee->par_numbers_count }}
+                                        </span>
+                                    @endif
+                                    @if($employee->assigned_idr_numbers_count > 0)
+                                        <span class="inline-flex items-center rounded-md bg-orange-50 px-1.5 py-0.5 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-700/10 dark:bg-orange-400/10 dark:text-orange-400 dark:ring-orange-400/20" title="{{ $employee->assigned_idr_numbers_count }} IDR items">
+                                            IDR: {{ $employee->assigned_idr_numbers_count }}
+                                        </span>
+                                    @endif
+                                    @if($employee->ics_numbers_count + $employee->par_numbers_count + $employee->assigned_idr_numbers_count === 0)
+                                        <span class="inline-flex items-center rounded-md bg-stone-50 px-1.5 py-0.5 text-xs font-medium text-stone-600 ring-1 ring-inset ring-stone-500/10 dark:bg-stone-400/10 dark:text-stone-400 dark:ring-stone-400/20">
+                                            No Items
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editEmployee({{ $employee->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
+                                   <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                            <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 No employees found.
                             </td>
                         </tr>

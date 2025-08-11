@@ -77,6 +77,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function divisions()
     {
         return Division::query()
+            ->withCount('employees')
+            ->with('inventoryManagers.user')
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', '%' . $search . '%')
                     ->orWhere('code', 'like', '%' . $search . '%');
@@ -94,7 +96,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div x-data="{ 
-    ...tableResizer('divisions_widths', { name: 600, code: 250, actions: 120 }),
+    ...tableResizer('divisions_widths', { name: 400, code: 200, employees: 120, manager: 250, actions: 120 }),
     ...tableSettings('divisions_settings')
 }">
     <div class="flex items-center justify-between">
@@ -295,6 +297,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
+                        <th scope="col" :style="`width: ${columnWidths.employees}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('employees_count')" class="flex cursor-pointer items-center">
+                                Employees
+                                @if($sortColumn === 'employees_count')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'employees')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.manager}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            Inventory Manager
+                            <div @mousedown="startResize($event, 'manager')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
                         <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             Actions
                         </th>
@@ -305,16 +326,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <tr wire:key="division-{{ $division->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $division->name }}">{{ $division->name }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $division->code }}">{{ $division->code }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $division->employees_count }} employees">
+                                <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/20">
+                                    {{ $division->employees_count }}
+                                </span>
+                            </td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                @if($division->inventoryManagers->isNotEmpty())
+                                    @foreach($division->inventoryManagers as $manager)
+                                        <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/20" title="{{ $manager->user->name }}">
+                                            <x-flux::icon.user-circle class="mr-1 h-3 w-3" />
+                                            {{ $manager->user->name }}
+                                        </span>
+                                        @if(!$loop->last)<br class="my-1">@endif
+                                    @endforeach
+                                @else
+                                    <span class="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-500/10 dark:text-yellow-400 dark:ring-yellow-500/20">
+                                        <x-flux::icon.user-minus class="mr-1 h-3 w-3" />
+                                        No Manager
+                                    </span>
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editDivision({{ $division->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
+                                   <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                            <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 No divisions found.
                             </td>
                         </tr>

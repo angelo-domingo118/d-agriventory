@@ -65,7 +65,13 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function positions()
     {
         return Position::query()
-            ->when($this->search, fn($q, $search) => $q->where('title', 'like', "%{$search}%"))
+            ->withCount('employees')
+            ->when($this->search, function($q, $search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('position_type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            })
             ->orderBy($this->sortColumn, $this->sortDirection)
             ->paginate($this->perPage);
     }
@@ -93,6 +99,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div x-data="{ 
+    ...tableResizer('positions_widths', { title: 300, code: 150, type: 200, employees: 120, actions: 100 }),
     ...tableSettings('positions_settings')
 }">
     <div class="flex items-center justify-between">
@@ -177,6 +184,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="space-y-2">
                             <flux:button
                                 variant="outline"
+                                x-on:click="$dispatch('reset-column-widths')"
+                                class="w-full justify-center"
+                            >
+                                <x-flux::icon.rotate-cw class="mr-2 h-4 w-4" />
+                                Reset Column Widths
+                            </flux:button>
+                            <flux:button
+                                variant="outline"
                                 wire:click="resetSorting"
                                 class="w-full justify-center"
                             >
@@ -252,12 +267,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="mt-4 flow-root">
         <div class="{{ $densityClasses['table_wrapper'] }} rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+            <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700 table-fixed">
                 <thead class="bg-stone-50 dark:bg-stone-800">
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
-                        <th scope="col" class="w-full {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.title}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('title')" class="flex cursor-pointer items-center">
-                                Name
+                                Title
                                 @if($sortColumn === 'title')
                                     @if($sortDirection === 'asc')
                                         <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
@@ -268,8 +283,54 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
+                            <div @mousedown="startResize($event, 'title')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                        <th scope="col" :style="`width: ${columnWidths.code}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('code')" class="flex cursor-pointer items-center">
+                                Code
+                                @if($sortColumn === 'code')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'code')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.type}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('position_type')" class="flex cursor-pointer items-center">
+                                Type
+                                @if($sortColumn === 'position_type')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'type')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.employees}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('employees_count')" class="flex cursor-pointer items-center">
+                                Employees
+                                @if($sortColumn === 'employees_count')
+                                    @if($sortDirection === 'asc')
+                                        <x-flux::icon.chevron-up class="ml-2 h-4 w-4" />
+                                    @else
+                                        <x-flux::icon.chevron-down class="ml-2 h-4 w-4" />
+                                    @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'employees')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
+                        <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             Actions
                         </th>
                     </tr>
@@ -278,16 +339,31 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @forelse($positions as $position)
                         <tr wire:key="position-{{ $position->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $position->title }}">{{ $position->title }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $position->code }}">{{ $position->code ?: '-' }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $position->position_type }}">
+                                @if($position->position_type)
+                                    <span class="inline-flex items-center rounded-md bg-stone-50 px-2 py-1 text-xs font-medium text-stone-600 ring-1 ring-inset ring-stone-500/10 dark:bg-stone-400/10 dark:text-stone-400 dark:ring-stone-400/20">
+                                        {{ str_replace('_', ' ', ucwords(strtolower($position->position_type), '_')) }}
+                                    </span>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $position->employees_count }} employees">
+                                <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/20">
+                                    {{ $position->employees_count }}
+                                </span>
+                            </td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editPosition({{ $position->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
+                                   <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                            <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 No positions found.
                             </td>
                         </tr>
@@ -320,6 +396,48 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 <script>
     document.addEventListener('alpine:init', () => {
+        Alpine.data('tableResizer', (storageKey, defaultWidths) => ({
+            columnWidths: {},
+            resizingColumn: null,
+            startX: 0,
+            startWidth: 0,
+            init() {
+                const storedWidths = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                this.columnWidths = { ...defaultWidths, ...storedWidths };
+                
+                this.$root.addEventListener('reset-column-widths', () => {
+                    this.columnWidths = { ...defaultWidths };
+                    localStorage.removeItem(storageKey);
+                });
+            },
+            startResize(event, column) {
+                this.resizingColumn = column;
+                this.startX = event.clientX;
+                this.startWidth = this.columnWidths[column];
+                event.preventDefault();
+
+                const mouseMoveHandler = (e) => {
+                    if (!this.resizingColumn) return;
+                    const diffX = e.clientX - this.startX;
+                    const newWidth = this.startWidth + diffX;
+                    if (newWidth > 60) {
+                        this.columnWidths[this.resizingColumn] = newWidth;
+                    }
+                };
+
+                const mouseUpHandler = () => {
+                    if (!this.resizingColumn) return;
+                    this.resizingColumn = null;
+                    localStorage.setItem(storageKey, JSON.stringify(this.columnWidths));
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+            }
+        }));
+
         Alpine.data('tableSettings', (storageKey) => ({
             init() {
                 const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
