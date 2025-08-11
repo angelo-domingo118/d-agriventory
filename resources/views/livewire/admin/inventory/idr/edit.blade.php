@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 new #[Layout('components.layouts.app')] class extends Component {
     public IdrNumber $idrNumber;
     public bool $showDeleteModal = false;
+    public bool $showTransferModal = false;
 
     // Form state
     public string $number = '';
@@ -35,6 +36,17 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?float $unit_price = 0.0;
     
     public array $batches = [];
+
+    // Transfer state
+    public ?int $transfer_to_employee_id = null;
+    public string $transfer_date = '';
+    public ?int $original_assigned_employee_id = null; // Track original employee for transfer detection
+
+    // Employee search for transfer
+    public string $transfer_employee_search = '';
+    public array $transfer_employee_suggestions = [];
+    public bool $show_transfer_employee_suggestions = false;
+    public ?string $selected_transfer_employee_name = null;
 
     public Collection $allContracts;
     public Collection $allEmployees;
@@ -58,6 +70,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->allContracts = Contract::with('supplier:id,name')->orderBy('contract_po_ib_number')->get(['id', 'contract_po_ib_number', 'supplier_id']);
         $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
+        
+        // Initialize transfer date
+        $this->transfer_date = now()->format('Y-m-d');
+        
+        // Track the original employee for transfer detection
+        $this->original_assigned_employee_id = $this->assigned_employee_id;
         
         foreach ($this->idrNumber->itemBatches as $batch) {
             $this->batches[] = ['id' => $batch->id, 'identification_data' => $batch->identification_data, '_destroy' => false];
@@ -132,6 +150,95 @@ new #[Layout('components.layouts.app')] class extends Component {
         return ContractItem::where('contract_id', $this->contract_id)->with('itemSpecification.itemCatalog:id,name')->get();
     }
 
+    // Transfer employee search methods
+    public function updatedTransferEmployeeSearch($value): void
+    {
+        $this->searchTransferEmployees($value);
+    }
+
+    public function showAllTransferEmployees(): void
+    {
+        $this->searchTransferEmployees($this->transfer_employee_search);
+        if (count($this->transfer_employee_suggestions) > 0) {
+            $this->show_transfer_employee_suggestions = true;
+        }
+    }
+
+    public function searchTransferEmployees($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $employees = Employee::with('division', 'position')->orderBy('name')->get();
+        } else {
+            $employees = Employee::with('division', 'position')
+                ->where(function ($q) use ($query) {
+                    $q->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
+                })
+                ->orderBy('name')
+                ->get();
+        }
+
+        $this->transfer_employee_suggestions = $employees->map(function ($employee) {
+            $description_parts = [];
+            if ($employee->division) {
+                $description_parts[] = $employee->division->name;
+            }
+            if ($employee->position) {
+                $description_parts[] = $employee->position->title;
+            }
+
+            return [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'description' => implode(' / ', $description_parts),
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        $this->show_transfer_employee_suggestions = count($this->transfer_employee_suggestions) > 0;
+    }
+
+    public function selectTransferEmployee($employeeData): void
+    {
+        $this->transfer_to_employee_id = $employeeData['id'];
+        $this->transfer_employee_search = $employeeData['name'];
+        $this->selected_transfer_employee_name = $employeeData['name'];
+        $this->show_transfer_employee_suggestions = false;
+    }
+
+    public function transferItem(): void
+    {
+        if (!auth()->user()->hasAdminPermission('transfer_inventory')) {
+            abort(403);
+        }
+
+        $validated = $this->validate([
+            'transfer_to_employee_id' => ['required', 'integer', Rule::exists('employees', 'id'), Rule::notIn([$this->idrNumber->assigned_employee_id])],
+            'transfer_date' => ['required', 'date'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            // For IDR, we might want to create a simple transfer log or just update the assigned employee
+            // Since IDR doesn't have a transfers relationship like ICS, let's update the assigned employee
+            $this->idrNumber->update([
+                'assigned_employee_id' => $validated['transfer_to_employee_id'],
+            ]);
+
+            // For the form state
+            $this->assigned_employee_id = $validated['transfer_to_employee_id'];
+        });
+
+        // Update the form to reflect the new assignment
+        $newEmployee = Employee::find($validated['transfer_to_employee_id']);
+        if ($newEmployee) {
+            // Update any employee search fields if they exist
+        }
+
+        $this->showTransferModal = false;
+        $this->dispatch('idr-transferred');
+
+        session()->flash('success', "IDR record #{$this->idrNumber->number} transferred successfully to {$newEmployee->name}.");
+    }
+
     public function update(): void
     {
         $validated = $this->validate([
@@ -196,6 +303,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">Update the details for this IDR.</p>
                 </div>
                 <div class="flex items-center gap-x-4">
+                    @can('transfer_inventory')
+                        <flux:button variant="outline" @click="$set('showTransferModal', true)" type="button">
+                            <x-flux::icon.arrow-right-on-rectangle class="mr-2 h-4 w-4" />
+                            Transfer Item
+                        </flux:button>
+                    @endcan
                     <flux:button variant="ghost" :href="route('admin.inventory.idr.show', $idrNumber)" wire:navigate>Cancel</flux:button>
                     <flux:button type="submit" variant="primary">Save Changes</flux:button>
                 </div>
@@ -305,6 +418,72 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="flex justify-end gap-x-4">
                 <flux:button variant="ghost" @click="$set('showDeleteModal', false)">Cancel</flux:button>
                 <flux:button variant="danger" wire:click="destroy">Delete</flux:button>
+            </div>
+        </x-slot:footer>
+    </flux:modal>
+
+    <!-- Transfer Modal -->
+    <flux:modal title="Transfer IDR Item" :show="$showTransferModal" max-width="lg" @close="$set('showTransferModal', false)">
+        <x-slot:content>
+            <div class="space-y-6 p-4">
+                <div class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/10">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <x-flux::icon.information-circle class="h-5 w-5 text-blue-400" />
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                This will transfer the IDR item <strong>{{ $idrNumber->number }}</strong> to a new employee.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 dark:text-stone-300">Currently Assigned To</label>
+                        <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">{{ $idrNumber->assignedEmployee->name }} ({{ $idrNumber->assignedEmployee->division->name ?? 'No division' }})</p>
+                    </div>
+
+                    <div class="relative">
+                        <flux:input 
+                            wire:model.live.debounce.300ms="transfer_employee_search" 
+                            wire:focus="showAllTransferEmployees" 
+                            label="Transfer To" 
+                            placeholder="Search employees..."
+                            required
+                        />
+                        @error('transfer_to_employee_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        
+                        @if($show_transfer_employee_suggestions && count($transfer_employee_suggestions) > 0)
+                            <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                    @foreach($transfer_employee_suggestions as $employee)
+                                        @if($employee['id'] !== $idrNumber->assigned_employee_id)
+                                            <li wire:click="selectTransferEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
+                                                @if($employee['description'])
+                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
+                                                @endif
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div>
+                        <flux:input wire:model="transfer_date" type="date" label="Transfer Date" required />
+                        @error('transfer_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+        </x-slot:content>
+        <x-slot:footer>
+            <div class="flex justify-end gap-x-4">
+                <flux:button variant="ghost" @click="$set('showTransferModal', false)">Cancel</flux:button>
+                <flux:button variant="primary" wire:click="transferItem" :disabled="!$transfer_to_employee_id">Transfer Item</flux:button>
             </div>
         </x-slot:footer>
     </flux:modal>

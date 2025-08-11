@@ -15,6 +15,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public string $search = '';
     public bool $showFilters = false;
+    public string $groupBy = 'none';
     public string $view = 'table';
     public string $density = 'spacious';
     public string $textOverflow = 'nowrap';
@@ -53,10 +54,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
+        $this->groupBy = session('idr_group_by', 'none');
         $this->view = session('idr_view_mode', 'table');
         $this->density = session('idr_density', 'spacious');
         $this->textOverflow = session('idr_text_overflow', 'nowrap');
         $this->perPage = session('idr_per_page', 10);
+    }
+
+    public function setGroupBy(string $groupBy): void
+    {
+        $this->groupBy = $groupBy;
+        session(['idr_group_by' => $groupBy]);
+        $this->resetPage();
     }
 
 
@@ -182,6 +191,82 @@ new #[Layout('components.layouts.app')] class extends Component {
             $query->orderBy($this->sortColumn, $this->sortDirection);
         }
 
+        // Handle grouping
+        if ($this->groupBy === 'supplier') {
+            $items = $query->get();
+
+            // Group by supplier
+            $grouped = $items->groupBy(function ($item) {
+                return $item->contractItem->contract->supplier->name ?? 'Unknown Supplier';
+            });
+
+            // Sort groups by supplier name
+            $sortedGroups = $grouped->sortKeys();
+
+            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                items: $sortedGroups->forPage($currentPage, $this->perPage),
+                total: $sortedGroups->count(),
+                perPage: $this->perPage,
+                currentPage: $currentPage,
+                options: [
+                    'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+        }
+
+        if ($this->groupBy === 'contract') {
+            $items = $query->get();
+
+            // Group by contract
+            $grouped = $items->groupBy(function ($item) {
+                return $item->contractItem->contract->contract_po_ib_number ?? 'Unknown Contract';
+            });
+
+            // Sort groups by contract number
+            $sortedGroups = $grouped->sortKeys();
+
+            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                items: $sortedGroups->forPage($currentPage, $this->perPage),
+                total: $sortedGroups->count(),
+                perPage: $this->perPage,
+                currentPage: $currentPage,
+                options: [
+                    'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+        }
+
+        if ($this->groupBy === 'date') {
+            $items = $query->get();
+
+            // Group by date prepared
+            $grouped = $items->groupBy(function ($item) {
+                return $item->date_prepared->format('F Y');
+            });
+
+            // Sort groups by date (newest first)
+            $sortedGroups = $grouped->sortKeysDesc();
+
+            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage('page');
+
+            return new \Illuminate\Pagination\LengthAwarePaginator(
+                items: $sortedGroups->forPage($currentPage, $this->perPage),
+                total: $sortedGroups->count(),
+                perPage: $this->perPage,
+                currentPage: $currentPage,
+                options: [
+                    'path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+        }
+
         return $query->paginate($this->perPage);
     }
 
@@ -282,6 +367,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </flux:button>
                 <div x-show="open" x-on:click.outside="open = false" x-transition class="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-stone-800 dark:ring-stone-700" style="display: none;">
                     <div class="px-3 py-2">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Group By</div>
+                        <div class="mt-2 grid grid-cols-2 gap-1 rounded-md border border-stone-200 dark:border-stone-700 p-1">
+                            <button wire:click="setGroupBy('none')" class="px-2 py-1 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded {{ $groupBy === 'none' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">None</button>
+                            <button wire:click="setGroupBy('supplier')" class="px-2 py-1 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded {{ $groupBy === 'supplier' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">Supplier</button>
+                            <button wire:click="setGroupBy('contract')" class="px-2 py-1 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded {{ $groupBy === 'contract' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">Contract</button>
+                            <button wire:click="setGroupBy('date')" class="px-2 py-1 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded {{ $groupBy === 'date' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">Date</button>
+                        </div>
+                    </div>
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
                         <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">View Mode</div>
                         <div class="mt-2 flex overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
                              <button wire:click="setView('table')" class="flex-1 px-3 py-1 text-center text-sm focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $view === 'table' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}">Table</button>
@@ -547,10 +641,120 @@ new #[Layout('components.layouts.app')] class extends Component {
         @endphp
 
         @if ($view === 'table')
-            <div class="-mx-4 -my-2 {{ $densityClasses['table_wrapper'] }} sm:-mx-6 lg:-mx-8">
-                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
-                        <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
+            @if($this->groupBy !== 'none')
+                <div class="space-y-4" wire:key="search-{{ $this->search }}">
+                    @forelse ($this->idrNumbers as $groupKey => $items)
+                        @php
+                            $groupName = match($this->groupBy) {
+                                'supplier' => $groupKey,
+                                'contract' => "Contract: " . $groupKey,
+                                'date' => $groupKey,
+                                default => $groupKey
+                            };
+                        @endphp
+                        <div x-data="{ open: true }" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+                            <div @click="open = !open" class="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                <div>
+                                    <h3 class="font-semibold text-stone-900 dark:text-stone-100 lg:text-lg">{!! \App\Helpers\TextHelper::highlight($groupName, $this->search) !!}</h3>
+                                </div>
+                                <div class="flex items-center gap-x-4">
+                                    <span class="hidden sm:inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-200">{{ $items->count() }} {{ \Illuminate\Support\Str::plural('item', $items->count()) }}</span>
+                                    <x-flux::icon.chevron-down class="h-6 w-6 transform transition-transform text-stone-500" ::class="{ '-rotate-180': open }" />
+                                </div>
+                            </div>
+                            <div x-show="open" x-collapse style="display: none;">
+                                <div class="{{ $densityClasses['table_wrapper'] }}">
+                                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-700">
+                                        <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
+                                            @foreach($items as $idrNumber)
+                                                <tr wire:key="idr-grouped-{{ $groupKey }}-{{ $idrNumber->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                                                    <td class="w-full max-w-md {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} sm:w-auto sm:max-w-none border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="space-y-2">
+                                                            <div>
+                                                                <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->itemCatalog->name, [$this->search, $this->filterArticle]) !!}</div>
+                                                                @if ($densityClasses['show_secondary'])
+                                                                    <div class="{{ $densityClasses['text_meta'] }} text-stone-500">{!! \App\Helpers\TextHelper::highlight(collect([$idrNumber->contractItem->itemSpecification->brand, $idrNumber->contractItem->itemSpecification->model])->filter()->join(' / '), [$this->search, $this->filterArticle]) !!}</div>
+                                                                @endif
+                                                            </div>
+                                                            @if ($densityClasses['show_tertiary'])
+                                                                <div class="{{ $densityClasses['text_meta'] }}"><p class="text-stone-600 dark:text-stone-300 break-words">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->itemSpecification->detailed_specifications, [$this->search, $this->filterArticle]) !!}</p></div>
+                                                            @endif
+                                                            <div class="{{ $densityClasses['text_meta'] }}">
+                                                                <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Batches:</p>
+                                                                @if($idrNumber->itemBatches->isNotEmpty())
+                                                                    <ul class="mt-1 space-y-1">
+                                                                        @foreach($idrNumber->itemBatches as $batch)
+                                                                            <li class="text-stone-600 dark:text-stone-400">{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$this->search, $this->filterSerialNumber]) ?: 'No batch data' !!}</li>
+                                                                        @endforeach
+                                                                    </ul>
+                                                                @else
+                                                                    <p class="italic text-stone-500">No batches recorded.</p>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="{{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->number, $this->search) !!}</div>
+                                                        @if($densityClasses['show_secondary'])
+                                                        <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
+                                                           <div><span class="font-medium">Qty:</span> {{ $idrNumber->quantity }} {{ $idrNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</div>
+                                                           <div><span class="font-medium">Cost:</span> ₱{{ number_format($idrNumber->contractItem?->unit_price ?? 0, 2) }}</div>
+                                                           <div><span class="font-medium">Inv. Code:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->inventory_code, [$this->search, $this->filterInventoryNumber]) !!}</div>
+                                                           <div><span class="font-medium">ORS:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->ors, [$this->search, $this->filterOrs]) !!}</div>
+                                                        </div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} lg:table-cell border-r border-stone-300 dark:border-stone-700">
+                                                        <div class="font-semibold text-stone-900 dark:text-stone-100">{!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->contract->supplier->name ?? 'N/A', $this->search) !!}</div>
+                                                        @if($densityClasses['show_secondary'])
+                                                        <div class="mt-1 space-y-1 text-stone-600 dark:text-stone-400">
+                                                            <div><span class="font-medium">Contract:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->contractItem->contract->contract_po_ib_number, [$this->search, $this->filterContract]) !!}</div>
+                                                            @if($densityClasses['show_tertiary'])
+                                                                <div><span class="font-medium">Prepared:</span> {{ $idrNumber->date_prepared->format('M d, Y') }}</div>
+                                                                <div><span class="font-medium">Accepted:</span> {{ $idrNumber->date_accepted->format('M d, Y') }}</div>
+                                                            @endif
+                                                        </div>
+                                                        @endif
+                                                         @if($idrNumber->remarks)
+                                                            <div class="mt-2 text-xs text-stone-500 italic">"{!! \App\Helpers\TextHelper::highlight($idrNumber->remarks, [$this->search, $this->filterRemarks]) !!}"</div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="hidden {{ $densityClasses['table_cell_px'] }} align-top {{ $densityClasses['text_base'] }} sm:table-cell border-r border-stone-300 dark:border-stone-700">
+                                                        <div><span class="font-medium">Assigned:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->assignedEmployee->name, $this->search) !!}</div>
+                                                        <div><span class="font-medium">Approved:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->approvingEmployee->name, $this->search) !!}</div>
+                                                        <div><span class="font-medium">Received By:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedBy->name, $this->search) !!}</div>
+                                                        <div><span class="font-medium">Received From:</span> {!! \App\Helpers\TextHelper::highlight($idrNumber->receivedFrom->name, $this->search) !!}</div>
+                                                    </td>
+                                                    <td class="{{ $densityClasses['table_cell'] }} pl-3 pr-4 text-right align-top {{ $densityClasses['text_base'] }} font-medium sm:pr-6">
+                                                        <div class="flex items-center justify-end gap-x-2">
+                                                            <a href="{{ route('admin.inventory.idr.show', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                                <x-flux::icon.eye class="mr-1.5 h-4 w-4" />
+                                                                View
+                                                            </a>
+                                                            <a href="{{ route('admin.inventory.idr.edit', $idrNumber) }}" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50" wire:navigate>
+                                                                <x-flux::icon.edit class="mr-1.5 h-4 w-4" />
+                                                                Edit
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-12">
+                            <p class="text-stone-500 dark:text-stone-400">No IDR records found.</p>
+                        </div>
+                    @endforelse
+                </div>
+            @else
+                <div class="-mx-4 -my-2 {{ $densityClasses['table_wrapper'] }} sm:-mx-6 lg:-mx-8">
+                    <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                        <div class="overflow-hidden rounded-lg shadow ring-1 ring-black ring-opacity-5 dark:ring-stone-700">
+                            <table class="min-w-full divide-y divide-stone-300 dark:divide-stone-700 table-fixed">
                             <thead class="bg-stone-50 dark:bg-stone-800">
                                 <tr>
                                     <th scope="col" :style="`width: ${columnWidths.article}px`" class="relative {{ $densityClasses['table_header'] }} border-r border-stone-300 dark:border-stone-700 text-left {{ $densityClasses['text_header'] }} font-semibold text-stone-900 dark:text-stone-100">
@@ -655,6 +859,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
             </div>
+            @endif
         @else
             <div>Card/Compact view not implemented yet.</div>
         @endif

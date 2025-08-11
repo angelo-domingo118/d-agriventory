@@ -5,6 +5,7 @@ use App\Models\ContractItem;
 use App\Models\Employee;
 use App\Models\IdrNumber;
 use App\Models\IdrItemBatch;
+use App\Models\Supplier;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 new #[Layout('components.layouts.app')] class extends Component {
     // Form state
     public string $number = '';
+    public ?int $supplier_id = null;
     public ?int $contract_id = null;
     public ?int $contract_item_id = null;
     public ?int $assigned_employee_id = null;
@@ -29,14 +31,50 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $date_accepted = null;
     public ?string $date = null;
     public string $remarks = '';
+    public ?int $estimated_useful_life = null;
 
     // Display only property
     public ?float $unit_price = 0.0;
     
     public array $batches = [];
 
-    public Collection $allContracts;
-    public Collection $allEmployees;
+    // Auto-complete data
+    public string $supplier_search = '';
+    public array $supplier_suggestions = [];
+    public bool $show_supplier_suggestions = false;
+    public ?string $selected_supplier_name = null;
+    public bool $creating_new_supplier = false;
+
+    public string $contract_search = '';
+    public array $contract_suggestions = [];
+    public bool $show_contract_suggestions = false;
+    public ?string $selected_contract_name = null;
+    public bool $creating_new_contract = false;
+
+    public string $item_search = '';
+    public array $item_suggestions = [];
+    public bool $show_item_suggestions = false;
+    public ?string $selected_item_name = null;
+
+    public string $assigned_employee_search = '';
+    public array $assigned_employee_suggestions = [];
+    public bool $show_assigned_employee_suggestions = false;
+    public ?string $selected_assigned_employee_name = null;
+
+    public string $approving_employee_search = '';
+    public array $approving_employee_suggestions = [];
+    public bool $show_approving_employee_suggestions = false;
+    public ?string $selected_approving_employee_name = null;
+
+    public string $received_by_search = '';
+    public array $received_by_suggestions = [];
+    public bool $show_received_by_suggestions = false;
+    public ?string $selected_received_by_name = null;
+
+    public string $received_from_search = '';
+    public array $received_from_suggestions = [];
+    public bool $show_received_from_suggestions = false;
+    public ?string $selected_received_from_name = null;
 
 
     public function mount(): void
@@ -49,10 +87,395 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->date_accepted = now()->format('Y-m-d');
         $this->date = now()->format('Y-m-d');
         
-        $this->allContracts = Contract::with('supplier:id,name')->orderBy('contract_po_ib_number')->get(['id', 'contract_po_ib_number', 'supplier_id']);
-        $this->allEmployees = Employee::orderBy('name')->get(['id', 'name']);
-
+        $this->generateIdrNumber();
         $this->updatedQuantity($this->quantity);
+    }
+
+    public function generateIdrNumber(): void
+    {
+        // Find the highest numeric IDR number
+        $lastIdr = IdrNumber::orderByRaw('CAST(number AS UNSIGNED) DESC')->first();
+        
+        if ($lastIdr) {
+            // Increment by 1
+            $this->number = (string)(((int) $lastIdr->number) + 1);
+        } else {
+            // If no previous IDR numbers, start with 1
+            $this->number = '1';
+        }
+    }
+
+    // Supplier autocomplete methods
+    public function updatedSupplierSearch($value): void
+    {
+        $this->searchSuppliers($value);
+    }
+
+    public function showAllSuppliers(): void
+    {
+        $this->searchSuppliers($this->supplier_search);
+        if (count($this->supplier_suggestions) > 0) {
+            $this->show_supplier_suggestions = true;
+        }
+    }
+
+    public function searchSuppliers($query): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $suppliers = Supplier::orderBy('name')->get();
+            $this->supplier_suggestions = $suppliers->map(function ($supplier) {
+                return ['id' => $supplier->id, 'name' => $supplier->name, 'type' => 'existing'];
+            })->toArray();
+        } else {
+            $suppliers = Supplier::whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%'])
+                ->orderBy('name')
+                ->get();
+
+            $this->supplier_suggestions = $suppliers->map(function ($supplier) {
+                return ['id' => $supplier->id, 'name' => $supplier->name, 'type' => 'existing'];
+            })->toArray();
+
+            $exactExists = collect($this->supplier_suggestions)->contains(function ($supplier) use ($query) {
+                return strtolower($supplier['name']) === strtolower($query);
+            });
+            
+            if (!$exactExists && strlen(trim($query)) >= 2) {
+                array_unshift($this->supplier_suggestions, [
+                    'id' => 'new',
+                    'name' => $query,
+                    'type' => 'new'
+                ]);
+            }
+        }
+
+        $this->show_supplier_suggestions = count($this->supplier_suggestions) > 0;
+    }
+
+    public function selectSupplier($supplierData): void
+    {
+        if ($supplierData['type'] === 'existing') {
+            $this->supplier_id = $supplierData['id'];
+            $this->supplier_search = $supplierData['name'];
+            $this->selected_supplier_name = $supplierData['name'];
+            $this->creating_new_supplier = false;
+        } elseif ($supplierData['type'] === 'new') {
+            $this->supplier_id = null;
+            $this->supplier_search = $supplierData['name'];
+            $this->selected_supplier_name = $supplierData['name'] . ' (new)';
+            $this->creating_new_supplier = true;
+        }
+
+        $this->show_supplier_suggestions = false;
+        $this->resetContractData();
+        $this->dispatch('focus-contract');
+    }
+
+    // Contract autocomplete methods
+    public function updatedContractSearch($value): void
+    {
+        $this->searchContracts($value);
+
+        if (!preg_match('/^[a-zA-Z0-9-]*$/', $value)) {
+            $this->addError('contract_search_error', 'Contract number can only contain letters, numbers, and hyphens.');
+        } else {
+            $this->resetValidation('contract_search_error');
+        }
+    }
+
+    public function showAllContracts(): void
+    {
+        $this->searchContracts($this->contract_search);
+        if (count($this->contract_suggestions) > 0) {
+            $this->show_contract_suggestions = true;
+        }
+    }
+
+    public function searchContracts($query): void
+    {
+        if (!$this->supplier_id && !$this->creating_new_supplier) {
+            $this->contract_suggestions = [];
+            $this->show_contract_suggestions = false;
+            return;
+        }
+
+        if (strlen(trim($query)) === 0) {
+            if ($this->supplier_id) {
+                $contracts = Contract::where('supplier_id', $this->supplier_id)->orderBy('contract_po_ib_number')->get();
+            } else {
+                $contracts = Contract::orderBy('contract_po_ib_number')->get();
+            }
+        } else {
+            if ($this->supplier_id) {
+                $contracts = Contract::where('supplier_id', $this->supplier_id)
+                    ->whereRaw('LOWER(contract_po_ib_number) LIKE LOWER(?)', ['%' . $query . '%'])
+                    ->orderBy('contract_po_ib_number')
+                    ->get();
+            } else {
+                $contracts = Contract::whereRaw('LOWER(contract_po_ib_number) LIKE LOWER(?)', ['%' . $query . '%'])
+                    ->orderBy('contract_po_ib_number')
+                    ->get();
+            }
+        }
+
+        $this->contract_suggestions = $contracts->map(function ($contract) {
+            return [
+                'id' => $contract->id,
+                'name' => $contract->contract_po_ib_number,
+                'type' => 'existing',
+                'supplier_name' => $contract->supplier->name ?? 'Unknown'
+            ];
+        })->toArray();
+
+        $exactExists = collect($this->contract_suggestions)->contains(function ($contract) use ($query) {
+            return strtolower($contract['name']) === strtolower($query);
+        });
+
+        if (!$exactExists && strlen(trim($query)) >= 2) {
+            array_unshift($this->contract_suggestions, [
+                'id' => 'new',
+                'name' => $query,
+                'type' => 'new'
+            ]);
+        }
+
+        $this->show_contract_suggestions = count($this->contract_suggestions) > 0;
+    }
+
+    public function selectContract($contractData): void
+    {
+        if ($contractData['type'] === 'existing') {
+            $this->contract_id = $contractData['id'];
+            $this->contract_search = $contractData['name'];
+            $this->selected_contract_name = $contractData['name'];
+            $this->creating_new_contract = false;
+        } elseif ($contractData['type'] === 'new') {
+            $this->contract_id = null;
+            $this->contract_search = $contractData['name'];
+            $this->selected_contract_name = $contractData['name'] . ' (new)';
+            $this->creating_new_contract = true;
+        }
+
+        $this->show_contract_suggestions = false;
+        $this->resetItemData();
+        $this->dispatch('focus-item');
+    }
+
+    // Item autocomplete methods
+    public function updatedItemSearch($value): void
+    {
+        $this->searchItems($value);
+    }
+
+    public function showAllItems(): void
+    {
+        $this->searchItems($this->item_search);
+        if (count($this->item_suggestions) > 0) {
+            $this->show_item_suggestions = true;
+        }
+    }
+
+    public function searchItems($query): void
+    {
+        if (!$this->contract_id && !$this->creating_new_contract) {
+            $this->item_suggestions = [];
+            $this->show_item_suggestions = false;
+            return;
+        }
+
+        if ($this->contract_id) {
+            $items = ContractItem::where('contract_id', $this->contract_id)
+                ->with('itemSpecification.itemCatalog')
+                ->when(strlen(trim($query)) > 0, function ($q) use ($query) {
+                    $q->whereHas('itemSpecification.itemCatalog', function ($subq) use ($query) {
+                        $subq->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
+                    });
+                })
+                ->get();
+
+            $this->item_suggestions = $items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->itemSpecification->itemCatalog->name,
+                    'type' => 'existing',
+                    'unit_price' => $item->unit_price,
+                    'brand' => $item->itemSpecification->brand ?? '',
+                    'model' => $item->itemSpecification->model ?? ''
+                ];
+            })->toArray();
+        } else {
+            $this->item_suggestions = [];
+        }
+
+        $this->show_item_suggestions = count($this->item_suggestions) > 0;
+    }
+
+    public function selectItem($itemData): void
+    {
+        if ($itemData['type'] === 'existing') {
+            $this->contract_item_id = $itemData['id'];
+            $this->item_search = $itemData['name'];
+            $this->selected_item_name = $itemData['name'];
+            $this->unit_price = $itemData['unit_price'] ?? 0.0;
+        }
+
+        $this->show_item_suggestions = false;
+        $this->dispatch('focus-assigned-employee');
+    }
+
+    // Employee autocomplete methods
+    public function updatedAssignedEmployeeSearch($value): void
+    {
+        $this->searchEmployees($value, 'assigned');
+    }
+
+    public function showAllAssignedEmployees(): void
+    {
+        $this->searchEmployees($this->assigned_employee_search, 'assigned');
+        if (count($this->assigned_employee_suggestions) > 0) {
+            $this->show_assigned_employee_suggestions = true;
+        }
+    }
+
+    public function updatedApprovingEmployeeSearch($value): void
+    {
+        $this->searchEmployees($value, 'approving');
+    }
+
+    public function showAllApprovingEmployees(): void
+    {
+        $this->searchEmployees($this->approving_employee_search, 'approving');
+        if (count($this->approving_employee_suggestions) > 0) {
+            $this->show_approving_employee_suggestions = true;
+        }
+    }
+
+    public function updatedReceivedBySearch($value): void
+    {
+        $this->searchEmployees($value, 'received_by');
+    }
+
+    public function showAllReceivedByEmployees(): void
+    {
+        $this->searchEmployees($this->received_by_search, 'received_by');
+        if (count($this->received_by_suggestions) > 0) {
+            $this->show_received_by_suggestions = true;
+        }
+    }
+
+    public function updatedReceivedFromSearch($value): void
+    {
+        $this->searchEmployees($value, 'received_from');
+    }
+
+    public function showAllReceivedFromEmployees(): void
+    {
+        $this->searchEmployees($this->received_from_search, 'received_from');
+        if (count($this->received_from_suggestions) > 0) {
+            $this->show_received_from_suggestions = true;
+        }
+    }
+
+    public function searchEmployees($query, $type): void
+    {
+        if (strlen(trim($query)) === 0) {
+            $employees = Employee::with('division', 'position')->orderBy('name')->get();
+        } else {
+            $employees = Employee::with('division', 'position')
+                ->where(function ($q) use ($query) {
+                    $q->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
+                })
+                ->orderBy('name')
+                ->get();
+        }
+
+        $suggestions = $employees->map(function ($employee) {
+            $description_parts = [];
+            if ($employee->division) {
+                $description_parts[] = $employee->division->name;
+            }
+            if ($employee->position) {
+                $description_parts[] = $employee->position->title;
+            }
+
+            return [
+                'id' => $employee->id,
+                'name' => $employee->name,
+                'description' => implode(' / ', $description_parts),
+                'type' => 'existing'
+            ];
+        })->toArray();
+
+        switch ($type) {
+            case 'assigned':
+                $this->assigned_employee_suggestions = $suggestions;
+                $this->show_assigned_employee_suggestions = count($suggestions) > 0;
+                break;
+            case 'approving':
+                $this->approving_employee_suggestions = $suggestions;
+                $this->show_approving_employee_suggestions = count($suggestions) > 0;
+                break;
+            case 'received_by':
+                $this->received_by_suggestions = $suggestions;
+                $this->show_received_by_suggestions = count($suggestions) > 0;
+                break;
+            case 'received_from':
+                $this->received_from_suggestions = $suggestions;
+                $this->show_received_from_suggestions = count($suggestions) > 0;
+                break;
+        }
+    }
+
+    public function selectAssignedEmployee($employeeData): void
+    {
+        $this->assigned_employee_id = $employeeData['id'];
+        $this->assigned_employee_search = $employeeData['name'];
+        $this->selected_assigned_employee_name = $employeeData['name'];
+        $this->show_assigned_employee_suggestions = false;
+        $this->dispatch('focus-approving-employee');
+    }
+
+    public function selectApprovingEmployee($employeeData): void
+    {
+        $this->approving_employee_id = $employeeData['id'];
+        $this->approving_employee_search = $employeeData['name'];
+        $this->selected_approving_employee_name = $employeeData['name'];
+        $this->show_approving_employee_suggestions = false;
+        $this->dispatch('focus-received-by');
+    }
+
+    public function selectReceivedByEmployee($employeeData): void
+    {
+        $this->received_by_id = $employeeData['id'];
+        $this->received_by_search = $employeeData['name'];
+        $this->selected_received_by_name = $employeeData['name'];
+        $this->show_received_by_suggestions = false;
+        $this->dispatch('focus-received-from');
+    }
+
+    public function selectReceivedFromEmployee($employeeData): void
+    {
+        $this->received_from_id = $employeeData['id'];
+        $this->received_from_search = $employeeData['name'];
+        $this->selected_received_from_name = $employeeData['name'];
+        $this->show_received_from_suggestions = false;
+        $this->dispatch('focus-estimated-useful-life');
+    }
+
+    private function resetContractData(): void
+    {
+        $this->contract_id = null;
+        $this->contract_search = '';
+        $this->selected_contract_name = null;
+        $this->creating_new_contract = false;
+        $this->resetItemData();
+    }
+
+    private function resetItemData(): void
+    {
+        $this->contract_item_id = null;
+        $this->item_search = '';
+        $this->selected_item_name = null;
+        $this->unit_price = 0.0;
     }
 
     #[Computed]
@@ -112,7 +535,9 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function store(): void
     {
         $validated = $this->validate([
-            'contract_id' => ['required', 'integer', Rule::exists('contracts', 'id')],
+            'number' => ['required', 'string', 'max:255', Rule::unique('idr_number', 'number')],
+            'supplier_id' => ['required_unless:creating_new_supplier,true', 'nullable', 'integer', Rule::exists('suppliers', 'id')],
+            'contract_id' => ['required_unless:creating_new_contract,true', 'nullable', 'integer', Rule::exists('contracts', 'id')],
             'contract_item_id' => ['required', 'integer', Rule::exists('contract_items', 'id')],
             'assigned_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
             'approving_employee_id' => ['required', 'integer', Rule::exists('employees', 'id')],
@@ -124,14 +549,28 @@ new #[Layout('components.layouts.app')] class extends Component {
             'date_prepared' => ['required', 'date'],
             'date_accepted' => ['required', 'date'],
             'date' => ['required', 'date'],
+            'estimated_useful_life' => ['nullable', 'integer', 'min:1'],
             'remarks' => ['nullable', 'string'],
             'batches.*.identification_data' => ['nullable', 'string', 'max:255'],
         ]);
 
         DB::transaction(function () use ($validated) {
-            // Lock the table to prevent race conditions when generating a new number.
-            $lastIdr = IdrNumber::latest('id')->lockForUpdate()->first();
-            $validated['number'] = $lastIdr ? $lastIdr->number + 1 : 1;
+            // Create new supplier if needed
+            if ($this->creating_new_supplier) {
+                $supplier = Supplier::create(['name' => $this->supplier_search]);
+                $validated['supplier_id'] = $supplier->id;
+            }
+
+            // Create new contract if needed
+            if ($this->creating_new_contract) {
+                $contract = Contract::create([
+                    'contract_po_ib_number' => $this->contract_search,
+                    'supplier_id' => $validated['supplier_id'],
+                    'procurement_type' => 'Purchase Order',
+                    'date_signed' => now(),
+                ]);
+                $validated['contract_id'] = $contract->id;
+            }
 
             $idr = IdrNumber::create($validated);
             foreach ($this->batches as $batchData) {
@@ -139,7 +578,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
         });
 
-        session()->flash('success', "IDR record created successfully.");
+        session()->flash('success', "IDR record #{$this->number} created successfully.");
         $this->redirect(route('admin.inventory.idr.index'), navigate: true);
     }
 }; ?>
@@ -167,29 +606,107 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="lg:col-span-2">
             <div class="space-y-8">
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3></div>
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract Information</h3></div>
                     <div class="p-6">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                            <div class="sm:col-span-1">
-                                <flux:select wire:model.live="contract_id" label="Contract" id="contract_id" required>
-                                    <option value="">Select a contract</option>
-                                    @foreach($this->allContracts as $contract)
-                                        <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} ({{ $contract->supplier->name }})</option>
-                                    @endforeach
-                                </flux:select>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div class="relative">
+                                <flux:input 
+                                    wire:model.live.debounce.300ms="supplier_search" 
+                                    wire:focus="showAllSuppliers" 
+                                    label="Supplier" 
+                                    placeholder="Search or type to create new supplier..."
+                                    required
+                                />
+                                @error('supplier_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                
+                                @if($show_supplier_suggestions && count($supplier_suggestions) > 0)
+                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                            @foreach($supplier_suggestions as $supplier)
+                                                <li wire:click="selectSupplier(@js($supplier))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700 {{ $supplier['type'] === 'new' ? 'border-b border-stone-200 bg-blue-50 dark:border-stone-600 dark:bg-blue-900/20' : '' }}">
+                                                    <div class="font-medium text-stone-900 dark:text-stone-100">
+                                                        {{ $supplier['name'] }}
+                                                        @if($supplier['type'] === 'new')
+                                                            <span class="text-blue-600 dark:text-blue-400">(Create New)</span>
+                                                        @endif
+                                                    </div>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="sm:col-span-1">
-                                <flux:select wire:model.live="contract_item_id" label="Item" id="contract_item_id" :disabled="!$this->contract_id" required>
-                                    <option value="">Select an item</option>
-                                    @if ($this->contractItems)
-                                        @foreach ($this->contractItems as $item)
-                                            <option value="{{ $item->id }}">{{ $item->itemSpecification->itemCatalog->name }}</option>
-                                        @endforeach
-                                    @endif
-                                </flux:select>
+
+                            <div class="relative">
+                                <flux:input 
+                                    wire:model.live.debounce.300ms="contract_search" 
+                                    wire:focus="showAllContracts" 
+                                    label="Contract / PO Number" 
+                                    placeholder="Search or type to create new contract..."
+                                    :disabled="!$supplier_id && !$creating_new_supplier"
+                                    required
+                                />
+                                @error('contract_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                @error('contract_search_error') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                
+                                @if($show_contract_suggestions && count($contract_suggestions) > 0)
+                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                            @foreach($contract_suggestions as $contract)
+                                                <li wire:click="selectContract(@js($contract))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700 {{ $contract['type'] === 'new' ? 'border-b border-stone-200 bg-blue-50 dark:border-stone-600 dark:bg-blue-900/20' : '' }}">
+                                                    <div class="font-medium text-stone-900 dark:text-stone-100">
+                                                        {{ $contract['name'] }}
+                                                        @if($contract['type'] === 'new')
+                                                            <span class="text-blue-600 dark:text-blue-400">(Create New)</span>
+                                                        @endif
+                                                    </div>
+                                                    @if($contract['type'] === 'existing' && isset($contract['supplier_name']))
+                                                        <div class="text-sm text-stone-500 dark:text-stone-400">{{ $contract['supplier_name'] }}</div>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="sm:col-span-1">
-                                <flux:input wire:model="unit_price" label="Unit Cost" id="unit_cost" type="text" :disabled="true">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3></div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div class="relative">
+                                <flux:input 
+                                    wire:model.live.debounce.300ms="item_search" 
+                                    wire:focus="showAllItems" 
+                                    label="Item / Article" 
+                                    placeholder="Search items from selected contract..."
+                                    :disabled="!$contract_id && !$creating_new_contract"
+                                    required
+                                />
+                                @error('item_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                
+                                @if($show_item_suggestions && count($item_suggestions) > 0)
+                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                            @foreach($item_suggestions as $item)
+                                                <li wire:click="selectItem(@js($item))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                    <div class="font-medium text-stone-900 dark:text-stone-100">{{ $item['name'] }}</div>
+                                                    @if($item['brand'] || $item['model'])
+                                                        <div class="text-sm text-stone-500 dark:text-stone-400">{{ collect([$item['brand'], $item['model']])->filter()->join(' / ') }}</div>
+                                                    @endif
+                                                    <div class="text-sm text-green-600 dark:text-green-400">₱{{ number_format($item['unit_price'], 2) }}</div>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div>
+                                <flux:input wire:model="unit_price" label="Unit Cost" type="text" :disabled="true">
                                     <x-slot:leading><span class="text-stone-500">₱</span></x-slot:leading>
                                 </flux:input>
                             </div>
@@ -226,22 +743,109 @@ new #[Layout('components.layouts.app')] class extends Component {
                  <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
                     <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3></div>
                     <div class="space-y-6 p-6">
-                        <flux:select wire:model="assigned_employee_id" label="Assigned To (Stock Officer)" required>
-                            <option value="">Select Employee</option>
-                            @foreach($this->allEmployees as $employee) <option value="{{ $employee->id }}">{{ $employee->name }}</option> @endforeach
-                        </flux:select>
-                        <flux:select wire:model="approving_employee_id" label="Approving Official" required>
-                             <option value="">Select Employee</option>
-                            @foreach($this->allEmployees as $employee) <option value="{{ $employee->id }}">{{ $employee->name }}</option> @endforeach
-                        </flux:select>
-                         <flux:select wire:model="received_by_id" label="Received By" required>
-                             <option value="">Select Employee</option>
-                            @foreach($this->allEmployees as $employee) <option value="{{ $employee->id }}">{{ $employee->name }}</option> @endforeach
-                        </flux:select>
-                         <flux:select wire:model="received_from_id" label="Received From (Issued By)" required>
-                            <option value="">Select Employee</option>
-                            @foreach($this->allEmployees as $employee) <option value="{{ $employee->id }}">{{ $employee->name }}</option> @endforeach
-                        </flux:select>
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="assigned_employee_search" 
+                                wire:focus="showAllAssignedEmployees" 
+                                label="Assigned To (Stock Officer)" 
+                                placeholder="Search employees..."
+                                required
+                            />
+                            @error('assigned_employee_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            
+                            @if($show_assigned_employee_suggestions && count($assigned_employee_suggestions) > 0)
+                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                        @foreach($assigned_employee_suggestions as $employee)
+                                            <li wire:click="selectAssignedEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
+                                                @if($employee['description'])
+                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="approving_employee_search" 
+                                wire:focus="showAllApprovingEmployees" 
+                                label="Approving Official" 
+                                placeholder="Search employees..."
+                                required
+                            />
+                            @error('approving_employee_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            
+                            @if($show_approving_employee_suggestions && count($approving_employee_suggestions) > 0)
+                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                        @foreach($approving_employee_suggestions as $employee)
+                                            <li wire:click="selectApprovingEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
+                                                @if($employee['description'])
+                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="received_by_search" 
+                                wire:focus="showAllReceivedByEmployees" 
+                                label="Received By" 
+                                placeholder="Search employees..."
+                                required
+                            />
+                            @error('received_by_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            
+                            @if($show_received_by_suggestions && count($received_by_suggestions) > 0)
+                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                        @foreach($received_by_suggestions as $employee)
+                                            <li wire:click="selectReceivedByEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
+                                                @if($employee['description'])
+                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="received_from_search" 
+                                wire:focus="showAllReceivedFromEmployees" 
+                                label="Received From (Issued By)" 
+                                placeholder="Search employees..."
+                                required
+                            />
+                            @error('received_from_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            
+                            @if($show_received_from_suggestions && count($received_from_suggestions) > 0)
+                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
+                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
+                                        @foreach($received_from_suggestions as $employee)
+                                            <li wire:click="selectReceivedFromEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
+                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
+                                                @if($employee['description'])
+                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
@@ -250,6 +854,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                          <flux:input wire:model="number" label="IDR Number" required />
                          <flux:input wire:model="inventory_code" label="Inventory Code" required />
                          <flux:input wire:model="ors" label="ORS Number" required />
+                         <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" placeholder="e.g. 5" />
                          <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
                          <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
                          <flux:input wire:model="date" type="date" label="Date (IDR)" required />
