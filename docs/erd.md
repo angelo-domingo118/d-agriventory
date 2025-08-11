@@ -13,6 +13,7 @@ The D'Agriventory database is designed around three core inventory management sy
 ## Key Design Principles
 
 - **Soft Deletes**: Most entities support soft deletion to prevent permanent data loss
+- **Unique Constraints**: Soft-delete tables use composite unique constraints with `deleted_at` to allow multiple deleted records with the same values
 - **Audit Trail**: Comprehensive logging of all system changes
 - **Role-Based Access**: Clear separation between admin users and division inventory managers
 - **Procurement Tracking**: Full traceability from suppliers through contracts to inventory items
@@ -66,10 +67,7 @@ erDiagram
         bigint id PK "Primary key"
         varchar name "Full name of the employee"
         bigint division_id FK "nullable - Employee's division assignment"
-        varchar position_title "nullable - Position title (e.g., IT Officer, Chief Accountant)"
-        varchar position_code "nullable - Position code/abbreviation"
-        enum position_type "nullable - DIVISION_CHIEF, COORDINATOR, FOCAL_PERSON, OFFICER, SPECIALIST, OTHER"
-        text position_description "nullable - Position description and responsibilities"
+        varchar position "nullable - Employee position/title"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
         timestamp deleted_at "nullable - Soft delete timestamp"
@@ -77,11 +75,10 @@ erDiagram
     
     divisions {
         bigint id PK "Primary key"
-        varchar name UK "Division or office name"
-        varchar code UK "Unique division code"
+        varchar name "Division or office name"
+        varchar code "Unique division code"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
-        timestamp deleted_at "nullable - Soft delete timestamp"
     }
     
 
@@ -113,8 +110,8 @@ erDiagram
     
     primary_categories {
         bigint id PK "Primary key"
-        varchar name UK "Primary category name"
-        varchar code UK "Unique category code"
+        varchar name "Primary category name"
+        varchar code "Unique category code"
         text description "nullable - Category description"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
@@ -124,8 +121,8 @@ erDiagram
     secondary_categories {
         bigint id PK "Primary key"
         bigint primary_category_id FK "Links to primary_categories"
-        varchar name UK "Secondary category name"
-        varchar code UK "Unique subcategory code"
+        varchar name "Secondary category name"
+        varchar code "Unique subcategory code"
         text description "nullable - Subcategory description"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
@@ -134,10 +131,10 @@ erDiagram
     
     items_catalog {
         bigint id PK "Primary key"
-        varchar name UK "Generic item name"
+        varchar name "Generic item name"
         varchar unit "Unit of measure (pcs, kg, liters, etc.)"
         bigint secondary_category_id FK "Links to secondary_categories"
-        varchar code UK "Universal item code"
+        varchar code "Universal item code"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
         timestamp deleted_at "nullable - Soft delete timestamp"
@@ -151,7 +148,6 @@ erDiagram
         text detailed_specifications "nullable - Detailed technical specs"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
-        timestamp deleted_at "nullable - Soft delete timestamp"
     }
     
     contract_items {
@@ -227,6 +223,8 @@ erDiagram
         varchar account_code "Accounting classification code"
         date date_prepared "When PAR document was prepared"
         date date_accepted "When employee accepted the property"
+        varchar inventory_code "PAR-specific inventory classification"
+        date date_acquired "Date when the property was acquired"
         text remarks "nullable - Additional notes or comments"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
@@ -265,6 +263,9 @@ erDiagram
         varchar ors "Obligation Request and Status number"
         date date_prepared "When IDR document was prepared"
         date date_accepted "When IDR was officially accepted"
+        date date "Date field for IDR processing"
+        bigint received_by_id FK "Employee who received the items"
+        bigint received_from_id FK "Employee who issued the items"
         text remarks "nullable - Additional notes or comments"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
@@ -368,6 +369,8 @@ erDiagram
     %% IDR System Relationships
     employees ||--o{ idr_number : "is assigned to"
     employees ||--o{ idr_number : "approves"
+    employees ||--o{ idr_number : "received by"
+    employees ||--o{ idr_number : "received from"
     contract_items ||--o{ idr_number : "sourced from"
     idr_number ||--o{ idr_item_batches : "contains"
     idr_item_batches ||--o{ acknowledgement_receipts : "drawn down by"
