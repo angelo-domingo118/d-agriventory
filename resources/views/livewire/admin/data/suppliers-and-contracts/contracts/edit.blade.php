@@ -3,6 +3,7 @@
 use App\Livewire\Traits\HasItemSpecifications;
 use App\Models\Contract;
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -131,6 +132,9 @@ new class extends Component {
             $this->contract->contractItems()->whereNotIn('id', $activeItemIds)->delete();
         });
 
+        // Show success toast
+        ToastService::updated($this, 'Contract');
+
         // Close the modal and refresh the parent component
         $this->dispatch('contract-updated');
         Flux::modal('edit-contract')->close();
@@ -138,14 +142,23 @@ new class extends Component {
 
     public function deleteContract(): void
     {
-        DB::transaction(function () {
-            $this->contract->contractItems()->delete();
-            $this->contract->delete();
-        });
+        try {
+            DB::transaction(function () {
+                $this->contract->contractItems()->delete();
+                $this->contract->delete();
+            });
 
-        // Close the modal and refresh the parent component
-        $this->dispatch('contract-deleted');
-        Flux::modal('edit-contract')->close();
+            // Show success toast
+            ToastService::deleted($this, 'Contract');
+
+            // Close the modal and refresh the parent component
+            $this->dispatch('contract-deleted');
+            Flux::modal('edit-contract')->close();
+        } catch (\Exception $e) {
+            // Handle any errors during deletion
+            ToastService::error($this, 'An error occurred while deleting the contract. Please try again.');
+            Flux::modal('edit-contract')->close();
+        }
     }
 
     public function cancel(): void

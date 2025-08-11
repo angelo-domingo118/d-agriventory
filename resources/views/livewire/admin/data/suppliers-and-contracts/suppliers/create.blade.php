@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 use Flux\Flux;
@@ -22,6 +23,9 @@ new class extends Component {
         ]);
 
         Supplier::create($validated);
+
+        // Show success toast
+        ToastService::created($this, 'Supplier');
 
         // Close the modal and refresh the parent component
         $this->dispatch('supplier-created');

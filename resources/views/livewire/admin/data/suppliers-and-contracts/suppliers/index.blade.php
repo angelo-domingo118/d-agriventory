@@ -38,6 +38,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function suppliers()
     {
         $query = Supplier::query()
+            ->withCount('contracts')
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
             });
@@ -84,7 +85,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div x-data="{ 
-    ...tableResizer('suppliers_widths', { name: 400, date: 180, actions: 100 }),
+    ...tableResizer('suppliers_widths', { name: 350, contracts: 150, date: 180, actions: 100 }),
     ...tableSettings('suppliers_settings')
 }">
     <div class="flex items-center justify-between">
@@ -265,6 +266,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
+                        <th scope="col" :style="`width: ${columnWidths.contracts}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('contracts_count')" class="flex cursor-pointer items-center">
+                                Contracts
+                                @if ($sortColumn === 'contracts_count')
+                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                @else
+                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
+                                @endif
+                            </div>
+                            <div @mousedown="startResize($event, 'contracts')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                        </th>
                         <th scope="col" :style="`width: ${columnWidths.date}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('created_at')" class="flex cursor-pointer items-center">
                                 Date Added
@@ -285,6 +297,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @forelse($suppliers as $supplier)
                         <tr wire:key="supplier-{{ $supplier->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $supplier->name }}">{{ $supplier->name }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->contracts_count }}">{{ $supplier->contracts_count }}</td>
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->created_at->format('M d, Y') }}">{{ $supplier->created_at->format('M d, Y') }}</td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
                                 <button wire:click="editSupplier({{ $supplier->id }})" wire:loading.attr="disabled" wire:target="editSupplier({{ $supplier->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
@@ -297,7 +310,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                            <td colspan="4" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                 <div class="flex flex-col items-center">
                                     <x-flux::icon.building-office class="h-12 w-12 text-stone-400" />
                                     <h3 class="mt-2 {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">No suppliers found</h3>

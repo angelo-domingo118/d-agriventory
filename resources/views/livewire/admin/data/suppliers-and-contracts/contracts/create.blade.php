@@ -3,6 +3,7 @@
 use App\Livewire\Traits\HasItemSpecifications;
 use App\Models\Contract;
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -67,7 +68,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
         });
 
-        session()->flash('success', 'Contract created successfully.');
+        // Show success toast
+        ToastService::created($this, 'Contract');
+        
         $this->redirect(route('admin.data.suppliers-and-contracts', ['currentTab' => 'contracts', 'view' => $this->previousView]), navigate: true);
     }
 

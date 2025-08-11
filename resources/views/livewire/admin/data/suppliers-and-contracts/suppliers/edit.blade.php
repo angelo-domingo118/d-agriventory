@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Supplier;
+use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
@@ -27,6 +28,9 @@ new class extends Component {
 
         $this->supplier->update($validated);
 
+        // Show success toast
+        ToastService::updated($this, 'Supplier');
+
         // Close the modal and refresh the parent component
         $this->dispatch('supplier-updated');
         Flux::modal('edit-supplier')->close();
@@ -34,19 +38,28 @@ new class extends Component {
 
     public function delete(): void
     {
-        DB::transaction(function () {
-            // Check if the supplier has any contracts
-            if ($this->supplier->contracts()->exists()) {
-                session()->flash('error', 'Cannot delete a supplier that has contracts.');
-                return;
-            }
+        try {
+            DB::transaction(function () {
+                // Check if the supplier has any contracts
+                if ($this->supplier->contracts()->exists()) {
+                    ToastService::error($this, 'Cannot delete a supplier that has contracts.');
+                    return;
+                }
 
-            $this->supplier->delete();
+                $this->supplier->delete();
+            });
+
+            // Show success toast
+            ToastService::deleted($this, 'Supplier');
             
             // Close the modal and refresh the parent component
             $this->dispatch('supplier-deleted');
             Flux::modal('edit-supplier')->close();
-        });
+        } catch (\Exception $e) {
+            // Handle any errors during deletion
+            ToastService::error($this, 'An error occurred while deleting the supplier. Please try again.');
+            Flux::modal('edit-supplier')->close();
+        }
     }
 
     public function cancel(): void
