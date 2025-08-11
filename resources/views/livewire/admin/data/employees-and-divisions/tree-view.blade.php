@@ -40,7 +40,7 @@ new class extends Component {
         $divisions = Division::query()
             ->with([
                 'employees' => function ($query) use ($search) {
-                    $query->with('position')->orderBy('name');
+                    $query->orderBy('name');
                     if (filled($search)) {
                         $query->where('name', 'like', '%' . $search . '%');
                     }
@@ -49,7 +49,9 @@ new class extends Component {
             ->when(filled($search), function ($query) use ($search) {
                 $query->where('name', 'like', '%' . $search . '%')
                     ->orWhereHas('employees', function ($q) use ($search) {
-                        $q->where('name', 'like', '%' . $search . '%');
+                        $q->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('position_title', 'like', '%' . $search . '%')
+                            ->orWhere('position_code', 'like', '%' . $search . '%');
                     });
             })
             ->orderBy('name')
@@ -107,7 +109,7 @@ new class extends Component {
                 <x-tree.item 
                     :id="'employee-'.$employee->id" 
                     :title="$employee->name" 
-                    :subtitle="$employee->position->title ?? 'No position'"
+                    :subtitle="$employee->position_title ?: 'No position'"
                     :edit-url="route('admin.data.employees-and-divisions.employees.edit', $employee)" 
                     :level="1" 
                     :has-children="false" 

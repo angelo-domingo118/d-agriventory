@@ -73,7 +73,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     #[Computed]
     public function filtersActive(): bool
     {
-        return $this->filterDivision;
+        return $this->filterDivision !== null;
     }
 
     #[Computed]
