@@ -365,9 +365,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
-                                <button wire:click="editDivision({{ $division->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
-                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
-                                   Edit
+                                <button wire:click="editDivision({{ $division->id }})" wire:loading.attr="disabled" wire:target="editDivision({{ $division->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                   <x-flux::icon.pencil class="mr-1.5 h-4 w-4" wire:loading.remove wire:target="editDivision({{ $division->id }})" />
+                                   <x-flux::icon.rotate-cw class="mr-1.5 h-4 w-4 animate-spin" wire:loading wire:target="editDivision({{ $division->id }})" />
+                                   <span wire:loading.remove wire:target="editDivision({{ $division->id }})">Edit</span>
+                                   <span wire:loading wire:target="editDivision({{ $division->id }})">Loading...</span>
                                 </button>
                             </td>
                         </tr>
