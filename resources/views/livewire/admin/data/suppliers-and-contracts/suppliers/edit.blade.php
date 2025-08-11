@@ -9,10 +9,6 @@ use Flux\Flux;
 new class extends Component {
     public Supplier $supplier;
     public string $name;
-    public string $address;
-    public string $contact_person;
-    public string $email;
-    public string $phone;
 
     public function mount(Supplier $supplier): void
     {
@@ -21,20 +17,12 @@ new class extends Component {
         }
         $this->supplier = $supplier;
         $this->name = $supplier->name;
-        $this->address = $supplier->address ?? '';
-        $this->contact_person = $supplier->contact_person ?? '';
-        $this->email = $supplier->email ?? '';
-        $this->phone = $supplier->phone ?? '';
     }
 
     public function save(): void
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('suppliers', 'name')->ignore($this->supplier->id)],
-            'address' => ['nullable', 'string', 'max:255'],
-            'contact_person' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('suppliers', 'email')->ignore($this->supplier->id)],
-            'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
         $this->supplier->update($validated);
@@ -75,10 +63,6 @@ new class extends Component {
 
     <form wire:submit="save" class="space-y-4">
         <flux:input wire:model="name" label="Supplier Name" placeholder="Enter supplier name" required />
-        <flux:input wire:model="address" label="Address" placeholder="Enter supplier address" />
-        <flux:input wire:model="contact_person" label="Contact Person" placeholder="Enter contact person name" />
-        <flux:input wire:model="email" label="Email Address" type="email" placeholder="Enter email address" />
-        <flux:input wire:model="phone" label="Phone Number" placeholder="Enter phone number" />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
             <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this supplier? This action cannot be undone.">
@@ -94,4 +78,4 @@ new class extends Component {
             </flux:button>
         </div>
     </form>
-</div> 
+</div>

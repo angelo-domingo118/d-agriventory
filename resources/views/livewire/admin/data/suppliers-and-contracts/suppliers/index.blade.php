@@ -12,8 +12,6 @@ use Flux\Flux;
 new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
-
-
     // View state
     public string $search = '';
     public int $perPage = 10;
@@ -41,10 +39,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $query = Supplier::query()
             ->when($this->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('address', 'like', "%{$search}%")
-                    ->orWhere('contact_person', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $query->where('name', 'like', "%{$search}%");
             });
 
         return $query->orderBy($this->sortColumn, $this->sortDirection)->paginate($this->perPage);
@@ -89,7 +84,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div x-data="{ 
-    ...tableResizer('suppliers_widths', { name: 300, contact_person: 200, email: 250, phone: 150, actions: 100 }),
+    ...tableResizer('suppliers_widths', { name: 400, date: 180, actions: 100 }),
     ...tableSettings('suppliers_settings')
 }">
     <div class="flex items-center justify-between">
@@ -215,7 +210,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="w-full max-w-xs">
             <flux:input
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search anything..."
+                placeholder="Search suppliers..."
                 icon="magnifying-glass"
                 clearable
             />
@@ -261,7 +256,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <tr class="divide-x divide-stone-200 dark:divide-stone-700">
                         <th scope="col" :style="`width: ${columnWidths.name}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                             <div wire:click="sortBy('name')" class="flex cursor-pointer items-center">
-                                Name
+                                Supplier Name
                                 @if ($sortColumn === 'name')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
@@ -270,33 +265,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
-                        <th scope="col" :style="`width: ${columnWidths.contact_person}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div wire:click="sortBy('contact_person')" class="flex cursor-pointer items-center">
-                                Contact Person
-                                @if ($sortColumn === 'contact_person')
+                        <th scope="col" :style="`width: ${columnWidths.date}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                            <div wire:click="sortBy('created_at')" class="flex cursor-pointer items-center">
+                                Date Added
+                                @if ($sortColumn === 'created_at')
                                     @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
                                 @endif
                             </div>
-                            <div @mousedown="startResize($event, 'contact_person')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.email}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('email')" class="flex cursor-pointer items-center">
-                                Email
-                                @if ($sortColumn === 'email')
-                                    @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                @else
-                                    <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
-                                @endif
-                            </div>
-                            <div @mousedown="startResize($event, 'email')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                        </th>
-                        <th scope="col" :style="`width: ${columnWidths.phone}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                            <div class="flex items-center">
-                                Phone
-                            </div>
-                            <div @mousedown="startResize($event, 'phone')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                            <div @mousedown="startResize($event, 'date')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
                         <th scope="col" :style="`width: ${columnWidths.actions}px`" class="relative {{ $densityClasses['table_header'] }}">
                             <span class="sr-only">Edit</span>
@@ -307,11 +285,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @forelse($suppliers as $supplier)
                         <tr wire:key="supplier-{{ $supplier->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $supplier->name }}">{{ $supplier->name }}</td>
-                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->contact_person }}">{{ $supplier->contact_person }}</td>
-                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->email }}">{{ $supplier->email }}</td>
-                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->phone }}">{{ $supplier->phone }}</td>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $supplier->created_at->format('M d, Y') }}">{{ $supplier->created_at->format('M d, Y') }}</td>
                             <td class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-right {{ $densityClasses['text_base'] }} font-medium">
-                                                                <button wire:click="editSupplier({{ $supplier->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
+                                <button wire:click="editSupplier({{ $supplier->id }})" class="inline-flex items-center rounded-md border border-stone-300 bg-white px-2.5 py-1.5 {{ $densityClasses['text_base'] }} font-semibold text-stone-900 shadow-sm hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700/50">
                                    <x-flux::icon.pencil class="mr-1.5 h-4 w-4" />
                                    Edit
                                 </button>
@@ -319,8 +295,18 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
-                                No suppliers found.
+                            <td colspan="3" class="{{ $densityClasses['table_cell'] }} px-6 py-12 text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                <div class="flex flex-col items-center">
+                                    <x-flux::icon.building-office class="h-12 w-12 text-stone-400" />
+                                    <h3 class="mt-2 {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100">No suppliers found</h3>
+                                    <p class="mt-1 {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                        @if ($this->search)
+                                            Try adjusting your search terms.
+                                        @else
+                                           Get started by creating a new supplier.
+                                        @endif
+                                    </p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
