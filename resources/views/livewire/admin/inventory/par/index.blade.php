@@ -759,7 +759,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         :filterContract="$this->filterContract"
                                         :filterRemarks="$this->filterRemarks"
                                         :filterInventoryNumber="$this->filterInventoryNumber"
-                                        :show-issued-to="false"
+                                        :show-issued-to="true"
                                         :highlightedParId="$this->highlightedParId"
                                     />
                                 @empty
