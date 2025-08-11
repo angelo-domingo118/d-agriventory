@@ -94,6 +94,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
                         Items Catalog
                     </button>
+                     <button @click="currentTab = 'specifications'"
+                       :class="currentTab === 'specifications' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
+                       class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
+                        Item Specifications
+                    </button>
                 </nav>
             </div>
 
@@ -106,6 +111,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </div>
                  <div x-show="currentTab === 'items'" x-cloak>
                     <livewire:admin.data.items-and-categories.items-catalog.index />
+                </div>
+                 <div x-show="currentTab === 'specifications'" x-cloak>
+                    <livewire:admin.data.items-and-categories.item-specifications.index />
                 </div>
             </div>
         </div>

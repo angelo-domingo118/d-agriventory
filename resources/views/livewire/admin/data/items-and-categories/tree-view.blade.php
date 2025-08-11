@@ -3,7 +3,9 @@
 use App\Models\PrimaryCategory;
 use App\Models\SecondaryCategory;
 use App\Models\ItemsCatalog;
+use App\Models\ItemSpecification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Volt\Component;
@@ -14,8 +16,10 @@ new class extends Component {
     public ?PrimaryCategory $editingPrimaryCategory = null;
     public ?SecondaryCategory $editingSecondaryCategory = null;
     public ?ItemsCatalog $editingItem = null;
+    public ?ItemSpecification $editingSpecification = null;
     public ?PrimaryCategory $creatingForPrimary = null;
     public ?SecondaryCategory $creatingForSecondary = null;
+    public ?ItemsCatalog $creatingSpecificationFor = null;
 
     public function mount(): void
     {
@@ -34,6 +38,12 @@ new class extends Component {
     {
         $this->creatingForSecondary = SecondaryCategory::findOrFail($secondaryCategoryId);
         Flux::modal('tree-create-item')->show();
+    }
+
+    public function createSpecification(int $itemCatalogId): void
+    {
+        $this->creatingSpecificationFor = ItemsCatalog::findOrFail($itemCatalogId);
+        Flux::modal('tree-create-specification')->show();
     }
     
     public function editPrimaryCategory(int $id): void
@@ -54,18 +64,28 @@ new class extends Component {
         Flux::modal('tree-edit-item')->show();
     }
 
+    public function editSpecification(int $id): void
+    {
+        $this->editingSpecification = ItemSpecification::findOrFail($id);
+        Flux::modal('tree-edit-specification')->show();
+    }
+
     #[On('primary-category-created')]
     #[On('primary-category-updated')]
     #[On('secondary-category-created')]
     #[On('secondary-category-updated')]
     #[On('item-created')]
     #[On('item-updated')]
+    #[On('specification-created')]
+    #[On('specification-updated')]
     public function refreshData(): void
     {
         // Reset edit IDs
         $this->editingPrimaryCategory = null;
         $this->editingSecondaryCategory = null;
         $this->editingItem = null;
+        $this->editingSpecification = null;
+        $this->creatingSpecificationFor = null;
         
         // Force refresh of computed properties
         unset($this->categories);
@@ -87,6 +107,7 @@ new class extends Component {
         // If no search term, return all categories with their children and counts
         if (blank($search)) {
             return PrimaryCategory::with([
+                'secondaryCategories.items.specifications' => fn($query) => $query->orderBy('brand')->orderBy('model'),
                 'secondaryCategories.items' => fn($query) => $query->withCount('specifications')->orderBy('name'),
                 'secondaryCategories' => fn($query) => $query->withCount('items')->orderBy('name'),
             ])
@@ -117,6 +138,7 @@ new class extends Component {
                     ->withCount(['items' => fn($iq) => $iq->whereRaw('LOWER(name) LIKE ?', ["%{$lowerSearch}%"])])
                     ->orderBy('name');
             },
+            'secondaryCategories.items.specifications' => fn($query) => $query->orderBy('brand')->orderBy('model'),
             'secondaryCategories.items' => function ($iq) use ($lowerSearch) {
                 $iq->whereRaw('LOWER(name) LIKE ?', ["%{$lowerSearch}%"])
                     ->withCount('specifications')
@@ -139,6 +161,7 @@ new class extends Component {
             if (str_contains(strtolower($primary->name), $lowerSearch)) {
                 // Reload relationships without search constraints
                 $primary->load([
+                    'secondaryCategories.items.specifications' => fn($query) => $query->orderBy('brand')->orderBy('model'),
                     'secondaryCategories.items' => fn($query) => $query->withCount('specifications')->orderBy('name'),
                     'secondaryCategories' => fn($query) => $query->withCount('items')->orderBy('name'),
                 ]);
@@ -149,7 +172,10 @@ new class extends Component {
                 $primary->secondaryCategories->each(function ($secondary) use ($lowerSearch) {
                     if (str_contains(strtolower($secondary->name), $lowerSearch)) {
                         // If secondary name matches, load all its items
-                        $secondary->load(['items' => fn($query) => $query->withCount('specifications')->orderBy('name')]);
+                        $secondary->load([
+                            'items.specifications' => fn($query) => $query->orderBy('brand')->orderBy('model'),
+                            'items' => fn($query) => $query->withCount('specifications')->orderBy('name')
+                        ]);
                         $secondary->items_count = $secondary->items()->count();
                     }
                 });
@@ -220,11 +246,28 @@ new class extends Component {
                             :title="$item->name"
                             :subtitle="$item->specifications_count . ' specifications'"
                             :edit-click="'editItem('.$item->id.')'"
+                            :add-click="'createSpecification('.$item->id.')'"
+                            add-text="New Specification"
                             :level="2"
-                            :has-children="false"
+                            :has-children="$item->specifications_count > 0"
                             :search-terms="[$this->search]"
                             icon="cube"
-                        />
+                        >
+                            @forelse($item->specifications as $spec)
+                                <x-tree.item
+                                    :id="'specification-'.$spec->id"
+                                    :title="($spec->brand ?? 'Unknown') . ' ' . ($spec->model ?? 'Model')"
+                                    :subtitle="strlen($spec->detailed_specifications ?? '') > 0 ? Str::limit($spec->detailed_specifications, 50) : 'No detailed specs'"
+                                    :edit-click="'editSpecification('.$spec->id.')'"
+                                    :level="3"
+                                    :has-children="false"
+                                    :search-terms="[$this->search]"
+                                    icon="settings-2"
+                                />
+                            @empty
+                                <p class="py-2 text-sm italic text-stone-500 dark:text-stone-400">No specifications for this item.</p>
+                            @endforelse
+                        </x-tree.item>
                     @empty
                         <p class="py-2 text-sm italic text-stone-500 dark:text-stone-400">No items in this category.</p>
                     @endforelse
@@ -280,5 +323,25 @@ new class extends Component {
     <x-admin.modal-form-wrapper name="tree-edit-item" maxWidth="lg">
         <livewire:admin.data.items-and-categories.items-catalog.edit :item="$editingItem" :key="'item-'.$editingItem->id" />
     </x-admin.modal-form-wrapper>
+    @endif
+
+    <!-- Create Specification Modal -->
+    @if($creatingSpecificationFor)
+        <x-admin.modal-form-wrapper name="tree-create-specification" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.item-specifications.create 
+                :itemCatalogId="$creatingSpecificationFor->id" 
+                :key="'create-specification-for-'.$creatingSpecificationFor->id" 
+            />
+        </x-admin.modal-form-wrapper>
+    @endif
+
+    <!-- Edit Specification Modal -->
+    @if($editingSpecification)
+        <x-admin.modal-form-wrapper name="tree-edit-specification" maxWidth="lg">
+            <livewire:admin.data.items-and-categories.item-specifications.edit 
+                :specification="$editingSpecification" 
+                :key="'specification-'.$editingSpecification->id" 
+            />
+        </x-admin.modal-form-wrapper>
     @endif
 </div> 
