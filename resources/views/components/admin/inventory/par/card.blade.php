@@ -5,9 +5,21 @@
     'search' => '',
     'filterArticle' => '',
     'filterSerialNumber' => '',
+    'highlightedParId' => null,
 ])
 
-<div wire:key="par-card-{{ $par->id }}" class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
+<div
+    wire:key="par-card-{{ $par->id }}"
+    class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700 transition-colors duration-500 ease-in-out"
+    x-data="{ highlighted: false }"
+    x-init="
+        if ({{ $highlightedParId ?? 'null' }} === {{ $par->id }}) {
+            setTimeout(() => { highlighted = true; }, 50);
+            setTimeout(() => { highlighted = false; }, 5000);
+        }
+    "
+    :class="{ 'bg-green-100 dark:bg-green-900/50': highlighted }"
+>
     <div class="{{ $densityClasses['card_padding'] }}">
         <div class="flex items-start justify-between">
             <div class="max-w-xs">

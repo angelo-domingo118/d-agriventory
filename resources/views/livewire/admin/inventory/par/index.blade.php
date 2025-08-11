@@ -37,20 +37,30 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $filterContract = '';
     public string $filterRemarks = '';
     public string $filterInventoryNumber = '';
+    public string $filterInventoryCode = '';
     public string $filterAreaCode = '';
     public string $filterBuildingCode = '';
     public string $filterAccountCode = '';
 
     // Sorting properties
-    public string $sortColumn = 'par_number.date_prepared';
+    public string $sortColumn = 'par_number.par_number';
     public string $sortDirection = 'desc';
 
     public array $openGroups = [];
+    public ?int $highlightedParId = null;
+
+    public array $headers = [
+        'Article & Description',
+        'PAR Details',
+        'Document Source',
+        'Issued To',
+        'Actions',
+    ];
 
     #[Computed]
     public function filtersActive(): bool
     {
-        return $this->filterDateFrom || $this->filterDateTo || $this->filterEmployeeId || $this->filterSupplierId || $this->filterPriceMin || $this->filterPriceMax || $this->filterDateType !== 'prepared' || $this->filterArticle || $this->filterSerialNumber || $this->filterContract || $this->filterRemarks || $this->filterInventoryNumber || $this->filterAreaCode || $this->filterBuildingCode || $this->filterAccountCode;
+        return $this->filterDateFrom || $this->filterDateTo || $this->filterEmployeeId || $this->filterSupplierId || $this->filterPriceMin || $this->filterPriceMax || $this->filterDateType !== 'prepared' || $this->filterArticle || $this->filterSerialNumber || $this->filterContract || $this->filterRemarks || $this->filterInventoryNumber || $this->filterInventoryCode || $this->filterAreaCode || $this->filterBuildingCode || $this->filterAccountCode;
     }
     
     #[Computed]
@@ -68,6 +78,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->filterContract,
             $this->filterRemarks,
             $this->filterInventoryNumber,
+            $this->filterInventoryCode,
             $this->filterAreaCode,
             $this->filterBuildingCode,
             $this->filterAccountCode,
@@ -88,6 +99,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->viewMode = session('par_view_mode', 'table');
         $this->density = session('par_density', 'spacious');
         $this->textOverflow = session('par_text_overflow', 'nowrap');
+        $this->perPage = session('par_per_page', 10);
+        $this->highlightedParId = session('highlighted_par');
     }
 
     public function setGroupBy(string $groupBy): void
@@ -127,12 +140,13 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function resetSorting(): void
     {
-        $this->sortColumn = 'par_number.date_prepared';
+        $this->sortColumn = 'par_number.par_number';
         $this->sortDirection = 'desc';
     }
 
     public function updatedPerPage(): void
     {
+        session(['par_per_page' => $this->perPage]);
         $this->resetPage();
     }
 
@@ -212,6 +226,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $lowerSearch = strtolower($search);
                 $query->where(DB::raw($inventoryNumberExpression), 'like', '%' . $lowerSearch . '%');
             })
+            ->when($this->filterInventoryCode, fn($q, $v) => $q->where('par_number.inventory_code', 'like', "%{$v}%"))
             ->when($this->filterAreaCode, fn($q, $v) => $q->where('par_number.area_code', 'like', "%{$v}%"))
             ->when($this->filterBuildingCode, fn($q, $v) => $q->where('par_number.building_code', 'like', "%{$v}%"))
             ->when($this->filterAccountCode, fn($q, $v) => $q->where('par_number.account_code', 'like', "%{$v}%"))
@@ -228,7 +243,12 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         // Apply sorting
         if ($this->sortColumn && $this->sortDirection) {
-            $query->orderBy($this->sortColumn, $this->sortDirection);
+            // Special handling for par_number column - treat it as numeric
+            if ($this->sortColumn === 'par_number.par_number') {
+                $query->orderBy(DB::raw('CAST(par_number.par_number AS UNSIGNED)'), $this->sortDirection);
+            } else {
+                $query->orderBy($this->sortColumn, $this->sortDirection);
+            }
         }
 
         if ($this->groupBy === 'employee') {
@@ -285,7 +305,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function resetFilters()
     {
-        $this->reset('filterDateType', 'filterDateFrom', 'filterDateTo', 'filterEmployeeId', 'filterSupplierId', 'filterPriceMin', 'filterPriceMax', 'filterArticle', 'filterSerialNumber', 'filterContract', 'filterRemarks', 'filterInventoryNumber', 'filterAreaCode', 'filterBuildingCode', 'filterAccountCode');
+        $this->reset('filterDateType', 'filterDateFrom', 'filterDateTo', 'filterEmployeeId', 'filterSupplierId', 'filterPriceMin', 'filterPriceMax', 'filterArticle', 'filterSerialNumber', 'filterContract', 'filterRemarks', 'filterInventoryNumber', 'filterInventoryCode', 'filterAreaCode', 'filterBuildingCode', 'filterAccountCode');
         $this->filterDateType = 'prepared';
     }
 
@@ -622,6 +642,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     :filterRemarks="$this->filterRemarks"
                                                     :filterInventoryNumber="$this->filterInventoryNumber"
                                                     :show-issued-to="true"
+                                                    :highlightedParId="$this->highlightedParId"
                                                 />
                                             @endforeach
                                         </tbody>
@@ -638,6 +659,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 :search="$this->search"
                                                 :filterArticle="$this->filterArticle"
                                                 :filterSerialNumber="$this->filterSerialNumber"
+                                                :highlightedParId="$this->highlightedParId"
                                             />
                                         @endforeach
                                     </div>
@@ -738,6 +760,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         :filterRemarks="$this->filterRemarks"
                                         :filterInventoryNumber="$this->filterInventoryNumber"
                                         :show-issued-to="false"
+                                        :highlightedParId="$this->highlightedParId"
                                     />
                                 @empty
                                     <tr>
@@ -761,6 +784,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         :search="$this->search"
                         :filterArticle="$this->filterArticle"
                         :filterSerialNumber="$this->filterSerialNumber"
+                        :highlightedParId="$this->highlightedParId"
                     />
                 @empty
                     <div class="sm:col-span-2 lg:col-span-3">
@@ -807,6 +831,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
                         <div class="sm:col-span-1">
                             <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. PPE-123-07-2024" clearable />
+                        </div>
+                        <div class="sm:col-span-1">
+                            <flux:input wire:model.live.debounce.300ms="filterInventoryCode" label="Inventory Code" placeholder="e.g. PPE" clearable />
                         </div>
                         <div class="sm:col-span-1">
                             <flux:input wire:model.live.debounce.300ms="filterContract" label="Contract / PO" placeholder="Search contract..." clearable />
