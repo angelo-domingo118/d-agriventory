@@ -84,6 +84,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
                         Contracts
                     </button>
+                    <button @click="currentTab = 'contract-items'"
+                       :class="currentTab === 'contract-items' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
+                       class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
+                        Contract Items
+                    </button>
                     <button @click="currentTab = 'suppliers'"
                        :class="currentTab === 'suppliers' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
@@ -95,6 +100,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="mt-8">
                 <div x-show="currentTab === 'contracts'" x-cloak>
                     <livewire:admin.data.suppliers-and-contracts.contracts.index />
+                </div>
+                <div x-show="currentTab === 'contract-items'" x-cloak>
+                    <livewire:admin.data.suppliers-and-contracts.contract-items.index />
                 </div>
                 <div x-show="currentTab === 'suppliers'" x-cloak>
                     <livewire:admin.data.suppliers-and-contracts.suppliers.index />
