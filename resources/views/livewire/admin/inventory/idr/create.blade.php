@@ -580,93 +580,88 @@ new #[Layout('components.layouts.app')] class extends Component {
         });
 
         ToastService::created($this, "IDR record #{$this->number}");
-        $this->redirect(route('admin.inventory.idr.index'), navigate: true);
+        
+        $this->dispatch('idr-created');
+        session()->flash('highlighted_idr', $idr->id);
+        $this->redirectRoute('admin.inventory.idr.index', navigate: true);
     }
 }; ?>
 
-<form wire:submit="store">
-    <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
+<form wire:submit="store" novalidate>
+    <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
+            <!-- Breadcrumbs as Title -->
             <div>
                 <flux:breadcrumbs class="text-2xl font-semibold">
                     <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
                     <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item :href="route('admin.inventory.idr.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">IDR Management</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create New IDR</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.inventory.idr.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300">IDR Management</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create IDR</flux:breadcrumbs.item>
                 </flux:breadcrumbs>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">Fill in the details for the new Inspection and Delivery Report.</p>
             </div>
              <div class="flex items-center gap-x-4">
-                <flux:button variant="ghost" :href="route('admin.inventory.idr.index')" wire:navigate>Cancel</flux:button>
-                <flux:button type="submit" variant="primary">Save IDR</flux:button>
+                <x-action-message class="me-3" on="idr-created">
+                    {{ __('Record saved successfully.') }}
+                </x-action-message>
+                <flux:button :href="route('admin.inventory.idr.index')" wire:navigate variant="ghost">
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="store">
+                    <span wire:loading.remove wire:target="store">Save Record</span>
+                    <span wire:loading wire:target="store">Saving...</span>
+                </flux:button>
             </div>
         </div>
     </div>
 
-    <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div class="lg:col-span-2">
-            <div class="space-y-8">
+    <div class="mt-6">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <!-- Column 1: Item Information -->
+            <div class="space-y-6">
+                <!-- Supplier & Contract Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract Information</h3></div>
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div class="relative">
-                                <flux:input 
-                                    wire:model.live.debounce.300ms="supplier_search" 
-                                    wire:focus="showAllSuppliers" 
-                                    label="Supplier" 
-                                    placeholder="Search or type to create new supplier..."
-                                    required
-                                />
-                                @error('supplier_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                
-                                @if($show_supplier_suggestions && count($supplier_suggestions) > 0)
-                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                            @foreach($supplier_suggestions as $supplier)
-                                                <li wire:click="selectSupplier(@js($supplier))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700 {{ $supplier['type'] === 'new' ? 'border-b border-stone-200 bg-blue-50 dark:border-stone-600 dark:bg-blue-900/20' : '' }}">
-                                                    <div class="font-medium text-stone-900 dark:text-stone-100">
-                                                        {{ $supplier['name'] }}
-                                                        @if($supplier['type'] === 'new')
-                                                            <span class="text-blue-600 dark:text-blue-400">(Create New)</span>
-                                                        @endif
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Supplier & Contract</h3>
                                                     </div>
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" />
+                                @error('supplier_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
+                                @if ($creating_new_supplier)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New supplier will be created upon saving.</span>
                                     </div>
                                 @endif
                             </div>
 
-                            <div class="relative">
-                                <flux:input 
-                                    wire:model.live.debounce.300ms="contract_search" 
-                                    wire:focus="showAllContracts" 
-                                    label="Contract / PO Number" 
-                                    placeholder="Search or type to create new contract..."
-                                    :disabled="!$supplier_id && !$creating_new_supplier"
-                                    required
-                                />
-                                @error('contract_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                @error('contract_search_error') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                
-                                @if($show_contract_suggestions && count($contract_suggestions) > 0)
-                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                            @foreach($contract_suggestions as $contract)
-                                                <li wire:click="selectContract(@js($contract))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700 {{ $contract['type'] === 'new' ? 'border-b border-stone-200 bg-blue-50 dark:border-stone-600 dark:bg-blue-900/20' : '' }}">
-                                                    <div class="font-medium text-stone-900 dark:text-stone-100">
-                                                        {{ $contract['name'] }}
-                                                        @if($contract['type'] === 'new')
-                                                            <span class="text-blue-600 dark:text-blue-400">(Create New)</span>
-                                                        @endif
+                            <div>
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" />
+                                @error('contract_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
                                                     </div>
-                                                    @if($contract['type'] === 'existing' && isset($contract['supplier_name']))
-                                                        <div class="text-sm text-stone-500 dark:text-stone-400">{{ $contract['supplier_name'] }}</div>
-                                                    @endif
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                                @enderror
+                                <x-input-error for="contract_search_error" class="mt-2" />
+                                @if ($creating_new_contract)
+                                    <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
+                                        <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                        </svg>
+                                        <span class="font-medium">New contract will be created upon saving.</span>
                                     </div>
                                 @endif
                             </div>
@@ -674,36 +669,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                 </div>
 
+                <!-- Item Information Section -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3></div>
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div class="relative">
-                                <flux:input 
-                                    wire:model.live.debounce.300ms="item_search" 
-                                    wire:focus="showAllItems" 
-                                    label="Item / Article" 
-                                    placeholder="Search items from selected contract..."
-                                    :disabled="!$contract_id && !$creating_new_contract"
-                                    required
-                                />
-                                @error('item_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                
-                                @if($show_item_suggestions && count($item_suggestions) > 0)
-                                    <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                        <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                            @foreach($item_suggestions as $item)
-                                                <li wire:click="selectItem(@js($item))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
-                                                    <div class="font-medium text-stone-900 dark:text-stone-100">{{ $item['name'] }}</div>
-                                                    @if($item['brand'] || $item['model'])
-                                                        <div class="text-sm text-stone-500 dark:text-stone-400">{{ collect([$item['brand'], $item['model']])->filter()->join(' / ') }}</div>
-                                                    @endif
-                                                    <div class="text-sm text-green-600 dark:text-green-400">₱{{ number_format($item['unit_price'], 2) }}</div>
-                                                </li>
-                                            @endforeach
-                                        </ul>
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item Information</h3>
                                     </div>
-                                @endif
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div>
+                                <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" />
+                                @error('contract_item_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
                             </div>
 
                             <div>
@@ -711,155 +693,189 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <x-slot:leading><span class="text-stone-500">₱</span></x-slot:leading>
                                 </flux:input>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches / Serial Numbers</h3></div>
-                    <div class="p-6">
-                        <div class="space-y-6">
-                            <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
-                            <div class="space-y-4">
-                                @foreach ($batches as $batchIndex => $batch)
-                                    <div wire:key="batch-{{ $batchIndex }}" class="relative rounded-md border border-stone-300 bg-stone-50 p-4 dark:border-stone-600 dark:bg-stone-800/50">
-                                        <div class="flex items-center justify-between">
-                                            <label for="batch-{{ $batchIndex }}-data" class="text-sm font-medium text-stone-700 dark:text-stone-300">Batch #{{ $loop->iteration }} Serial/Identification</label>
-                                            @if ($quantity > 1)
-                                                <button type="button" wire:click.prevent="removeBatch({{ $batchIndex }})" class="text-red-500 hover:text-red-700">&times; Remove</button>
-                                            @endif
-                                        </div>
-                                        <flux:input wire:model="batches.{{ $batchIndex }}.identification_data" id="batch-{{ $batchIndex }}-data" placeholder="e.g. SN: 12345, Asset Tag: 67890" />
-                                    </div>
-                                @endforeach
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+            <!-- Column 2: Personnel & Document Details -->
+                        <div class="space-y-6">
+                <!-- Personnel Section -->
+                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3>
+                                        </div>
+                    <div class="space-y-4 p-4">
+                        <div>
+                            <x-autocomplete id="assigned_employee_search" wire:model.live="assigned_employee_search" wire:suggestions="assigned_employee_suggestions" wire:showSuggestions="show_assigned_employee_suggestions" label="Assigned To (Stock Officer)" placeholder="Search employees..." required onFocus="$wire.showAllAssignedEmployees()" onSelect="$wire.selectAssignedEmployee" />
+                            @error('assigned_employee_id')
+                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>{{ $message }}</span>
+                                    </div>
+                            @enderror
+                            </div>
+
+                        <div>
+                            <x-autocomplete id="approving_employee_search" wire:model.live="approving_employee_search" wire:suggestions="approving_employee_suggestions" wire:showSuggestions="show_approving_employee_suggestions" label="Approving Official" placeholder="Search employees..." required onFocus="$wire.showAllApprovingEmployees()" onSelect="$wire.selectApprovingEmployee" />
+                            @error('approving_employee_id')
+                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>{{ $message }}</span>
+                        </div>
+                            @enderror
+                    </div>
+
+                        <div>
+                            <x-autocomplete id="received_by_search" wire:model.live="received_by_search" wire:suggestions="received_by_suggestions" wire:showSuggestions="show_received_by_suggestions" label="Received By" placeholder="Search employees..." required onFocus="$wire.showAllReceivedByEmployees()" onSelect="$wire.selectReceivedByEmployee" />
+                            @error('received_by_id')
+                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>{{ $message }}</span>
+                </div>
+                            @enderror
         </div>
 
-        <div class="lg:col-span-1">
-            <div class="space-y-8">
-                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3></div>
-                    <div class="space-y-6 p-6">
-                        <div class="relative">
-                            <flux:input 
-                                wire:model.live.debounce.300ms="assigned_employee_search" 
-                                wire:focus="showAllAssignedEmployees" 
-                                label="Assigned To (Stock Officer)" 
-                                placeholder="Search employees..."
-                                required
-                            />
-                            @error('assigned_employee_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            
-                            @if($show_assigned_employee_suggestions && count($assigned_employee_suggestions) > 0)
-                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                        @foreach($assigned_employee_suggestions as $employee)
-                                            <li wire:click="selectAssignedEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
-                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
-                                                @if($employee['description'])
-                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
+                        <div>
+                            <x-autocomplete id="received_from_search" wire:model.live="received_from_search" wire:suggestions="received_from_suggestions" wire:showSuggestions="show_received_from_suggestions" label="Received From (Issued By)" placeholder="Search employees..." required onFocus="$wire.showAllReceivedFromEmployees()" onSelect="$wire.selectReceivedFromEmployee" />
+                            @error('received_from_id')
+                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>{{ $message }}</span>
                                 </div>
-                            @endif
-                        </div>
-
-                        <div class="relative">
-                            <flux:input 
-                                wire:model.live.debounce.300ms="approving_employee_search" 
-                                wire:focus="showAllApprovingEmployees" 
-                                label="Approving Official" 
-                                placeholder="Search employees..."
-                                required
-                            />
-                            @error('approving_employee_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            
-                            @if($show_approving_employee_suggestions && count($approving_employee_suggestions) > 0)
-                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                        @foreach($approving_employee_suggestions as $employee)
-                                            <li wire:click="selectApprovingEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
-                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
-                                                @if($employee['description'])
-                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="relative">
-                            <flux:input 
-                                wire:model.live.debounce.300ms="received_by_search" 
-                                wire:focus="showAllReceivedByEmployees" 
-                                label="Received By" 
-                                placeholder="Search employees..."
-                                required
-                            />
-                            @error('received_by_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            
-                            @if($show_received_by_suggestions && count($received_by_suggestions) > 0)
-                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                        @foreach($received_by_suggestions as $employee)
-                                            <li wire:click="selectReceivedByEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
-                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
-                                                @if($employee['description'])
-                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="relative">
-                            <flux:input 
-                                wire:model.live.debounce.300ms="received_from_search" 
-                                wire:focus="showAllReceivedFromEmployees" 
-                                label="Received From (Issued By)" 
-                                placeholder="Search employees..."
-                                required
-                            />
-                            @error('received_from_search') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            
-                            @if($show_received_from_suggestions && count($received_from_suggestions) > 0)
-                                <div class="absolute z-50 mt-1 w-full rounded-md border border-stone-300 bg-white shadow-lg dark:border-stone-600 dark:bg-stone-800">
-                                    <ul class="max-h-60 overflow-auto rounded-md py-1">
-                                        @foreach($received_from_suggestions as $employee)
-                                            <li wire:click="selectReceivedFromEmployee(@js($employee))" class="cursor-pointer px-3 py-2 hover:bg-stone-100 dark:hover:bg-stone-700">
-                                                <div class="font-medium text-stone-900 dark:text-stone-100">{{ $employee['name'] }}</div>
-                                                @if($employee['description'])
-                                                    <div class="text-sm text-stone-500 dark:text-stone-400">{{ $employee['description'] }}</div>
-                                                @endif
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            @endif
+                            @enderror
                         </div>
                     </div>
                 </div>
+                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
+                    </div>
+                    <div class="space-y-4 p-4">
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <label for="idr_number_input" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    IDR Number <span class="text-stone-500 dark:text-stone-400 font-normal">(Auto-generated)</span>
+                                </label>
+                        <div class="relative">
+                            <flux:input 
+                                        id="idr_number_input"
+                                        wire:model.blur="number" 
+                                        type="text" 
+                                        readonly
+                                        tabindex="-1"
+                                        class="bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 cursor-not-allowed border-stone-200 dark:border-stone-700" />
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <x-flux::icon.lock-closed class="h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" placeholder="Optional" />
+                            </div>
+                        </div>
+
+                                                <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input wire:model="inventory_code" label="Inventory Code" required />
+                                <x-input-error for="inventory_code" class="mt-2" />
+                                </div>
+                            <div>
+                                <flux:input wire:model="ors" label="ORS Number" required />
+                                <x-input-error for="ors" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                            <div>
+                                <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                                <x-input-error for="date_prepared" class="mt-2" />
+                            </div>
+                            <div>
+                                <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
+                                <x-input-error for="date_accepted" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <flux:input wire:model="date" type="date" label="Date (IDR)" required />
+                            <x-input-error for="date" class="mt-2" />
+                                </div>
+                        <div>
+                            <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." rows="6" />
+                            <x-input-error for="remarks" class="mt-2" />
+                        </div>
+                    </div>
+                </div>
+                        </div>
+
+            <!-- Column 3: Batches -->
+            <div class="space-y-6 lg:col-span-2 xl:col-span-1">
+                <!-- Batches & Serial Numbers -->
                 <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3></div>
-                    <div class="space-y-6 p-6">
-                         <flux:input wire:model="number" label="IDR Number" required />
-                         <flux:input wire:model="inventory_code" label="Inventory Code" required />
-                         <flux:input wire:model="ors" label="ORS Number" required />
-                         <flux:input wire:model="estimated_useful_life" type="number" label="Estimated Useful Life (Years)" min="1" placeholder="e.g. 5" />
-                         <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
-                         <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
-                         <flux:input wire:model="date" type="date" label="Date (IDR)" required />
-                         <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." />
+                    <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                        <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches</h3>
+                                </div>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                                                        <div class="w-full">
+                                <x-quantity-input 
+                                    id="quantity"
+                                    wire:model.live="quantity" 
+                                    label="Total Quantity / Number of Batches" 
+                                    min="1" 
+                                required
+                                    class="w-full" 
+                                />
+                                <x-input-error for="quantity" class="mt-2" />
+                            </div>
+
+                            <div class="space-y-4">
+                                @foreach ($batches as $batchIndex => $batch)
+                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50">
+                                        <div class="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-700">
+                                            <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
+                                                    {{ $loop->iteration }}
+                                                </span>
+                                                <span>Batch #{{ $loop->iteration }}</span>
+                                            </h4>
+                                            <div class="flex items-center space-x-2">
+                                                @if ($quantity > 1)
+                                                    <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
+                                                        <x-flux::icon.trash class="h-4 w-4" />
+                                                    </flux:button>
+                                                @endif
+                                </div>
+                        </div>
+
+                                        <div class="p-3">
+                            <flux:input 
+                                                wire:model="batches.{{ $batchIndex }}.identification_data" 
+                                                label="Serial Number/Asset Tag" 
+                                                placeholder="Enter serial number, asset tag or other identifying info" />
+                                        </div>
+                                    </div>
+                                        @endforeach
+                                
+                                <div class="mt-4 text-center">
+                                    <flux:button type="button" variant="outline" wire:click.prevent="$set('quantity', {{ $quantity + 1 }})" class="w-full">
+                                        <div class="flex items-center justify-center">
+                                            <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                            <span>Add Another Batch</span>
+                                </div>
+                                    </flux:button>
+                        </div>
+                    </div>
+                </div>
                     </div>
                 </div>
             </div>
