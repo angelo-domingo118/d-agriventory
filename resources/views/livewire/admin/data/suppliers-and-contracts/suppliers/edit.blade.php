@@ -4,6 +4,7 @@ use App\Models\Supplier;
 use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -36,30 +37,53 @@ new class extends Component {
         Flux::modal('edit-supplier')->close();
     }
 
+    public function confirmDelete(): void
+    {        
+        // Show the delete confirmation modal
+        Flux::modal('delete-supplier-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        // Close the delete confirmation modal
+        Flux::modal('delete-supplier-confirmation')->close();
+    }
+
     public function delete(): void
     {
         try {
-            DB::transaction(function () {
-                // Check if the supplier has any contracts
-                if ($this->supplier->contracts()->exists()) {
-                    ToastService::error($this, 'Cannot delete a supplier that has contracts.');
-                    return;
-                }
+            // Check if deletion should be blocked
+            if ($this->supplier->contracts()->exists()) {
+                ToastService::error($this, 'Cannot delete this supplier because it has active contracts. Remove contracts first.');
+                Flux::modal('delete-supplier-confirmation')->close();
+                return;
+            }
 
-                $this->supplier->delete();
-            });
-
-            // Show success toast
+            // Safe to delete normally
+            $this->supplier->delete();
             ToastService::deleted($this, 'Supplier');
-            
-            // Close the modal and refresh the parent component
+
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-supplier-confirmation')->close();
+            Flux::modal('edit-supplier')->close();
             $this->dispatch('supplier-deleted');
-            Flux::modal('edit-supplier')->close();
+            
         } catch (\Exception $e) {
-            // Handle any errors during deletion
             ToastService::error($this, 'An error occurred while deleting the supplier. Please try again.');
-            Flux::modal('edit-supplier')->close();
+            Flux::modal('delete-supplier-confirmation')->close();
         }
+    }
+
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
     }
 
     public function cancel(): void
@@ -78,7 +102,7 @@ new class extends Component {
         <flux:input wire:model="name" label="Supplier Name" placeholder="Enter supplier name" required />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this supplier? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />
@@ -91,4 +115,6 @@ new class extends Component {
             </flux:button>
         </div>
     </form>
+
+
 </div>

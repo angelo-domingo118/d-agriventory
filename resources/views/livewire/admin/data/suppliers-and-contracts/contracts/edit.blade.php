@@ -7,6 +7,7 @@ use App\Services\ToastService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -140,6 +141,18 @@ new class extends Component {
         Flux::modal('edit-contract')->close();
     }
 
+    public function confirmDeleteContract(): void
+    {        
+        // Show the delete confirmation modal
+        Flux::modal('delete-contract-confirmation')->show();
+    }
+
+    public function cancelDeleteContract(): void
+    {
+        // Close the delete confirmation modal
+        Flux::modal('delete-contract-confirmation')->close();
+    }
+
     public function deleteContract(): void
     {
         try {
@@ -151,14 +164,27 @@ new class extends Component {
             // Show success toast
             ToastService::deleted($this, 'Contract');
 
-            // Close the modal and refresh the parent component
-            $this->dispatch('contract-deleted');
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-contract-confirmation')->close();
             Flux::modal('edit-contract')->close();
+            $this->dispatch('contract-deleted');
         } catch (\Exception $e) {
             // Handle any errors during deletion
             ToastService::error($this, 'An error occurred while deleting the contract. Please try again.');
-            Flux::modal('edit-contract')->close();
+            Flux::modal('delete-contract-confirmation')->close();
         }
+    }
+
+    #[On('call-delete-contract')]
+    public function handleDeleteContract(): void
+    {
+        $this->deleteContract();
+    }
+
+    #[On('call-cancel-delete-contract')]
+    public function handleCancelDeleteContract(): void
+    {
+        $this->cancelDeleteContract();
     }
 
     public function cancel(): void
@@ -246,7 +272,7 @@ new class extends Component {
 
         <!-- Modal Actions -->
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="deleteContract" wire:confirm="Are you sure you want to delete this contract? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDeleteContract">
                 Delete
             </flux:button>
             <flux:spacer />

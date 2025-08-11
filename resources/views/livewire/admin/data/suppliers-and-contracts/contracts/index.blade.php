@@ -53,6 +53,24 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
     }
+
+    #[Computed]
+    public function editingContractDeletionImpact(): array
+    {
+        if (!$this->editingContract) {
+            return [
+                'contract_items' => 0,
+                'has_associated_data' => false,
+            ];
+        }
+
+        $contractItemsCount = $this->editingContract->contractItems()->count();
+        
+        return [
+            'contract_items' => $contractItemsCount,
+            'has_associated_data' => $contractItemsCount > 0,
+        ];
+    }
     
     public function resetFilters(): void
     {
@@ -383,6 +401,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-contract-' . $editingContract->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
+            name="delete-contract-confirmation"
+            title="Delete Contract"
+            entity-type="contract"
+            :entity-name="$editingContract->contract_po_ib_number"
+            :association-counts="[
+                'contract items' => $this->editingContractDeletionImpact['contract_items']
+            ]"
+            :has-associated-data="$this->editingContractDeletionImpact['has_associated_data']"
+            :block-deletion="false"
+            delete-action="$dispatch('call-delete-contract')"
+            cancel-action="$dispatch('call-cancel-delete-contract')"
+        />
     @endif
 </div> 
 

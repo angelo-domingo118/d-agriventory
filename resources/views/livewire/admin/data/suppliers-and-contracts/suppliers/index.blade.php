@@ -46,6 +46,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         return $query->orderBy($this->sortColumn, $this->sortDirection)->paginate($this->perPage);
     }
 
+    #[Computed]
+    public function editingSupplierDeletionImpact(): array
+    {
+        if (!$this->editingSupplier) {
+            return [
+                'contracts' => 0,
+                'has_associated_data' => false,
+            ];
+        }
+
+        $contractsCount = $this->editingSupplier->contracts()->count();
+        
+        return [
+            'contracts' => $contractsCount,
+            'has_associated_data' => $contractsCount > 0,
+        ];
+    }
+
     public function editSupplier(Supplier $supplier): void
     {
         $this->editingSupplier = $supplier;
@@ -348,6 +366,21 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-supplier-' . $editingSupplier->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
+            name="delete-supplier-confirmation"
+            title="Delete Supplier"
+            entity-type="supplier"
+            :entity-name="$editingSupplier->name"
+            :association-counts="[
+                'contracts' => $this->editingSupplierDeletionImpact['contracts']
+            ]"
+            :has-associated-data="$this->editingSupplierDeletionImpact['has_associated_data']"
+            :block-deletion="$this->editingSupplierDeletionImpact['has_associated_data']"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+        />
     @endif
 </div>
 
