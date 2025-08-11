@@ -267,7 +267,7 @@ new #[Layout('components.layouts.app')] class extends Component
                                     <div class="flex items-center space-x-4">
                                         <div class="flex-shrink-0">
                                             <div class="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center dark:bg-amber-900/20">
-                                                <x-flux::icon.triangle-exclamation class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                                <x-flux::icon.exclamation-triangle class="h-4 w-4 text-amber-600 dark:text-amber-400" />
                                             </div>
                                         </div>
                                         <div class="min-w-0 flex-1">
