@@ -50,8 +50,7 @@ new class extends Component {
                 $query->where('name', 'like', '%' . $search . '%')
                     ->orWhereHas('employees', function ($q) use ($search) {
                         $q->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('position_title', 'like', '%' . $search . '%')
-                            ->orWhere('position_code', 'like', '%' . $search . '%');
+                            ->orWhere('position', 'like', '%' . $search . '%');
                     });
             })
             ->orderBy('name')
@@ -109,7 +108,7 @@ new class extends Component {
                 <x-tree.item 
                     :id="'employee-'.$employee->id" 
                     :title="$employee->name" 
-                    :subtitle="$employee->position_title ?: 'No position'"
+                    :subtitle="$employee->position ?: 'No position'"
                     :edit-url="route('admin.data.employees-and-divisions.employees.edit', $employee)" 
                     :level="1" 
                     :has-children="false" 

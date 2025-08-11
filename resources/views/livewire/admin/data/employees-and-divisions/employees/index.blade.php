@@ -107,9 +107,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->withCount(['icsNumbers', 'parNumbers', 'assignedIdrNumbers'])
             ->when($this->search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('position_title', 'like', "%{$search}%")
-                    ->orWhere('position_code', 'like', "%{$search}%")
-                    ->orWhere('position_type', 'like', "%{$search}%")
+                    ->orWhere('position', 'like', "%{$search}%")
                     ->orWhereHas('division', fn ($q) => $q->where('name', 'like', "%{$search}%"));
             })
             ->when($this->filterDivision, fn(Builder $q) => $q->where('division_id', $this->filterDivision))
@@ -360,9 +358,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                         </th>
                         <th scope="col" :style="`width: ${columnWidths.position}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                             <div wire:click="sortBy('position_title')" class="flex cursor-pointer items-center">
+                             <div wire:click="sortBy('position')" class="flex cursor-pointer items-center">
                                 Position
-                                @if($sortColumn === 'position_title')
+                                @if($sortColumn === 'position')
                                      @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
                                 @else
                                     <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400" />
@@ -394,14 +392,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                     @forelse($employees as $employee)
                         <tr wire:key="employee-{{ $employee->id }}" class="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                             <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} font-medium text-stone-900 dark:text-stone-100" title="{{ $employee->name }}">{{ $employee->name }}</td>
-                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->full_position }}">
-                                @if($employee->position_title)
-                                    <div>
-                                        <div class="font-medium">{{ $employee->position_title }}</div>
-                                        @if($employee->position_type)
-                                            <div class="text-xs text-stone-400">{{ $employee->formatted_position_type }}</div>
-                                        @endif
-                                    </div>
+                            <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $employee->position }}">
+                                @if($employee->position)
+                                    {{ $employee->position }}
                                 @else
                                     <span class="text-stone-400">-</span>
                                 @endif

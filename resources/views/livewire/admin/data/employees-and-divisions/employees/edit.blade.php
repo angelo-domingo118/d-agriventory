@@ -14,10 +14,7 @@ new class extends Component {
     public Employee $employee;
     public string $name;
     public ?int $division_id;
-    public string $position_title;
-    public string $position_code;
-    public string $position_type;
-    public string $position_description;
+    public string $position;
 
     public function mount(Employee $employee): void
     {
@@ -27,10 +24,7 @@ new class extends Component {
         $this->employee = $employee;
         $this->name = $employee->name;
         $this->division_id = $employee->division_id;
-        $this->position_title = $employee->position_title ?? '';
-        $this->position_code = $employee->position_code ?? '';
-        $this->position_type = $employee->position_type ?? '';
-        $this->position_description = $employee->position_description ?? '';
+        $this->position = $employee->position ?? '';
     }
 
     public function confirmDelete(): void
@@ -50,10 +44,7 @@ new class extends Component {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'division_id' => ['nullable', 'integer', Rule::exists('divisions', 'id')],
-            'position_title' => ['nullable', 'string', 'max:255'],
-            'position_code' => ['nullable', 'string', 'max:50'],
-            'position_type' => ['nullable', 'string', 'in:DIVISION_CHIEF,COORDINATOR,FOCAL_PERSON,OFFICER,SPECIALIST,OTHER'],
-            'position_description' => ['nullable', 'string'],
+            'position' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {
@@ -148,27 +139,7 @@ new class extends Component {
             @endforeach
         </flux:select>
 
-        <!-- Position Information -->
-        <div class="space-y-4 p-4 bg-stone-50 dark:bg-stone-900/50 rounded-lg border border-stone-200 dark:border-stone-700">
-            <flux:heading size="sm">Position Information (Optional)</flux:heading>
-            
-            <flux:input wire:model="position_title" label="Position Title" placeholder="e.g., IT Officer, Chief Accountant" />
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <flux:input wire:model="position_code" label="Position Code" placeholder="e.g., IT-OFF, CHIEF-ACC" />
-                <flux:select wire:model="position_type" label="Position Type" placeholder="Select position type">
-                    <option value="">Select position type</option>
-                    <option value="DIVISION_CHIEF">Division Chief</option>
-                    <option value="COORDINATOR">Coordinator</option>
-                    <option value="FOCAL_PERSON">Focal Person</option>
-                    <option value="OFFICER">Officer</option>
-                    <option value="SPECIALIST">Specialist</option>
-                    <option value="OTHER">Other</option>
-                </flux:select>
-            </div>
-            
-            <flux:textarea wire:model="position_description" label="Position Description" placeholder="Brief description of responsibilities and duties..." rows="3" />
-        </div>
+        <flux:input wire:model="position" label="Position (Optional)" placeholder="e.g., IT Officer, Chief Accountant, Division Coordinator" />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
             <flux:button type="button" variant="danger" wire:click="confirmDelete">
