@@ -123,14 +123,14 @@ new #[Layout('components.layouts.app')] class extends Component
 ?>
 
 <div>
-    <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between">
         <!-- Breadcrumbs as Title -->
-        <div>
+                <div>
             <flux:breadcrumbs class="text-2xl font-semibold">
                 <flux:breadcrumbs.item :href="route('inventory-manager.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
                 <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Dashboard</flux:breadcrumbs.item>
             </flux:breadcrumbs>
-        </div>
+                </div>
         <div class="flex items-center gap-x-2">
             <flux:button
                 variant="outline"
@@ -140,14 +140,14 @@ new #[Layout('components.layouts.app')] class extends Component
                 <x-flux::icon.rotate-cw class="h-5 w-5" wire:loading.class="animate-spin" />
                 <span class="sr-only">Refresh</span>
             </flux:button>
-            <flux:button 
-                variant="primary" 
-                :href="route('inventory-manager.consumables.create')" 
-                wire:navigate>
-                Add Consumable Record
-            </flux:button>
-        </div>
-    </div>
+                    <flux:button 
+                        variant="primary" 
+                        :href="route('inventory-manager.consumables.create')" 
+                        wire:navigate>
+                        Add Consumable Record
+                    </flux:button>
+                </div>
+            </div>
 
     <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <x-dashboard.stat-card 
@@ -177,30 +177,30 @@ new #[Layout('components.layouts.app')] class extends Component
             subtitle="{{ $this->division->name }}"
             class="bg-green-50 dark:bg-green-900/20"
         />
-    </div>
+            </div>
 
     <!-- Quick Actions -->
     <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         @foreach($this->quickActions as $action)
             <x-dashboard.action-card
                 :title="$action['title']"
-                :subtitle="$action['subtitle']"
+                :description="$action['subtitle']"
                 :href="route($action['route'])"
                 :icon="$action['icon']"
                 wire:navigate
             />
         @endforeach
-    </div>
+        </div>
 
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Recent Consumable Records -->
+            <!-- Recent Consumable Records -->
         <div class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
                 <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Recent Consumable Records</h3>
-                <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Latest consumable records added to your division</p>
-            </div>
-            <div class="p-6">
-                @if($this->recentConsumableRecords->count() > 0)
+                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Latest consumable records added to your division</p>
+                </div>
+                <div class="p-6">
+                    @if($this->recentConsumableRecords->count() > 0)
                     <div class="flow-root">
                         <ul role="list" class="-mb-8">
                             @foreach($this->recentConsumableRecords as $record)
@@ -226,40 +226,40 @@ new #[Layout('components.layouts.app')] class extends Component
                                         </div>
                                     </div>
                                     @if(!$loop->last)
-                                        </div>
+                                </div>
                                     @endif
                                 </li>
                             @endforeach
                         </ul>
-                    </div>
-                @else
-                    <div class="text-center py-8">
+                        </div>
+                    @else
+                        <div class="text-center py-8">
                         <x-flux::icon.document-text class="mx-auto h-12 w-12 text-stone-300 dark:text-stone-600" />
-                        <h4 class="mt-2 text-sm font-medium text-stone-900 dark:text-stone-100">No consumable records</h4>
-                        <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Get started by creating your first consumable record.</p>
-                    </div>
-                @endif
-                <div class="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
-                    <flux:button 
-                        variant="ghost" 
+                            <h4 class="mt-2 text-sm font-medium text-stone-900 dark:text-stone-100">No consumable records</h4>
+                            <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Get started by creating your first consumable record.</p>
+                        </div>
+                    @endif
+                    <div class="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
+                        <flux:button 
+                            variant="ghost" 
                         :href="route('inventory-manager.consumables.index')" 
-                        wire:navigate
-                        class="w-full justify-center">
-                        View All Records
+                            wire:navigate
+                            class="w-full justify-center">
+                            View All Records
                         <x-flux::icon.arrow-right class="ml-2 h-4 w-4" />
-                    </flux:button>
+                        </flux:button>
+                </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Low Stock Alert -->
+            <!-- Low Stock Alert -->
         <div class="overflow-hidden rounded-lg bg-white shadow ring-1 ring-black ring-opacity-5 dark:bg-stone-800 dark:ring-stone-700">
-            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
                 <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Low Stock Alert</h3>
-                <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Items that need restocking soon</p>
-            </div>
-            <div class="p-6">
-                @if($this->lowStockItemsList->count() > 0)
+                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">Items that need restocking soon</p>
+                </div>
+                <div class="p-6">
+                    @if($this->lowStockItemsList->count() > 0)
                     <div class="flow-root">
                         <ul role="list" class="-my-5 divide-y divide-stone-200 dark:divide-stone-700">
                             @foreach($this->lowStockItemsList as $item)
@@ -286,15 +286,15 @@ new #[Layout('components.layouts.app')] class extends Component
                                 </li>
                             @endforeach
                         </ul>
-                    </div>
-                @else
-                    <div class="text-center py-8">
+                        </div>
+                    @else
+                        <div class="text-center py-8">
                         <x-flux::icon.check-circle class="mx-auto h-12 w-12 text-green-500 dark:text-green-400" />
                         <h4 class="mt-2 text-sm font-medium text-stone-900 dark:text-stone-100">All items well stocked!</h4>
-                        <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">No items currently running low on inventory.</p>
-                    </div>
-                @endif
+                            <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">No items currently running low on inventory.</p>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
-    </div>
 </div> 
