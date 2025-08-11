@@ -42,7 +42,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="space-y-6">
+<div class="mx-auto max-w-lg">
     <div>
         <flux:heading size="lg">Create Supplier</flux:heading>
         <flux:text class="mt-2">Add a new supplier to the system.</flux:text>

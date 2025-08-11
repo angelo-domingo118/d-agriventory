@@ -354,13 +354,13 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Create Supplier Modal -->
-    <x-admin.modal-form-wrapper name="create-supplier" maxWidth="2xl">
+    <x-admin.modal-form-wrapper name="create-supplier" maxWidth="lg">
         <livewire:admin.data.suppliers-and-contracts.suppliers.create />
     </x-admin.modal-form-wrapper>
 
     <!-- Edit Supplier Modal -->
     @if($editingSupplier)
-        <x-admin.modal-form-wrapper name="edit-supplier" maxWidth="2xl">
+        <x-admin.modal-form-wrapper name="edit-supplier" maxWidth="lg">
             <livewire:admin.data.suppliers-and-contracts.suppliers.edit 
                 :supplier="$editingSupplier" 
                 :key="'edit-supplier-' . $editingSupplier->id" 

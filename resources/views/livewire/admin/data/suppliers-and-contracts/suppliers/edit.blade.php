@@ -92,7 +92,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="space-y-6">
+<div class="mx-auto max-w-lg">
     <div>
         <flux:heading size="lg">Edit Supplier</flux:heading>
         <flux:text class="mt-2">Update the details for this supplier.</flux:text>

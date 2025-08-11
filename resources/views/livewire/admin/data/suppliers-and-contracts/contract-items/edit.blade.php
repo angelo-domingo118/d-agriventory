@@ -131,40 +131,31 @@ new class extends Component {
     }
 }; ?>
 
-<div class="space-y-6">
-    <div>
-        <flux:heading size="lg">Edit Contract Item</flux:heading>
-        <flux:text class="mt-2">Update the details of this contract item.</flux:text>
-    </div>
-
+<div class="mx-auto max-w-lg">
     <form wire:submit="save" class="space-y-6">
         <!-- Contract Item Details -->
         <div class="space-y-4">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <flux:select wire:model="contract_id" label="Contract" required>
-                    <option value="">Select a contract</option>
-                    @foreach($contracts as $contract)
-                        <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} - {{ $contract->supplier->name }}</option>
-                    @endforeach
-                </flux:select>
-                
-                <flux:select wire:model="item_specification_id" label="Item Specification" required>
-                    <option value="">Select an item specification</option>
-                    @foreach($specifications as $spec)
-                        <option value="{{ $spec['id'] }}">{{ $spec['label'] }}</option>
-                    @endforeach
-                </flux:select>
-            </div>
+            <flux:select wire:model="contract_id" label="Contract" required>
+                <option value="">Select a contract</option>
+                @foreach($contracts as $contract)
+                    <option value="{{ $contract->id }}">{{ $contract->contract_po_ib_number }} - {{ $contract->supplier->name }}</option>
+                @endforeach
+            </flux:select>
             
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <flux:input type="number" wire:model="unit_price" label="Unit Price (₱)" min="0.01" step="0.01" required />
-                
-                <flux:select wire:model="item_type" label="Item Type" required>
-                    <option value="ICS">ICS - Inventory Custodian Slip</option>
-                    <option value="PAR">PAR - Property Acknowledgment Receipt</option>
-                    <option value="IDR">IDR - Inventory Delivery Receipt</option>
-                </flux:select>
-            </div>
+            <flux:select wire:model="item_specification_id" label="Item Specification" required>
+                <option value="">Select an item specification</option>
+                @foreach($specifications as $spec)
+                    <option value="{{ $spec['id'] }}">{{ $spec['label'] }}</option>
+                @endforeach
+            </flux:select>
+            
+            <flux:input type="number" wire:model="unit_price" label="Unit Price (₱)" placeholder="0.00" min="0.01" step="0.01" required />
+            
+            <flux:select wire:model="item_type" label="Item Type" required>
+                <option value="ICS">ICS - Inventory Custodian Slip</option>
+                <option value="PAR">PAR - Property Acknowledgment Receipt</option>
+                <option value="IDR">IDR - Inventory Delivery Receipt</option>
+            </flux:select>
         </div>
 
         <!-- Modal Actions -->

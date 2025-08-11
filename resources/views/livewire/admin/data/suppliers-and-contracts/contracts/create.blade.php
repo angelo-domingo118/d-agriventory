@@ -62,12 +62,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="space-y-6">
-    <div>
-        <flux:heading size="lg">Create Contract</flux:heading>
-        <flux:text class="mt-2">Add a new contract to the system. After creating the contract, you can add contract items separately.</flux:text>
-    </div>
-
+<div class="mx-auto max-w-lg">
     <form wire:submit="save" class="space-y-6">
         <!-- Contract Details -->
         <div class="space-y-4">
