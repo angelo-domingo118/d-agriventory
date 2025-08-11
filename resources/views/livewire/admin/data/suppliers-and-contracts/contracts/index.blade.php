@@ -8,6 +8,7 @@ use App\Models\ItemsCatalog;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Flux\Flux;
@@ -81,6 +82,20 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->editingContract = $contract;
         Flux::modal('edit-contract')->show();
+    }
+
+    #[On('contract-created')]
+    #[On('contract-updated')]
+    #[On('contract-deleted')]
+    public function refreshContracts(): void
+    {
+        // Force refresh of computed property and reset to first page
+        unset($this->contracts);
+        $this->resetPage();
+        $this->dispatch('$refresh');
+        
+        // Reset editing contract
+        $this->editingContract = null;
     }
 
     #[Computed]
@@ -228,7 +243,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <x-flux::icon.filter class="h-5 w-5" />
                 <span class="sr-only">Toggle Filters</span>
             </flux:button>
-            <flux:button tag="a" href="{{ route('admin.data.suppliers-and-contracts.contracts.create', ['view' => 'table']) }}" wire:navigate variant="primary">New Contract</flux:button>
+            <flux:modal.trigger name="create-contract">
+                <flux:button variant="primary">New Contract</flux:button>
+            </flux:modal.trigger>
         </div>
     </div>
     
@@ -392,6 +409,11 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="mt-4">
         {{ $this->contracts->links() }}
     </div>
+
+    <!-- Create Contract Modal -->
+    <x-admin.modal-form-wrapper name="create-contract" maxWidth="4xl">
+        <livewire:admin.data.suppliers-and-contracts.contracts.create />
+    </x-admin.modal-form-wrapper>
 
     <!-- Edit Contract Modal -->
     @if($editingContract)
