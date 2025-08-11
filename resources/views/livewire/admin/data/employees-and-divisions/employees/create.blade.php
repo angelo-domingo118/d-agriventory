@@ -38,8 +38,8 @@ new class extends Component {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'employee_number' => ['required', 'string', 'max:50', Rule::unique('employees', 'employee_number')],
-            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')],
-            'division_id' => ['required', 'integer', Rule::exists('divisions', 'id')],
+            'position_id' => ['nullable', 'integer', Rule::exists('positions', 'id')],
+            'division_id' => ['nullable', 'integer', Rule::exists('divisions', 'id')],
         ]);
 
         Employee::create($validated);
@@ -76,13 +76,13 @@ new class extends Component {
     <form wire:submit="save" class="space-y-4">
         <flux:input wire:model="name" label="Full Name" placeholder="Enter employee's full name" required />
         <flux:input wire:model="employee_number" label="Employee Number" placeholder="Enter unique employee number" required />
-        <flux:select wire:model="position_id" label="Position" placeholder="Select a position" required>
+        <flux:select wire:model="position_id" label="Position (Optional)" placeholder="Select a position">
             <option value="">Select a position</option>
             @foreach ($this->positions as $position)
                 <option value="{{ $position->id }}">{{ $position->title }}</option>
             @endforeach
         </flux:select>
-        <flux:select wire:model="division_id" label="Division" placeholder="Select a division" required>
+        <flux:select wire:model="division_id" label="Division (Optional)" placeholder="Select a division">
             <option value="">Select a division</option>
             @foreach ($this->divisions as $division)
                 <option value="{{ $division->id }}">{{ $division->name }}</option>
