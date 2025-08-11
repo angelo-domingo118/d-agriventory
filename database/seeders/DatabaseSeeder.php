@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ContractItemsSeeder::class,
             IcsNumberSeeder::class,
             IcsItemBatchSeeder::class,
+            ParDataSeeder::class,
             DesktopComputerSeeder::class,
             DivisionInventoryManagerSeeder::class,
             ConsumableSeeder::class,
