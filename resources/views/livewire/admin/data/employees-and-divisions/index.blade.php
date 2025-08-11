@@ -46,7 +46,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700 sm:flex sm:items-center sm:justify-between">
         <div>
             <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                Manage employees, their assigned positions, and divisions.
+                Manage employees and divisions.
             </p>
         </div>
         <div class="mt-3 sm:mt-0 sm:ml-4">
@@ -83,11 +83,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
                         Divisions
                     </button>
-                    <button @click="currentTab = 'positions'"
-                        :class="currentTab === 'positions' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
-                        class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
-                        Positions
-                    </button>
                     <button @click="currentTab = 'employees'"
                         :class="currentTab === 'employees' ? 'border-primary-500 text-primary-600' : 'border-transparent text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-200'"
                         class="whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium">
@@ -99,9 +94,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             <div class="mt-8">
                 <div x-show="currentTab === 'divisions'" x-cloak>
                     <livewire:admin.data.employees-and-divisions.divisions.index />
-                </div>
-                <div x-show="currentTab === 'positions'" x-cloak>
-                    <livewire:admin.data.employees-and-divisions.positions.index />
                 </div>
                 <div x-show="currentTab === 'employees'" x-cloak>
                     <livewire:admin.data.employees-and-divisions.employees.index />

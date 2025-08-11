@@ -28,7 +28,10 @@ class Employee extends Model
     protected $fillable = [
         'name',
         'division_id',
-        'position_id',
+        'position_title',
+        'position_code',
+        'position_type',
+        'position_description',
     ];
 
     /**
@@ -40,11 +43,45 @@ class Employee extends Model
     }
 
     /**
-     * Get the position of this employee.
+     * Get the formatted position type for display.
      */
-    public function position(): BelongsTo
+    public function getFormattedPositionTypeAttribute(): ?string
     {
-        return $this->belongsTo(Position::class);
+        if (!$this->position_type) {
+            return null;
+        }
+        
+        return str_replace('_', ' ', ucwords(strtolower($this->position_type), '_'));
+    }
+
+    /**
+     * Check if the employee has position information.
+     */
+    public function hasPosition(): bool
+    {
+        return !empty($this->position_title);
+    }
+
+    /**
+     * Get a full position descriptor for display.
+     */
+    public function getFullPositionAttribute(): ?string
+    {
+        if (!$this->hasPosition()) {
+            return null;
+        }
+
+        $parts = [$this->position_title];
+        
+        if ($this->position_code) {
+            $parts[] = "({$this->position_code})";
+        }
+        
+        if ($this->position_type) {
+            $parts[] = "[{$this->getFormattedPositionTypeAttribute()}]";
+        }
+
+        return implode(' ', $parts);
     }
 
     /**

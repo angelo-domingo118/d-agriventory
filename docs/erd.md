@@ -66,7 +66,10 @@ erDiagram
         bigint id PK "Primary key"
         varchar name "Full name of the employee"
         bigint division_id FK "nullable - Employee's division assignment"
-        bigint position_id FK "nullable - Employee's position/role"
+        varchar position_title "nullable - Position title (e.g., IT Officer, Chief Accountant)"
+        varchar position_code "nullable - Position code/abbreviation"
+        enum position_type "nullable - DIVISION_CHIEF, COORDINATOR, FOCAL_PERSON, OFFICER, SPECIALIST, OTHER"
+        text position_description "nullable - Position description and responsibilities"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
         timestamp deleted_at "nullable - Soft delete timestamp"
@@ -81,16 +84,7 @@ erDiagram
         timestamp deleted_at "nullable - Soft delete timestamp"
     }
     
-    positions {
-        bigint id PK "Primary key"
-        varchar title UK "Position title (e.g., Division Chief, Coordinator)"
-        varchar code UK "nullable - Position code/abbreviation"
-        enum position_type "DIVISION_CHIEF, COORDINATOR, OFFICER, etc."
-        text description "nullable - Position responsibilities"
-        timestamp created_at "Record creation timestamp"
-        timestamp updated_at "Record last update timestamp"
-        timestamp deleted_at "nullable - Soft delete timestamp"
-    }
+
 
     %% ========================================================================
     %% PROCUREMENT & SUPPLIERS
@@ -343,7 +337,6 @@ erDiagram
     
     %% Organizational Relationships
     divisions ||--o{ employees : "employs"
-    positions ||--o{ employees : "defines role for"
     
     %% Catalog Relationships
     primary_categories ||--o{ secondary_categories : "contains"
@@ -396,9 +389,8 @@ erDiagram
 - **division_inventory_managers**: Links users to specific divisions they manage
 
 ### Organizational Structure
-- **employees**: Staff records independent of system users, with soft delete support
+- **employees**: Staff records independent of system users, with position information stored inline and soft delete support
 - **divisions**: Organizational units (departments, offices) within DA-CAR
-- **positions**: Job roles and responsibilities within the organization
 
 ### Procurement Chain
 - **suppliers**: Vendors and contractors providing goods/services
