@@ -74,6 +74,23 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function editingDivisionDeletionImpact(): array
+    {
+        if (!$this->editingDivision) {
+            return [
+                'employees' => 0,
+                'inventory_managers' => 0,
+                'consumable_records' => 0,
+                'risk_level' => 'safe',
+                'risk_message' => '',
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingDivision->getDeletionImpact();
+    }
+
+    #[Computed]
     public function divisions()
     {
         return Division::query()
@@ -384,6 +401,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-division-' . $editingDivision->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
+            name="delete-division-confirmation"
+            title="Delete Division"
+            entity-type="division"
+            :entity-name="$editingDivision->name"
+            :association-counts="[
+                'employees' => $this->editingDivisionDeletionImpact['employees'],
+                'inventory managers' => $this->editingDivisionDeletionImpact['inventory_managers'],
+                'consumable records' => $this->editingDivisionDeletionImpact['consumable_records']
+            ]"
+            :has-associated-data="$this->editingDivisionDeletionImpact['has_associated_data']"
+            :risk-level="$this->editingDivisionDeletionImpact['risk_level']"
+            :risk-message="$this->editingDivisionDeletionImpact['risk_message']"
+            :block-deletion="$this->editingDivisionDeletionImpact['risk_level'] === 'high'"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+        />
     @endif
 </div> 
 

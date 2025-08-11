@@ -1,7 +1,10 @@
 <?php
 
 use App\Models\Division;
+use App\Services\ToastService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -21,6 +24,18 @@ new class extends Component {
         $this->code = $division->code;
     }
 
+    public function confirmDelete(): void
+    {        
+        // Show the delete confirmation modal
+        Flux::modal('delete-division-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        // Close the delete confirmation modal
+        Flux::modal('delete-division-confirmation')->close();
+    }
+
     public function save(): void
     {
         $validated = $this->validate([
@@ -28,30 +43,66 @@ new class extends Component {
             'code' => ['required', 'string', 'max:50', Rule::unique('divisions', 'code')->ignore($this->division->id)],
         ]);
 
-        $this->division->update($validated);
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('division-updated');
-        Flux::modal('edit-division')->close();
+        try {
+            $this->division->update($validated);
+            
+            // Show success toast
+            ToastService::updated($this, 'Division');
+            
+            // Close the modal and refresh the parent component
+            $this->dispatch('division-updated');
+            Flux::modal('edit-division')->close();
+        } catch (\Exception $e) {
+            Log::error('Error updating division: ' . $e->getMessage());
+            ToastService::error($this, 'There was an error updating the division. Please try again.');
+        }
     }
 
     public function delete(): void
     {
-        if ($this->division->employees()->exists()) {
-            session()->flash('error', 'Cannot delete a division that has employees.');
-            return;
+        try {
+            // Check if deletion should be blocked
+            if ($this->division->isDeletionBlocked()) {
+                ToastService::error($this, 'Cannot delete this division because it has employees assigned.');
+                Flux::modal('delete-division-confirmation')->close();
+                return;
+            }
+
+            // Safe to delete normally
+            $this->division->delete();
+            ToastService::deleted($this, 'Division');
+
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-division-confirmation')->close();
+            Flux::modal('edit-division')->close();
+            $this->dispatch('division-deleted');
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting division: ' . $e->getMessage());
+            $errorMessage = 'An error occurred while deleting the division. Please try again.';
+            if (config('app.debug')) {
+                $errorMessage .= ' Error: ' . $e->getMessage();
+            }
+            ToastService::error($this, $errorMessage);
+            Flux::modal('delete-division-confirmation')->close();
         }
-
-        $this->division->delete();
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('division-deleted');
-        Flux::modal('edit-division')->close();
     }
 
     public function cancel(): void
     {
         Flux::modal('edit-division')->close();
+    }
+
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
     }
 }; ?>
 
@@ -66,7 +117,7 @@ new class extends Component {
         <flux:input wire:model="code" label="Division Code" placeholder="Enter unique code (e.g., IT, HR, FINANCE)" required />
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this division? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />

@@ -3,8 +3,11 @@
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Position;
+use App\Services\ToastService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -25,6 +28,18 @@ new class extends Component {
         $this->division_id = $employee->division_id;
     }
 
+    public function confirmDelete(): void
+    {        
+        // Show the delete confirmation modal
+        Flux::modal('delete-employee-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        // Close the delete confirmation modal
+        Flux::modal('delete-employee-confirmation')->close();
+    }
+
     public function save(): void
     {
         $validated = $this->validate([
@@ -33,31 +48,66 @@ new class extends Component {
             'division_id' => ['nullable', 'integer', Rule::exists('divisions', 'id')],
         ]);
 
-        $this->employee->update($validated);
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('employee-updated');
-        Flux::modal('edit-employee')->close();
+        try {
+            $this->employee->update($validated);
+            
+            // Show success toast
+            ToastService::updated($this, 'Employee');
+            
+            // Close the modal and refresh the parent component
+            $this->dispatch('employee-updated');
+            Flux::modal('edit-employee')->close();
+        } catch (\Exception $e) {
+            Log::error('Error updating employee: ' . $e->getMessage());
+            ToastService::error($this, 'There was an error updating the employee. Please try again.');
+        }
     }
 
     public function delete(): void
     {
-        // Check if the employee has any inventory items assigned
-        if ($this->employee->icsNumbers()->exists() || $this->employee->parNumbers()->exists() || $this->employee->assignedIdrNumbers()->exists() || $this->employee->approvedIdrNumbers()->exists()) {
-            session()->flash('error', 'Cannot delete an employee that has inventory items assigned.');
-            return;
+        try {
+            // Check if deletion should be blocked
+            if ($this->employee->isDeletionBlocked()) {
+                ToastService::error($this, 'Cannot delete this employee because they have active inventory assignments.');
+                Flux::modal('delete-employee-confirmation')->close();
+                return;
+            }
+
+            // Safe to delete normally
+            $this->employee->delete();
+            ToastService::deleted($this, 'Employee');
+
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-employee-confirmation')->close();
+            Flux::modal('edit-employee')->close();
+            $this->dispatch('employee-deleted');
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting employee: ' . $e->getMessage());
+            $errorMessage = 'An error occurred while deleting the employee. Please try again.';
+            if (config('app.debug')) {
+                $errorMessage .= ' Error: ' . $e->getMessage();
+            }
+            ToastService::error($this, $errorMessage);
+            Flux::modal('delete-employee-confirmation')->close();
         }
-
-        $this->employee->delete();
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('employee-deleted');
-        Flux::modal('edit-employee')->close();
     }
 
     public function cancel(): void
     {
         Flux::modal('edit-employee')->close();
+    }
+
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
     }
 
     #[Computed]
@@ -103,7 +153,7 @@ new class extends Component {
         </flux:select>
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this employee? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />

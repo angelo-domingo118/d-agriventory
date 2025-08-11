@@ -110,4 +110,59 @@ class Employee extends Model
     {
         return $this->hasMany(ParTransfer::class, 'to_employee_id');
     }
+
+    /**
+     * Get deletion impact statistics.
+     */
+    public function getDeletionImpact(): array
+    {
+        $icsCount = $this->icsNumbers()->count();
+        $parCount = $this->parNumbers()->count();
+        $assignedIdrCount = $this->assignedIdrNumbers()->count();
+        $approvedIdrCount = $this->approvedIdrNumbers()->count();
+        $icsTransfersFromCount = $this->icsTransfersFrom()->count();
+        $icsTransfersToCount = $this->icsTransfersTo()->count();
+        $parTransfersFromCount = $this->parTransfersFrom()->count();
+        $parTransfersToCount = $this->parTransfersTo()->count();
+
+        $totalAssignments = $icsCount + $parCount + $assignedIdrCount + $approvedIdrCount;
+        $totalTransfers = $icsTransfersFromCount + $icsTransfersToCount + $parTransfersFromCount + $parTransfersToCount;
+
+        return [
+            'ics_numbers' => $icsCount,
+            'par_numbers' => $parCount,
+            'assigned_idr_numbers' => $assignedIdrCount,
+            'approved_idr_numbers' => $approvedIdrCount,
+            'ics_transfers_from' => $icsTransfersFromCount,
+            'ics_transfers_to' => $icsTransfersToCount,
+            'par_transfers_from' => $parTransfersFromCount,
+            'par_transfers_to' => $parTransfersToCount,
+            'total_assignments' => $totalAssignments,
+            'total_transfers' => $totalTransfers,
+            'has_associated_data' => $totalAssignments > 0 || $totalTransfers > 0,
+            'risk_level' => $totalAssignments > 0 ? 'high' : ($totalTransfers > 0 ? 'medium' : 'safe'),
+            'risk_message' => $totalAssignments > 0 
+                ? 'This employee has active inventory assignments and should not be deleted.'
+                : ($totalTransfers > 0 
+                    ? 'This employee has transfer history. Deletion will affect historical records.'
+                    : 'This employee has no associated data and is safe to delete.'),
+        ];
+    }
+
+    /**
+     * Check if this employee can be safely deleted (has no associations).
+     */
+    public function canBeDeletedSafely(): bool
+    {
+        $impact = $this->getDeletionImpact();
+        return !$impact['has_associated_data'];
+    }
+
+    /**
+     * Check if deletion should be blocked (has active inventory).
+     */
+    public function isDeletionBlocked(): bool
+    {
+        return $this->getDeletionImpact()['risk_level'] === 'high';
+    }
 }

@@ -62,6 +62,21 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function editingPositionDeletionImpact(): array
+    {
+        if (!$this->editingPosition) {
+            return [
+                'employees' => 0,
+                'risk_level' => 'safe',
+                'risk_message' => '',
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingPosition->getDeletionImpact();
+    }
+
+    #[Computed]
     public function positions()
     {
         return Position::query()
@@ -391,6 +406,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-position-' . $editingPosition->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
+            name="delete-position-confirmation"
+            title="Delete Position"
+            entity-type="position"
+            :entity-name="$editingPosition->title"
+            :association-counts="[
+                'employees' => $this->editingPositionDeletionImpact['employees']
+            ]"
+            :has-associated-data="$this->editingPositionDeletionImpact['has_associated_data']"
+            :risk-level="$this->editingPositionDeletionImpact['risk_level']"
+            :risk-message="$this->editingPositionDeletionImpact['risk_message']"
+            :block-deletion="false"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+        />
     @endif
 </div>
 

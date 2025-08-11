@@ -1,7 +1,10 @@
 <?php
 
 use App\Models\Position;
+use App\Services\ToastService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Flux\Flux;
 
@@ -20,6 +23,18 @@ new class extends Component {
         $this->position_type = $position->position_type ?? '';
     }
 
+    public function confirmDelete(): void
+    {        
+        // Show the delete confirmation modal
+        Flux::modal('delete-position-confirmation')->show();
+    }
+
+    public function cancelDelete(): void
+    {
+        // Close the delete confirmation modal
+        Flux::modal('delete-position-confirmation')->close();
+    }
+
     public function save(): void
     {
         $validated = $this->validate([
@@ -27,30 +42,66 @@ new class extends Component {
             'position_type' => ['required', 'string', Rule::in(['DIVISION_CHIEF', 'COORDINATOR', 'FOCAL_PERSON', 'OFFICER', 'SPECIALIST', 'OTHER'])],
         ]);
 
-        $this->position->update($validated);
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('position-updated');
-        Flux::modal('edit-position')->close();
+        try {
+            $this->position->update($validated);
+            
+            // Show success toast
+            ToastService::updated($this, 'Position');
+            
+            // Close the modal and refresh the parent component
+            $this->dispatch('position-updated');
+            Flux::modal('edit-position')->close();
+        } catch (\Exception $e) {
+            Log::error('Error updating position: ' . $e->getMessage());
+            ToastService::error($this, 'There was an error updating the position. Please try again.');
+        }
     }
 
     public function delete(): void
     {
-        if ($this->position->employees()->exists()) {
-            session()->flash('error', 'Cannot delete a position that has employees assigned to it.');
-            return;
+        try {
+            // Check if deletion should be blocked
+            if ($this->position->isDeletionBlocked()) {
+                ToastService::error($this, 'Cannot delete this position because it has employees assigned.');
+                Flux::modal('delete-position-confirmation')->close();
+                return;
+            }
+
+            // Safe to delete normally
+            $this->position->delete();
+            ToastService::deleted($this, 'Position');
+
+            // Close both modals and refresh the parent component
+            Flux::modal('delete-position-confirmation')->close();
+            Flux::modal('edit-position')->close();
+            $this->dispatch('position-deleted');
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting position: ' . $e->getMessage());
+            $errorMessage = 'An error occurred while deleting the position. Please try again.';
+            if (config('app.debug')) {
+                $errorMessage .= ' Error: ' . $e->getMessage();
+            }
+            ToastService::error($this, $errorMessage);
+            Flux::modal('delete-position-confirmation')->close();
         }
-
-        $this->position->delete();
-
-        // Close the modal and refresh the parent component
-        $this->dispatch('position-deleted');
-        Flux::modal('edit-position')->close();
     }
 
     public function cancel(): void
     {
         Flux::modal('edit-position')->close();
+    }
+
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->delete();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
     }
 }; ?>
 
@@ -73,7 +124,7 @@ new class extends Component {
         </flux:select>
         
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
-            <flux:button type="button" variant="danger" wire:click="delete" wire:confirm="Are you sure you want to delete this position? This action cannot be undone.">
+            <flux:button type="button" variant="danger" wire:click="confirmDelete">
                 Delete
             </flux:button>
             <flux:spacer />

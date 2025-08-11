@@ -79,6 +79,30 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 
     #[Computed]
+    public function editingEmployeeDeletionImpact(): array
+    {
+        if (!$this->editingEmployee) {
+            return [
+                'ics_numbers' => 0,
+                'par_numbers' => 0,
+                'assigned_idr_numbers' => 0,
+                'approved_idr_numbers' => 0,
+                'ics_transfers_from' => 0,
+                'ics_transfers_to' => 0,
+                'par_transfers_from' => 0,
+                'par_transfers_to' => 0,
+                'total_assignments' => 0,
+                'total_transfers' => 0,
+                'risk_level' => 'safe',
+                'risk_message' => '',
+                'has_associated_data' => false,
+            ];
+        }
+
+        return $this->editingEmployee->getDeletionImpact();
+    }
+
+    #[Computed]
     public function employees()
     {
         return Employee::with(['position', 'division'])
@@ -448,6 +472,31 @@ new #[Layout('components.layouts.app')] class extends Component {
                 :key="'edit-employee-' . $editingEmployee->id" 
             />
         </x-admin.modal-form-wrapper>
+
+        <!-- Enhanced Delete Confirmation Modal -->
+        <x-admin.enhanced-delete-modal 
+            name="delete-employee-confirmation"
+            title="Delete Employee"
+            entity-type="employee"
+            :entity-name="$editingEmployee->name"
+            :association-counts="[
+                'ICS assignments' => $this->editingEmployeeDeletionImpact['ics_numbers'],
+                'PAR assignments' => $this->editingEmployeeDeletionImpact['par_numbers'],
+                'assigned IDR numbers' => $this->editingEmployeeDeletionImpact['assigned_idr_numbers'],
+                'approved IDR numbers' => $this->editingEmployeeDeletionImpact['approved_idr_numbers'],
+                'ICS transfers (from)' => $this->editingEmployeeDeletionImpact['ics_transfers_from'],
+                'ICS transfers (to)' => $this->editingEmployeeDeletionImpact['ics_transfers_to'],
+                'PAR transfers (from)' => $this->editingEmployeeDeletionImpact['par_transfers_from'],
+                'PAR transfers (to)' => $this->editingEmployeeDeletionImpact['par_transfers_to']
+            ]"
+            :has-associated-data="$this->editingEmployeeDeletionImpact['has_associated_data']"
+            :risk-level="$this->editingEmployeeDeletionImpact['risk_level']"
+            :risk-message="$this->editingEmployeeDeletionImpact['risk_message']"
+            :block-deletion="$this->editingEmployeeDeletionImpact['risk_level'] === 'high'"
+            delete-action="$dispatch('call-delete')"
+            cancel-action="$dispatch('call-cancel-delete')"
+            max-width="xl"
+        />
     @endif
 </div>
 
