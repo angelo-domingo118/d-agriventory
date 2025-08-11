@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Services\AuditService;
 use Illuminate\Database\Eloquent\Model;
+use WeakMap;
 
 /**
  * Universal observer that handles audit logging for all models
@@ -11,12 +12,36 @@ use Illuminate\Database\Eloquent\Model;
 class AuditLogObserver
 {
     /**
+     * Registry to store original values for models being updated.
+     * Uses WeakMap to automatically clean up when models are garbage collected.
+     * 
+     * @var WeakMap<Model, array>
+     */
+    private static WeakMap $originalValuesRegistry;
+
+    /**
+     * Initialize the registry if not already done
+     */
+    private static function initializeRegistry(): void
+    {
+        if (!isset(self::$originalValuesRegistry)) {
+            self::$originalValuesRegistry = new WeakMap();
+        }
+    }
+
+    /**
      * Store original values before update
      */
     public function updating(Model $model): void
     {
-        // Store original values so we can log them in the updated event
-        $model->_original_for_audit = $model->getOriginal();
+        // Skip audit logging for AuditLog itself to prevent infinite loops
+        if ($model instanceof \App\Models\AuditLog) {
+            return;
+        }
+
+        self::initializeRegistry();
+        // Store original values in the registry using the model object as key
+        self::$originalValuesRegistry[$model] = $model->getOriginal();
     }
 
     /**
@@ -42,11 +67,18 @@ class AuditLogObserver
             return;
         }
 
-        $originalValues = $model->_original_for_audit ?? $model->getOriginal();
+        self::initializeRegistry();
+        
+        // Retrieve original values from registry, fallback to getOriginal() if not found
+        $originalValues = self::$originalValuesRegistry[$model] ?? $model->getOriginal();
+        
         AuditService::logUpdate($model, $originalValues);
         
-        // Clean up the temporary property
-        unset($model->_original_for_audit);
+        // Clean up the registry entry to prevent memory leaks
+        // (WeakMap handles this automatically, but explicit cleanup is good practice)
+        if (isset(self::$originalValuesRegistry[$model])) {
+            unset(self::$originalValuesRegistry[$model]);
+        }
     }
 
     /**
