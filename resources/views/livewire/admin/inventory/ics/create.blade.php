@@ -37,6 +37,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?string $date_accepted = null;
     public string $remarks = '';
 
+    // Validation rules for live validation
+    protected function rules()
+    {
+        return [
+            'quantity' => 'required|integer|min:1',
+            'estimated_useful_life' => 'nullable|integer|min:1',
+        ];
+    }
+
     // New fields for main item
     public ?string $main_item_brand = null;
     public ?string $main_item_model = null;
@@ -1186,28 +1195,33 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedQuantity($value): void
     {
-        // If the input is empty, a decimal, or less than 1, validate it to show an error.
-        if (empty($value) || !ctype_digit((string) $value) || (int) $value < 1) {
+        // Handle empty or invalid input
+        if (empty($value) || !is_numeric($value)) {
             $this->validateOnly('quantity');
-            // Reset to a valid state to prevent errors, but the message will still show.
-            $this->quantity = 1;
-        } else {
-            // Clear validation if the value is valid.
-            $this->resetValidation('quantity');
-            $this->quantity = (int) $value;
+            return;
         }
-    
+
+        $numericValue = (int) $value;
+        
+        // Validate the numeric value
+        if ($numericValue < 1) {
+            $this->validateOnly('quantity');
+            return;
+        }
+
+        // Clear validation if valid
+        $this->resetValidation('quantity');
+        $this->quantity = $numericValue;
+
         $currentCount = count($this->batches);
-    
-        // Adjust batches based on the new valid quantity.
-        $newQuantity = $this->quantity;
-    
-        if ($newQuantity > $currentCount) {
-            for ($i = 0; $i < $newQuantity - $currentCount; $i++) {
+
+        // Adjust batches based on the new quantity
+        if ($this->quantity > $currentCount) {
+            for ($i = 0; $i < $this->quantity - $currentCount; $i++) {
                 $this->addBatch();
             }
-        } elseif ($newQuantity < $currentCount) {
-            array_splice($this->batches, $newQuantity);
+        } elseif ($this->quantity < $currentCount) {
+            array_splice($this->batches, $this->quantity);
         }
     }
 
@@ -1434,7 +1448,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 }; ?>
 
 <div>
-<form wire:submit="store" novalidate>
+<form wire:submit="store" novalidate @keydown.enter.prevent="if (event.target.type !== 'submit') { return false; }">
     <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <!-- Breadcrumbs as Title -->
@@ -1724,6 +1738,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     inputmode="decimal" 
                                                     placeholder="e.g., 1500.00"
                                                     @input="updatePrice($event)"
+                                                    @keydown.enter.prevent=""
                                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit'); }" />
                                             </div>
                                             @error('unit_price')
@@ -1876,14 +1891,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
                                 }
                             }">
-                                <x-quantity-input 
+                                <flux:input 
                                     id="estimated_useful_life_wrapper"
                                     wire:model="estimated_useful_life" 
                                     label="Estimated Useful Life (Years)" 
                                     placeholder="Optional" 
                                     :disabled="$isParItem"
                                     type="number"
+                                    min="1"
                                     @input="validateNumber($event)"
+                                    @keydown.enter.prevent=""
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
                             </div>
                         </div>
@@ -1917,6 +1934,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     :disabled="$isParItem"
                                     tabindex="513"
                                     @input="formatDate($event)"
+                                    @keydown.enter.prevent=""
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-accepted'); }"
                                 />
                             </div>
@@ -1931,6 +1949,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     :disabled="$isParItem"
                                     tabindex="514"
                                     @input="formatDate($event)"
+                                    @keydown.enter.prevent=""
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-remarks'); }"
                                 />
                             </div>
@@ -1944,6 +1963,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             :disabled="$isParItem" 
                             tabindex="515" 
                             rows="10" 
+                            @keydown.enter="if (!event.ctrlKey && !event.metaKey) { event.stopPropagation(); }"
                             @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-quantity'); }" 
                         />
                     </div>
@@ -1961,14 +1981,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <div class="w-full">
-                                <x-quantity-input 
+                            <div class="w-full" x-data="{ 
+                                validateNumber(e) {
+                                    // Remove non-numeric characters
+                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
+                                    // Always update the Livewire property
+                                    $wire.set('quantity', e.target.value ? parseInt(e.target.value) : null);
+                                }
+                            }">
+                                <flux:input 
                                     id="quantity"
                                     wire:model.live="quantity" 
                                     label="Total Quantity / Number of Batches" 
+                                    type="number"
                                     min="1" 
                                     required 
-                                    class="w-full" 
+                                    class="w-full"
+                                    placeholder="Enter quantity..."
+                                    @input="validateNumber($event)"
+                                    @keydown.enter.prevent=""
                                     @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
                                 />
                                 <x-input-error for="quantity" class="mt-2" />
@@ -2056,7 +2087,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                         label="Serial Number/Asset Tag" 
                                                         placeholder="Enter serial number, asset tag or other identifying info" 
                                                         tabindex="{{ 10 + ((int) $batchIndex * 100) }}"
-                                                        @focus="if ($el.value === 'Serial Number: ') { $el.select(); }" />
+                                                        @focus="if ($el.value === 'Serial Number: ') { $el.select(); }"
+                                                        @keydown.enter.prevent="" />
                                                 </div>
                                             </div>
 
@@ -2091,13 +2123,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                                     @endif
                                                                 </div>
                                                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" required tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" required tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" @keydown.enter.prevent="" />
                                                                     <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.component_type'" class="mt-2" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" @keydown.enter.prevent="" />
                                                                     <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.serial_number'" class="mt-2" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" @keydown.enter.prevent="" />
                                                                     <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.brand'" class="mt-2" />
-                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" />
+                                                                    <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" @keydown.enter.prevent="" />
                                                                     <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.model'" class="mt-2" />
                                                                 </div>
                                                             </div>
