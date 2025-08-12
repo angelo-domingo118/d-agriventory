@@ -1247,6 +1247,24 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function incrementEstimatedLife(): void
+    {
+        if ($this->estimated_useful_life === null) {
+            $this->estimated_useful_life = 1;
+        } else {
+            $this->estimated_useful_life++;
+        }
+        $this->resetValidation('estimated_useful_life');
+    }
+
+    public function decrementEstimatedLife(): void
+    {
+        if ($this->estimated_useful_life !== null && $this->estimated_useful_life > 1) {
+            $this->estimated_useful_life--;
+            $this->resetValidation('estimated_useful_life');
+        }
+    }
+
     public function addBatch(): void
     {
         $this->batches[] = [
@@ -1903,25 +1921,56 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </div>
                                 </div>
                             </div>
-                            <div x-data="{ 
-                                validateNumber(e) {
-                                    // Remove non-numeric characters
-                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
-                                    // Always update the Livewire property
-                                    $wire.set('estimated_useful_life', e.target.value ? parseInt(e.target.value) : null);
-                                }
-                            }">
-                                <flux:input 
-                                    id="estimated_useful_life_wrapper"
-                                    wire:model="estimated_useful_life" 
-                                    label="Estimated Useful Life (Years)" 
-                                    placeholder="Optional" 
-                                    :disabled="$isParItem"
-                                    type="number"
-                                    min="1"
-                                    @input="validateNumber($event)"
-                                    @keydown.enter.prevent=""
-                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
+                            <div>
+                                <label for="estimated_useful_life_wrapper" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Estimated Useful Life (Years)
+                                </label>
+                                <div class="flex items-center space-x-2" x-data="{ 
+                                    validateNumber(e) {
+                                        // Remove non-numeric characters
+                                        let value = e.target.value.replace(/[^\d]/g, '');
+                                        $wire.set('estimated_useful_life', value ? parseInt(value) : null);
+                                    }
+                                }">
+                                    <!-- Minus Button -->
+                                    <flux:button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        wire:click="decrementEstimatedLife"
+                                        :disabled="$isParItem || ($estimated_useful_life === null || $estimated_useful_life <= 1)"
+                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        @keydown.enter.prevent=""
+                                    >
+                                        <x-flux::icon.minus class="h-4 w-4" />
+                                    </flux:button>
+                                    
+                                    <!-- Input Field -->
+                                    <flux:input 
+                                        id="estimated_useful_life_wrapper"
+                                        wire:model="estimated_useful_life" 
+                                        placeholder="Optional" 
+                                        :disabled="$isParItem"
+                                        type="number"
+                                        min="1"
+                                        class="flex-1 text-center"
+                                        @input="validateNumber($event)"
+                                        @keydown.enter.prevent=""
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-date-prepared'); }" />
+                                    
+                                    <!-- Plus Button -->
+                                    <flux:button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        wire:click="incrementEstimatedLife"
+                                        :disabled="$isParItem"
+                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        @keydown.enter.prevent=""
+                                    >
+                                        <x-flux::icon.plus class="h-4 w-4" />
+                                    </flux:button>
+                                </div>
                             </div>
                         </div>
 
