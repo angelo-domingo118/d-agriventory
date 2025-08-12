@@ -86,13 +86,13 @@ new class extends Component {
     </div>
 
     <form wire:submit="save" class="space-y-4">
-        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required 
-                     class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100 dark:[&>optgroup]:bg-stone-800 dark:[&>optgroup]:text-stone-100"
-                     style="color-scheme: dark;">
+        <flux:select wire:model="secondary_category_id" label="Secondary Category" placeholder="Select a category" required>
             @foreach($this->secondaryCategories->groupBy('primaryCategory.name') as $primaryName => $secondaryGroup)
-                <optgroup label="{{ $primaryName }}" class="dark:bg-stone-800 dark:text-stone-100">
+                <optgroup label="📁 {{ $primaryName }}">
                     @foreach($secondaryGroup as $sCat)
-                        <option value="{{ $sCat->id }}" class="dark:bg-stone-800 dark:text-stone-100">{{ $sCat->name }}</option>
+                        <option value="{{ $sCat->id }}" style="padding-left: 16px;">
+                            &nbsp;&nbsp;• {{ $sCat->name }}
+                        </option>
                     @endforeach
                 </optgroup>
             @endforeach

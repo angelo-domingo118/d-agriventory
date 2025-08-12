@@ -92,17 +92,21 @@ new class extends Component {
     </div>
 
     <form wire:submit="save" class="space-y-4">
-        <flux:select wire:model="item_catalog_id" label="Catalog Item" placeholder="Select a catalog item" required 
-                     class="dark:[&>option]:bg-stone-800 dark:[&>option]:text-stone-100 dark:[&>optgroup]:bg-stone-800 dark:[&>optgroup]:text-stone-100"
-                     style="color-scheme: dark;">
+        <flux:select wire:model="item_catalog_id" label="Catalog Item" placeholder="Select a catalog item" required>
             @foreach($this->catalogItems->groupBy('secondaryCategory.primaryCategory.name') as $primaryName => $catalogGroup)
-                <optgroup label="{{ $primaryName }}" class="dark:bg-stone-800 dark:text-stone-100">
+                <optgroup label="📁 {{ $primaryName }}">
                     @foreach($catalogGroup->groupBy('secondaryCategory.name') as $secondaryName => $items)
-                        <optgroup label="— {{ $secondaryName }}" class="dark:bg-stone-800 dark:text-stone-100 ml-4">
-                            @foreach($items as $item)
-                                <option value="{{ $item->id }}" class="dark:bg-stone-800 dark:text-stone-100 ml-8">{{ $item->name }}</option>
-                            @endforeach
-                        </optgroup>
+                        <option disabled style="font-weight: 600; color: #6b7280; padding-left: 8px;">
+                            └─ {{ $secondaryName }}
+                        </option>
+                        @foreach($items as $item)
+                            <option value="{{ $item->id }}" style="padding-left: 24px;">
+                                &nbsp;&nbsp;&nbsp;• {{ $item->name }}
+                            </option>
+                        @endforeach
+                        @if(!$loop->last)
+                            <option disabled style="border-top: 1px solid #e5e7eb; margin: 2px 0;">&nbsp;</option>
+                        @endif
                     @endforeach
                 </optgroup>
             @endforeach
