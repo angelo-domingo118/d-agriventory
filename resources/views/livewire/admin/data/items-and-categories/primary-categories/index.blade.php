@@ -18,6 +18,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $sortDirection = 'asc';
     public string $density = 'spacious';
     public string $textOverflow = 'nowrap';
+    public string $fontSize = 'medium';
     public ?PrimaryCategory $editingCategory = null;
 
     public function mount()
@@ -187,6 +188,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Font Size -->
+                    <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
+                        <div class="text-xs font-semibold uppercase text-stone-500 dark:text-stone-400">Font Size</div>
+                        <div class="mt-2 grid grid-cols-2 gap-1 overflow-hidden rounded-md border border-stone-200 dark:border-stone-700">
+                            <button 
+                                @click="updateSetting('fontSize', 'small')" 
+                                class="px-2 py-1.5 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $fontSize === 'small' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Small
+                            </button>
+                            <button 
+                                @click="updateSetting('fontSize', 'medium')" 
+                                class="px-2 py-1.5 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $fontSize === 'medium' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Medium
+                            </button>
+                            <button 
+                                @click="updateSetting('fontSize', 'large')" 
+                                class="px-2 py-1.5 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $fontSize === 'large' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                Large
+                            </button>
+                            <button 
+                                @click="updateSetting('fontSize', 'xl')" 
+                                class="px-2 py-1.5 text-center text-xs focus:z-10 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $fontSize === 'xl' ? 'bg-stone-100 dark:bg-stone-700' : 'hover:bg-stone-50 dark:hover:bg-stone-900/50' }}"
+                            >
+                                XL
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Items per Page -->
                     <div class="border-t border-stone-200 px-3 py-2 dark:border-stone-700">
@@ -269,13 +301,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'comfortable' => 'py-3 px-4',
                 default => 'py-4 px-4',
             },
-            'text_header' => match($density) {
-                'compact' => 'text-xs',
-                default => 'text-xs',
+            'text_header' => match($fontSize) {
+                'small' => 'text-xs',
+                'large' => 'text-base',
+                'xl' => 'text-lg',
+                default => match($density) {
+                    'compact' => 'text-xs',
+                    default => 'text-xs',
+                },
             },
-            'text_base' => match($density) {
-                'compact' => 'text-xs',
-                default => 'text-sm',
+            'text_base' => match($fontSize) {
+                'small' => 'text-xs',
+                'large' => 'text-base',
+                'xl' => 'text-lg',
+                default => match($density) {
+                    'compact' => 'text-xs',
+                    default => 'text-sm',
+                },
             },
             'text_overflow' => match($textOverflow) {
                 'wrap' => 'break-words',
@@ -457,6 +499,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 if (saved.density) this.$wire.density = saved.density;
                 if (saved.perPage) this.$wire.perPage = saved.perPage;
                 if (saved.textOverflow) this.$wire.textOverflow = saved.textOverflow;
+                if (saved.fontSize) this.$wire.fontSize = saved.fontSize;
             },
             updateSetting(key, value) {
                 this.$wire[key] = value;
