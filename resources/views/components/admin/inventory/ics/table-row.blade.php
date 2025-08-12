@@ -145,7 +145,13 @@
            @if($densityClasses['show_secondary'])
                 <div><span class="font-medium">Batches:</span> {{ $ics->itemBatches->count() }}</div>
                 <div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($ics->contractItem?->unit_price ?? 0, 2) }}</div>
-                <div><span class="font-medium">Life:</span> {{ $ics->estimated_useful_life }} yrs</div>
+                <div><span class="font-medium">Life:</span> 
+                    @if($ics->estimated_useful_life && $ics->estimated_useful_life > 0)
+                        {{ $ics->estimated_useful_life }} yrs
+                    @else
+                        <span class="italic text-stone-500">Not specified</span>
+                    @endif
+                </div>
            @endif
         </div>
         @endif

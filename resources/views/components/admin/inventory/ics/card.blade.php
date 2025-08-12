@@ -141,7 +141,13 @@
             </div>
              <div>
                 <dt class="{{ $densityClasses['text_meta'] }} font-bold uppercase text-stone-500 dark:text-stone-400">Life</dt>
-                <dd class="font-medium text-stone-800 dark:text-stone-200">{{ $ics->estimated_useful_life }} yrs</dd>
+                <dd class="font-medium text-stone-800 dark:text-stone-200">
+                    @if($ics->estimated_useful_life && $ics->estimated_useful_life > 0)
+                        {{ $ics->estimated_useful_life }} yrs
+                    @else
+                        <span class="italic text-stone-500">Not specified</span>
+                    @endif
+                </dd>
             </div>
             @if($densityClasses['show_secondary'])
             <div class="col-span-2">
