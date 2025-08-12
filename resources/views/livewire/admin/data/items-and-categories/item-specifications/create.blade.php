@@ -124,19 +124,6 @@ new class extends Component {
             rows="4"
         />
         
-        <div class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
-            <div class="flex">
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                        Information
-                    </h3>
-                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                        <p>At least one field (brand, model, or detailed specifications) must be provided to create a meaningful specification.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <div class="flex gap-2 pt-4 border-t border-stone-200 dark:border-stone-700">
             <flux:spacer />
             <flux:button type="button" variant="ghost" wire:click="cancel">
