@@ -20,7 +20,6 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->icsNumber = $icsNumber->load([
             'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
             'contractItem.contract.supplier',
-            'assignedEmployee.position',
             'assignedEmployee.division',
             // Removed '.item.itemSpecification' as ItemComponent currently has no `item` relation. Eager load only components for now.
             'itemBatches.components',
@@ -94,7 +93,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div>
                         <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Position</span>
-                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->icsNumber->assignedEmployee?->position?->name ?? '—' }}</p>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->icsNumber->assignedEmployee?->position ?? '—' }}</p>
                     </div>
                     <div>
                         <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Division/Office</span>

@@ -121,7 +121,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             abort(403);
         }
 
-        $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
+        $this->icsNumber = $icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
         $this->loadOriginalData();
     }
 
@@ -261,7 +261,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         // Reload the original model data from database
         $this->icsNumber->refresh();
-        $this->icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
+        $this->icsNumber->load('itemBatches.components', 'contractItem.contract.supplier', 'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory', 'assignedEmployee.division', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
         
         // Reset all form data to original values
         $this->loadOriginalData();
@@ -1048,7 +1048,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         ToastService::transferred($this, 'Item');
 
         // Reload the model to get fresh transfer history and employee info
-        $this->icsNumber->load('assignedEmployee.division', 'assignedEmployee.position', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
+        $this->icsNumber->load('assignedEmployee.division', 'transfers.fromEmployee.division', 'transfers.toEmployee.division');
     }
 
 
