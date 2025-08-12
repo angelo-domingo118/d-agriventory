@@ -35,20 +35,28 @@
             </div>
 
             <div class="mt-1 space-y-1 {{ $densityClasses['text_meta'] }}">
-                @if ($densityClasses['show_secondary'] && $spec && ($spec->brand || $spec->model))
+                @if ($densityClasses['show_secondary'] && $spec)
                     <div class="flex items-start gap-x-2">
                         <span class="font-semibold text-stone-500 dark:text-stone-400">Brand/Model:</span>
                         <span class="text-stone-600 dark:text-stone-300">
-                            {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' '), [$search, $filterArticle]) !!}
+                            @if($spec->brand || $spec->model)
+                                {!! \App\Helpers\TextHelper::highlight(collect([$spec->brand, $spec->model])->filter()->join(' '), [$search, $filterArticle]) !!}
+                            @else
+                                <span class="italic text-stone-500">Not specified</span>
+                            @endif
                         </span>
                     </div>
                 @endif
 
-                @if ($densityClasses['show_tertiary'] && $spec?->detailed_specifications)
+                @if ($densityClasses['show_tertiary'] && $spec)
                      <div class="flex items-start gap-x-2">
                         <span class="font-semibold text-stone-500 dark:text-stone-400">Details:</span>
                         <p class="text-stone-600 dark:text-stone-300 break-words">
-                            {!! \App\Helpers\TextHelper::highlight($spec->detailed_specifications, [$search, $filterArticle]) !!}
+                            @if($spec->detailed_specifications)
+                                {!! \App\Helpers\TextHelper::highlight($spec->detailed_specifications, [$search, $filterArticle]) !!}
+                            @else
+                                <span class="italic text-stone-500">Not specified</span>
+                            @endif
                         </p>
                     </div>
                 @endif
@@ -82,18 +90,26 @@
                                             @foreach($batch->components as $component)
                                                 <div>
                                                     <div class="font-semibold text-stone-700 dark:text-stone-300">{{ strtoupper($component->component_type) }}</div>
-                                                    @if($component->brand || $component->model)
-                                                        <div class="ml-3 text-sm">
-                                                            <span class="text-stone-500">Brand/Model:</span>
-                                                            <span>{!! \App\Helpers\TextHelper::highlight(collect([$component->brand, $component->model])->filter()->join(' '), [$search, $filterArticle, $filterSerialNumber]) !!}</span>
-                                                        </div>
-                                                    @endif
-                                                    @if($component->serial_number)
-                                                        <div class="ml-3 text-sm">
-                                                            <span class="text-stone-500">Serial Number:</span>
-                                                            <span>{!! \App\Helpers\TextHelper::highlight($component->serial_number, [$search, $filterSerialNumber]) !!}</span>
-                                                        </div>
-                                                    @endif
+                                                    <div class="ml-3 text-sm">
+                                                        <span class="text-stone-500">Brand/Model:</span>
+                                                        <span>
+                                                            @if($component->brand || $component->model)
+                                                                {!! \App\Helpers\TextHelper::highlight(collect([$component->brand, $component->model])->filter()->join(' '), [$search, $filterArticle, $filterSerialNumber]) !!}
+                                                            @else
+                                                                <span class="italic text-stone-500">Not specified</span>
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <span class="text-stone-500">Serial Number:</span>
+                                                        <span>
+                                                            @if($component->serial_number)
+                                                                {!! \App\Helpers\TextHelper::highlight($component->serial_number, [$search, $filterSerialNumber]) !!}
+                                                            @else
+                                                                <span class="italic text-stone-500">Not specified</span>
+                                                            @endif
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         </div>
