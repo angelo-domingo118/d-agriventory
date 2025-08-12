@@ -1242,7 +1242,14 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['unit_of_measure'] = 'required|string|max:50';
         }
         if ($this->creating_new_contract) {
-            $rules['contract_search'] = 'required|string|max:255|unique:contracts,contract_po_ib_number';
+            // Contract numbers should be unique per supplier, not globally
+            $supplierId = $this->supplier_id ?? 'NULL';
+            $rules['contract_search'] = [
+                'required',
+                'string',
+                'max:255',
+                "unique:contracts,contract_po_ib_number,NULL,id,supplier_id,{$supplierId},deleted_at,NULL"
+            ];
         }
         if ($this->creating_new_item) {
             $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
@@ -1279,6 +1286,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'quantity.min' => 'The quantity must be at least 1.',
             'quantity.integer' => 'The quantity must be a whole number.',
             'unit_price.gt' => 'The "Unit Cost" must be greater than zero.',
+            'contract_search.unique' => 'This contract number already exists for this supplier. Please use a different contract number.',
         ];
 
         $this->validate($rules, $messages);

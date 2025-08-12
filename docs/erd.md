@@ -98,7 +98,7 @@ erDiagram
     contracts {
         bigint id PK "Primary key"
         bigint supplier_id FK "Links to suppliers table"
-        varchar contract_po_ib_number UK "Unique contract/PO/IB number"
+        varchar contract_po_ib_number "Contract/PO/IB number (unique per supplier)"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"
         timestamp deleted_at "nullable - Soft delete timestamp"
