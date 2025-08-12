@@ -80,20 +80,8 @@
                                             @if($batch->identification_data)
                                                 <div>
                                                     <div class="text-sm">
-                                                        @php
-                                                            $identificationData = $batch->identification_data;
-                                                            // Remove "Serial Number: " prefix if it exists to avoid duplication
-                                                            if (str_starts_with($identificationData, 'Serial Number: ')) {
-                                                                $identificationData = trim(substr($identificationData, 15)); // Remove "Serial Number: " (15 chars) and trim
-                                                            }
-                                                        @endphp
-                                                        <span class="text-stone-500">Identification Data:</span>
                                                         <span>
-                                                            @if(!empty($identificationData))
-                                                                {!! \App\Helpers\TextHelper::highlight($identificationData, [$search, $filterSerialNumber]) !!}
-                                                            @else
-                                                                <span class="italic text-stone-500">Not provided</span>
-                                                            @endif
+                                                            {!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -129,7 +117,7 @@
                                 @endforeach
                             </div>
                         @else
-                            <p class="italic text-stone-500 pl-4">No identification data recorded for any batches.</p>
+                            <p class="italic text-stone-500 pl-4">No identification data provided for any batches.</p>
                         @endif
                     @else
                         <p class="italic text-stone-500 pl-4">No item batches recorded.</p>
