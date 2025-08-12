@@ -379,9 +379,9 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function searchEmployees($query, $type): void
     {
         if (strlen(trim($query)) === 0) {
-            $employees = Employee::with('division', 'position')->orderBy('name')->get();
+            $employees = Employee::with('division')->orderBy('name')->get();
         } else {
-            $employees = Employee::with('division', 'position')
+            $employees = Employee::with('division')
                 ->where(function ($q) use ($query) {
                     $q->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
                 })
@@ -395,7 +395,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $description_parts[] = $employee->division->name;
             }
             if ($employee->position) {
-                $description_parts[] = $employee->position->title;
+                $description_parts[] = $employee->position;
             }
 
             return [
