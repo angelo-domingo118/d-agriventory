@@ -2139,6 +2139,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             }
                                             return batch;
                                         }))"
+                                        @keydown.enter.prevent="$el.click()"
                                         @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }"
                                         checked>
                                 </div>
