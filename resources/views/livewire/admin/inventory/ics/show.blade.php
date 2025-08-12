@@ -294,7 +294,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
             <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
                 <x-flux::icon.queue-list class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
-                Batches & Serial Numbers
+                Batches & Identification Data
                 <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300">
                     {{ $this->icsNumber->itemBatches->count() }} {{ Str::plural('batch', $this->icsNumber->itemBatches->count()) }}
                 </span>
@@ -329,13 +329,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <div class="p-4">
                                     <!-- Identification Data (Serial number, Asset tag, etc.) -->
                                     <div>
-                                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Serial Number/Asset Tag</span>
+                                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Identification Data</span>
                                         @if($batch->identification_data)
                                             <div class="mt-2 rounded-md bg-white p-3 border border-stone-200 dark:bg-stone-700 dark:border-stone-600">
                                                 <p class="text-sm font-mono text-stone-900 dark:text-stone-100 break-all">{{ $batch->identification_data }}</p>
                                             </div>
                                         @else
-                                            <p class="mt-2 italic text-stone-500">No serial number recorded for this batch.</p>
+                                            <p class="mt-2 italic text-stone-500">No identification data recorded for this batch.</p>
                                         @endif
                                     </div>
 
@@ -385,8 +385,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
                             <x-flux::icon.document-text class="h-8 w-8 text-stone-400" />
                         </div>
-                        <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No serial numbers recorded</h3>
-                        <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">No serial numbers have been recorded for any batches.</p>
+                        <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No identification data recorded</h3>
+                        <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">No identification data has been recorded for any batches.</p>
                     </div>
                 @endif
             @else

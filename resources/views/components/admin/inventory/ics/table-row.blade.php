@@ -64,7 +64,7 @@
 
             @if($densityClasses['show_secondary'])
                 <div class="{{ $densityClasses['text_meta'] }}">
-                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / Components:</p>
+                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Identification Number(s) / Components:</p>
                     @php
                         $hasAnyIdentification = $ics->itemBatches->some(fn($batch) => $batch->identification_data || $batch->components->isNotEmpty());
                     @endphp
@@ -81,16 +81,16 @@
                                                 <div>
                                                     <div class="text-sm">
                                                         @php
-                                                            $serialData = $batch->identification_data;
+                                                            $identificationData = $batch->identification_data;
                                                             // Remove "Serial Number: " prefix if it exists to avoid duplication
-                                                            if (str_starts_with($serialData, 'Serial Number: ')) {
-                                                                $serialData = trim(substr($serialData, 15)); // Remove "Serial Number: " (15 chars) and trim
+                                                            if (str_starts_with($identificationData, 'Serial Number: ')) {
+                                                                $identificationData = trim(substr($identificationData, 15)); // Remove "Serial Number: " (15 chars) and trim
                                                             }
                                                         @endphp
-                                                        <span class="text-stone-500">Serial Number:</span>
+                                                        <span class="text-stone-500">Identification Data:</span>
                                                         <span>
-                                                            @if(!empty($serialData))
-                                                                {!! \App\Helpers\TextHelper::highlight($serialData, [$search, $filterSerialNumber]) !!}
+                                                            @if(!empty($identificationData))
+                                                                {!! \App\Helpers\TextHelper::highlight($identificationData, [$search, $filterSerialNumber]) !!}
                                                             @else
                                                                 <span class="italic text-stone-500">Not provided</span>
                                                             @endif
@@ -129,10 +129,10 @@
                                 @endforeach
                             </div>
                         @else
-                            <p class="italic text-stone-500 pl-4">No serial numbers recorded for any batches.</p>
+                            <p class="italic text-stone-500 pl-4">No identification data recorded for any batches.</p>
                         @endif
                     @else
-                        <p class="italic text-stone-500 pl-4">No item serials recorded.</p>
+                        <p class="italic text-stone-500 pl-4">No item batches recorded.</p>
                     @endif
                 </div>
             @endif

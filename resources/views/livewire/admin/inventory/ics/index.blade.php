@@ -872,7 +872,7 @@ public string $sortDirection = 'desc';
                             <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
                         </div>
                         <div class="sm:col-span-2">
-                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / Component" placeholder="Search serial numbers..." clearable />
+                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Identification Data / Component" placeholder="Search identification data..." clearable />
                         </div>
                         <div class="sm:col-span-1">
                             <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. SPLV-123" clearable />
