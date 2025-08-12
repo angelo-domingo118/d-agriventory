@@ -2115,7 +2115,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             
                             <!-- Global settings for batches -->
-                            <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: true }">
+                            <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: false }">
                                 <div class="flex items-center h-5">
                                     <input id="auto-serial-numbers" x-model="autoSerialNumbers" type="checkbox" 
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
@@ -2140,8 +2140,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             return batch;
                                         }))"
                                         @keydown.enter.prevent="$el.click()"
-                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }"
-                                        checked>
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }">
                                 </div>
                                 <label for="auto-serial-numbers" class="ms-2 text-sm font-medium text-stone-800 dark:text-stone-200">
                                     Auto-populate "Serial Number: " field for all batches
