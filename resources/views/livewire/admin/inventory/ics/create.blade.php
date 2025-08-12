@@ -230,6 +230,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectUnit($unitData): void
     {
+        // Guard against null or invalid data
+        if (!$unitData || !is_array($unitData) || !isset($unitData['type'])) {
+            return;
+        }
+        
         if ($unitData['type'] === 'existing') {
             $this->unit_of_measure = $unitData['name'];
             $this->unit_search = $unitData['name'];
@@ -309,6 +314,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectBrand($brandData): void
     {
+        // Guard against null or invalid data
+        if (!$brandData || !is_array($brandData) || !isset($brandData['type'])) {
+            return;
+        }
+        
         if ($brandData['type'] === 'existing') {
             $this->main_item_brand = $brandData['name'];
             $this->brand_search = $brandData['name'];
@@ -388,6 +398,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectModel($modelData): void
     {
+        // Guard against null or invalid data
+        if (!$modelData || !is_array($modelData) || !isset($modelData['type'])) {
+            return;
+        }
+        
         if ($modelData['type'] === 'existing') {
             $this->main_item_model = $modelData['name'];
             $this->model_search = $modelData['name'];
@@ -452,6 +467,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectSupplier($supplierData): void
     {
+        // Guard against null or invalid data
+        if (!$supplierData || !is_array($supplierData) || !isset($supplierData['type'])) {
+            return;
+        }
+        
         if ($supplierData['type'] === 'existing') {
             $this->supplier_id = $supplierData['id'];
             $this->supplier_search = $supplierData['name'];
@@ -541,6 +561,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectContract($contractData): void
     {
+        // Guard against null or invalid data
+        if (!$contractData || !is_array($contractData) || !isset($contractData['type'])) {
+            return;
+        }
+        
         if ($contractData['type'] === 'existing') {
             $this->contract_id = $contractData['id'];
             $this->contract_search = $contractData['name'];
@@ -610,6 +635,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectItem($itemData): void
     {
+        // Guard against null or invalid data
+        if (!$itemData || !is_array($itemData) || !isset($itemData['type'])) {
+            return;
+        }
+        
         // Reset all item-related properties when a new catalog item is selected
         $this->resetItemData();
         
@@ -721,6 +751,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectSpecification($specData): void
     {
+        // Guard against null or invalid data
+        if (!$specData || !is_array($specData) || !isset($specData['type'])) {
+            return;
+        }
+        
         if ($specData['type'] === 'existing') {
             $this->item_specification_id = $specData['id'];
             $this->specification_search = $specData['name'];
@@ -822,6 +857,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectEmployee($employeeData): void
     {
+        // Guard against null or invalid data
+        if (!$employeeData || !is_array($employeeData) || !isset($employeeData['type'])) {
+            return;
+        }
+        
         if ($employeeData['type'] === 'existing') {
             $this->assigned_employee_id = $employeeData['id'];
             $this->employee_search = $employeeData['name'];
@@ -875,6 +915,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectPrimaryCategory($categoryData): void
     {
+        // Guard against null or invalid data
+        if (!$categoryData || !is_array($categoryData) || !isset($categoryData['type'])) {
+            return;
+        }
+        
         if ($categoryData['type'] === 'existing') {
             $this->primary_category_id = $categoryData['id'];
             $this->primary_category_search = $categoryData['name'];
@@ -932,6 +977,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectSecondaryCategory($categoryData): void
     {
+        // Guard against null or invalid data
+        if (!$categoryData || !is_array($categoryData) || !isset($categoryData['type'])) {
+            return;
+        }
+        
         if ($categoryData['type'] === 'existing') {
             $this->secondary_category_id = $categoryData['id'];
             $this->secondary_category_search = $categoryData['name'];
