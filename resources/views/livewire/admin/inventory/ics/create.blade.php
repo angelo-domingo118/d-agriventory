@@ -780,11 +780,27 @@ new #[Layout('components.layouts.app')] class extends Component {
                 $contractItem = ContractItem::where('item_specification_id', $this->item_specification_id)
                     ->where('contract_id', $this->contract_id)
                     ->first();
-                $this->unit_price = $contractItem->unit_price ?? 0.0;
-                $this->contract_item_id = $contractItem?->id;
+                
+                if ($contractItem) {
+                    $this->unit_price = (float) $contractItem->unit_price;
+                    $this->contract_item_id = $contractItem->id;
+                    
+                    // Clear any previous pricing info message
+                    session()->forget('pricing_info');
+                } else {
+                    $this->unit_price = 0.0;
+                    $this->contract_item_id = null;
+                    
+                    // Show a helpful message to the user
+                    session()->flash('pricing_info', 'No pricing information found for this specification in the selected contract. Please enter the unit cost manually.');
+                }
             } else {
                 $this->unit_price = 0.0;
+                $this->contract_item_id = null;
             }
+            
+            // Force Livewire to update the property
+            $this->updateItemType();
             $this->dispatch('focus-employee');
 
         } elseif ($specData['type'] === 'new') {
@@ -1143,10 +1159,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                     $contractItem = ContractItem::where('item_specification_id', $spec->id)
                         ->where('contract_id', $this->contract_id)
                         ->first();
-                    $this->unit_price = $contractItem->unit_price ?? 0.0;
-                    $this->contract_item_id = $contractItem?->id;
+                    
+                    if ($contractItem) {
+                        $this->unit_price = (float) $contractItem->unit_price;
+                        $this->contract_item_id = $contractItem->id;
+                        
+                        // Clear any previous pricing info message
+                        session()->forget('pricing_info');
+                    } else {
+                        $this->unit_price = 0.0;
+                        $this->contract_item_id = null;
+                        
+                        // Show a helpful message to the user
+                        session()->flash('pricing_info', 'No pricing information found for this specification in the selected contract. Please enter the unit cost manually.');
+                    }
                 } else {
                     $this->unit_price = 0.0;
+                    $this->contract_item_id = null;
                 }
             }
         } else {
@@ -1698,14 +1727,24 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 init() {
                                                     // Initialize with any existing value
                                                     if ($wire.unit_price !== null && $wire.unit_price !== undefined) {
-                                                        this.rawValue = $wire.unit_price;
+                                                        this.rawValue = parseFloat($wire.unit_price) || 0;
                                                         this.updateFormattedValue();
                                                     }
                                                     
-                                                    // Watch for external changes to unit_price
+                                                    // Watch for external changes to unit_price with more robust handling
                                                     $watch('$wire.unit_price', (value) => {
-                                                        if (value !== this.rawValue) {
-                                                            this.rawValue = value;
+                                                        const numValue = parseFloat(value) || 0;
+                                                        if (Math.abs(numValue - this.rawValue) > 0.001) { // Use small epsilon for floating point comparison
+                                                            this.rawValue = numValue;
+                                                            this.updateFormattedValue();
+                                                        }
+                                                    });
+                                                    
+                                                    // Also watch for Livewire updates
+                                                    document.addEventListener('livewire:updated', () => {
+                                                        const wireValue = parseFloat($wire.unit_price) || 0;
+                                                        if (Math.abs(wireValue - this.rawValue) > 0.001) {
+                                                            this.rawValue = wireValue;
                                                             this.updateFormattedValue();
                                                         }
                                                     });
@@ -1791,6 +1830,14 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     <span>{{ $message }}</span>
                                                 </div>
                                             @enderror
+                                            @if (session('pricing_info'))
+                                                <div class="mt-2 flex items-center rounded-lg bg-yellow-50 p-2 text-sm text-yellow-700 dark:bg-yellow-800/20 dark:text-yellow-400" role="alert">
+                                                    <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 002 0v-3a1 1 0 00-2 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span class="font-medium">{{ session('pricing_info') }}</span>
+                                                </div>
+                                            @endif
                                         </div>
                                     <div>
                                         <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
