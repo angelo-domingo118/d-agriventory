@@ -41,7 +41,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     protected function rules()
     {
         return [
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'integer|min:1', // Removed 'required' since we ensure it always has a value
             'estimated_useful_life' => 'nullable|integer|min:1',
         ];
     }
@@ -1195,24 +1195,32 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedQuantity($value): void
     {
-        // Handle empty or invalid input
+        // Handle empty or invalid input - set to 1 instead of showing validation error
         if (empty($value) || !is_numeric($value)) {
-            $this->validateOnly('quantity');
+            $this->quantity = 1;
+            $this->resetValidation('quantity');
+            $this->updateBatches();
             return;
         }
 
         $numericValue = (int) $value;
         
-        // Validate the numeric value
+        // Ensure minimum value of 1
         if ($numericValue < 1) {
-            $this->validateOnly('quantity');
+            $this->quantity = 1;
+            $this->resetValidation('quantity');
+            $this->updateBatches();
             return;
         }
 
-        // Clear validation if valid
-        $this->resetValidation('quantity');
+        // Set the valid quantity
         $this->quantity = $numericValue;
+        $this->resetValidation('quantity');
+        $this->updateBatches();
+    }
 
+    private function updateBatches(): void
+    {
         $currentCount = count($this->batches);
 
         // Adjust batches based on the new quantity
@@ -1222,6 +1230,20 @@ new #[Layout('components.layouts.app')] class extends Component {
             }
         } elseif ($this->quantity < $currentCount) {
             array_splice($this->batches, $this->quantity);
+        }
+    }
+
+    public function incrementQuantity(): void
+    {
+        $this->quantity++;
+        $this->updateBatches();
+    }
+
+    public function decrementQuantity(): void
+    {
+        if ($this->quantity > 1) {
+            $this->quantity--;
+            $this->updateBatches();
         }
     }
 
@@ -1274,7 +1296,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
             'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'integer|min:1', // Removed 'required' since component ensures it always has a value
             'unit_price' => 'required|numeric|gt:0',
             'unit_of_measure' => 'required|string|max:50',
             'estimated_useful_life' => 'nullable|integer|min:1',
@@ -1330,8 +1352,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             'date_accepted.required' => 'The "Date Accepted" field is required.',
             'unit_price.required' => 'The "Unit Cost" field is required.',
             'unit_of_measure.required' => 'The "Unit of Measure" field is required.',
-            'quantity.min' => 'The quantity must be at least 1.',
-            'quantity.integer' => 'The quantity must be a whole number.',
             'unit_price.gt' => 'The "Unit Cost" must be greater than zero.',
             'contract_search.unique' => 'This contract number already exists for this supplier. Please use a different contract number.',
         ];
@@ -1981,27 +2001,56 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <div class="w-full" x-data="{ 
-                                validateNumber(e) {
-                                    // Remove non-numeric characters
-                                    e.target.value = e.target.value.replace(/[^\d]/g, '');
-                                    // Always update the Livewire property
-                                    $wire.set('quantity', e.target.value ? parseInt(e.target.value) : null);
-                                }
-                            }">
-                                <flux:input 
-                                    id="quantity"
-                                    wire:model.live="quantity" 
-                                    label="Total Quantity / Number of Batches" 
-                                    type="number"
-                                    min="1" 
-                                    required 
-                                    class="w-full"
-                                    placeholder="Enter quantity..."
-                                    @input="validateNumber($event)"
-                                    @keydown.enter.prevent=""
-                                    @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
-                                />
+                            <div class="w-full">
+                                <label for="quantity" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Total Quantity / Number of Batches
+                                </label>
+                                <div class="flex items-center space-x-2" x-data="{ 
+                                    validateNumber(e) {
+                                        // Remove non-numeric characters
+                                        let value = e.target.value.replace(/[^\d]/g, '');
+                                        if (!value) value = '1'; // Default to 1 if empty
+                                        e.target.value = value;
+                                        $wire.set('quantity', parseInt(value));
+                                    }
+                                }">
+                                    <!-- Minus Button -->
+                                    <flux:button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        wire:click="decrementQuantity"
+                                        :disabled="$quantity <= 1"
+                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        @keydown.enter.prevent=""
+                                    >
+                                        <x-flux::icon.minus class="h-4 w-4" />
+                                    </flux:button>
+                                    
+                                    <!-- Input Field -->
+                                    <flux:input 
+                                        id="quantity"
+                                        wire:model.live="quantity" 
+                                        type="number"
+                                        min="1" 
+                                        class="flex-1 text-center"
+                                        @input="validateNumber($event)"
+                                        @keydown.enter.prevent=""
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
+                                    />
+                                    
+                                    <!-- Plus Button -->
+                                    <flux:button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        wire:click="incrementQuantity"
+                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        @keydown.enter.prevent=""
+                                    >
+                                        <x-flux::icon.plus class="h-4 w-4" />
+                                    </flux:button>
+                                </div>
                                 <x-input-error for="quantity" class="mt-2" />
                             </div>
                             
