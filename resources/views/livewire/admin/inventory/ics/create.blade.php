@@ -1235,28 +1235,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
-    private function createNewItem(): int
-    {
-        $this->validate([
-            'item_search' => 'required|string|max:255',
-            'primary_category_id' => 'required|exists:primary_categories,id',
-            'secondary_category_id' => 'required|exists:secondary_categories,id',
-            'unit_price' => 'required|numeric|gt:0',
-        ]);
 
-        // This is complex. When creating a new item, we need a catalog entry,
-        // a specification, and a contract_item.
-        // For simplicity, this will just create the catalog item.
-        // The store logic will need to handle creating the specification and contract item.
-        $newItem = ItemsCatalog::create([
-            'name' => $this->item_search,
-            'secondary_category_id' => $this->secondary_category_id,
-            'unit' => $this->unit_of_measure, // Use the selected unit
-            'code' => 'new-' . time(), // temp code
-        ]);
-
-        return $newItem->id;
-    }
 
     public function store(): void
     {
@@ -1287,9 +1266,6 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         if ($this->creating_new_supplier) {
             $rules['supplier_search'] = 'required|string|max:255|unique:suppliers,name';
-            $rules['primary_category_id'] = 'required|exists:primary_categories,id';
-            $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
-            $rules['unit_of_measure'] = 'required|string|max:50';
         }
         if ($this->creating_new_contract) {
             // Contract numbers should be unique per supplier, not globally
@@ -1305,6 +1281,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
             $rules['primary_category_id'] = 'required|exists:primary_categories,id';
             $rules['secondary_category_id'] = 'required|exists:secondary_categories,id';
+            // Unit of measure is already in base rules, no need to duplicate
         }
         if ($this->creating_new_specification) {
             $rules['main_item_brand'] = 'nullable|string|max:255';
