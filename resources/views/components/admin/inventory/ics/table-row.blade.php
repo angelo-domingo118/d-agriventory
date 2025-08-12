@@ -81,8 +81,15 @@
                                                 <div>
                                                     <div class="font-semibold text-stone-700 dark:text-stone-300">SYSTEM UNIT</div>
                                                     <div class="ml-3 text-sm">
+                                                        @php
+                                                            $serialData = $batch->identification_data;
+                                                            // Remove "Serial Number: " prefix if it exists to avoid duplication
+                                                            if (str_starts_with($serialData, 'Serial Number: ')) {
+                                                                $serialData = substr($serialData, 15); // Remove "Serial Number: " (15 chars)
+                                                            }
+                                                        @endphp
                                                         <span class="text-stone-500">Serial Number:</span>
-                                                        <span>{!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}</span>
+                                                        <span>{!! \App\Helpers\TextHelper::highlight($serialData, [$search, $filterSerialNumber]) !!}</span>
                                                     </div>
                                                 </div>
                                             @endif
