@@ -801,7 +801,13 @@ new #[Layout('components.layouts.app')] class extends Component {
             
             // Force Livewire to update the property
             $this->updateItemType();
-            $this->dispatch('focus-employee');
+            
+            // Focus on unit cost if no pricing was found, otherwise go to employee
+            if ($this->unit_price > 0) {
+                $this->dispatch('focus-employee');
+            } else {
+                $this->dispatch('focus-unit-cost');
+            }
 
         } elseif ($specData['type'] === 'new') {
             $this->item_specification_id = 'new';
@@ -816,6 +822,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->unit_price = 0.0;
             $this->contract_item_id = null;
             $this->dispatch('focus-brand');
+            
+            // Clear any previous pricing info message since we're creating new spec
+            session()->forget('pricing_info');
         }
 
         $this->show_specification_suggestions = false;
@@ -1176,6 +1185,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                 } else {
                     $this->unit_price = 0.0;
                     $this->contract_item_id = null;
+                }
+                
+                // Focus on unit cost if no pricing was found, otherwise continue normal flow
+                if ($this->unit_price <= 0) {
+                    $this->dispatch('focus-unit-cost');
                 }
             }
         } else {
