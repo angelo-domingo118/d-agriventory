@@ -97,11 +97,33 @@
                                 @endif
                                 <div class="space-y-2 text-stone-600 dark:text-stone-400 @if($ics->itemBatches->count() > 1) pl-4 @endif">
                                     @if($batch->identification_data)
+                                        @php
+                                            // Check if identification data is just a prefix without actual content
+                                            $identificationData = trim($batch->identification_data);
+                                            $hasActualData = true;
+                                            
+                                            // Dynamic check: if string contains colon, check what comes after it
+                                            if (str_contains($identificationData, ':')) {
+                                                // Find the last colon position
+                                                $colonPos = strrpos($identificationData, ':');
+                                                // Get everything after the colon
+                                                $afterColon = substr($identificationData, $colonPos + 1);
+                                                // Check if there's meaningful content after the colon
+                                                if (trim($afterColon) === '') {
+                                                    $hasActualData = false;
+                                                }
+                                            }
+                                        @endphp
+                                        
                                         <div>
                                             <div class="text-sm">
-                                                <span>
-                                                    {!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}
-                                                </span>
+                                                @if($hasActualData)
+                                                    <span>
+                                                        {!! \App\Helpers\TextHelper::highlight($batch->identification_data, [$search, $filterSerialNumber]) !!}
+                                                    </span>
+                                                @else
+                                                    <span class="italic text-stone-500">No identification data provided</span>
+                                                @endif
                                             </div>
                                         </div>
                                     @endif
