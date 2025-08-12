@@ -98,17 +98,22 @@
                                 <div class="space-y-2 text-stone-600 dark:text-stone-400 @if($ics->itemBatches->count() > 1) pl-4 @endif">
                                     @if($batch->identification_data)
                                         <div>
-                                            <div class="font-semibold text-stone-700 dark:text-stone-300">SYSTEM UNIT</div>
-                                            <div class="ml-3 text-sm">
+                                            <div class="text-sm">
                                                 @php
                                                     $serialData = $batch->identification_data;
                                                     // Remove "Serial Number: " prefix if it exists to avoid duplication
                                                     if (str_starts_with($serialData, 'Serial Number: ')) {
-                                                        $serialData = substr($serialData, 15); // Remove "Serial Number: " (15 chars)
+                                                        $serialData = trim(substr($serialData, 15)); // Remove "Serial Number: " (15 chars) and trim
                                                     }
                                                 @endphp
                                                 <span class="text-stone-500">Serial Number:</span>
-                                                <span>{!! \App\Helpers\TextHelper::highlight($serialData, [$search, $filterSerialNumber]) !!}</span>
+                                                <span>
+                                                    @if(!empty($serialData))
+                                                        {!! \App\Helpers\TextHelper::highlight($serialData, [$search, $filterSerialNumber]) !!}
+                                                    @else
+                                                        <span class="italic text-stone-500">Not provided</span>
+                                                    @endif
+                                                </span>
                                             </div>
                                         </div>
                                     @endif
