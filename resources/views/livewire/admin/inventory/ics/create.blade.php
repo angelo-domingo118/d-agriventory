@@ -813,9 +813,15 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function searchEmployees($query): void
     {
         if (strlen(trim($query)) === 0) {
-            $employees = Employee::with('division')->orderBy('name')->get();
+            $employees = Employee::with('division')
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
+                ->orderBy('name')
+                ->get();
         } else {
             $employees = Employee::with('division')
+                ->whereNotNull('name')
+                ->where('name', '!=', '')
                 ->where(function ($q) use ($query) {
                     $q->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $query . '%']);
                 })
