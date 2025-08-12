@@ -2194,7 +2194,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     <flux:input 
                                                         id="{{ $batchIndex === 0 ? 'serial_number_0' : '' }}"
                                                         wire:model="batches.{{ $batchIndex }}.identification_data" 
-                                                        label="Serial Number/Asset Tag" 
+                                                        label="Item Identification" 
                                                         placeholder="Enter serial number, asset tag or other identifying info" 
                                                         tabindex="{{ 10 + ((int) $batchIndex * 100) }}"
                                                         @focus="if ($el.value === 'Serial Number: ') { $el.select(); }"
