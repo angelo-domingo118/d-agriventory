@@ -285,9 +285,9 @@ $config = $riskConfig[$riskLevel] ?? $riskConfig['low'];
                             @if($riskLevel === 'safe')
                                 Delete {{ ucfirst($entityType) }}
                             @elseif($riskLevel === 'high')
-                                ⚠️ Force Delete (High Risk)
+                                 Force Delete (High Risk)
                             @elseif($riskLevel === 'medium')  
-                                ⚠️ Delete with Caution
+                                 Delete with Caution
                             @elseif($hasAssociatedData)
                                 Force Delete All
                             @else

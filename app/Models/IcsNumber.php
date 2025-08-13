@@ -102,4 +102,84 @@ class IcsNumber extends Model
         return (float) static::join('contract_items', 'ics_number.contract_item_id', '=', 'contract_items.id')
             ->sum(DB::raw('ics_number.quantity * contract_items.unit_price'));
     }
+
+    /**
+     * Check if this ICS number can be safely deleted (no associated data).
+     */
+    public function canBeDeletedSafely(): bool
+    {
+        $impact = $this->getDeletionImpact();
+        return !$impact['has_associated_data'];
+    }
+
+    /**
+     * Get the deletion impact analysis for this ICS number.
+     */
+    public function getDeletionImpact(): array
+    {
+        $itemBatchesCount = $this->itemBatches()->count();
+        $transfersCount = $this->transfers()->count();
+
+        $hasAssociatedData = $itemBatchesCount > 0 || $transfersCount > 0;
+
+        return [
+            'has_associated_data' => $hasAssociatedData,
+            'item_batches' => $itemBatchesCount,
+            'transfers' => $transfersCount,
+            'risk_level' => $this->calculateRiskLevel($itemBatchesCount, $transfersCount),
+            'risk_message' => $this->getRiskMessage($itemBatchesCount, $transfersCount),
+        ];
+    }
+
+    /**
+     * Calculate the risk level for deletion based on associated data.
+     */
+    private function calculateRiskLevel(int $itemBatchesCount, int $transfersCount): string
+    {
+        // High risk if there are any transfers (inventory movement history)
+        if ($transfersCount > 0) {
+            return 'high';
+        }
+
+        // Medium risk if there are item batches but no transfers
+        if ($itemBatchesCount > 0) {
+            return 'medium';
+        }
+
+        // Safe to delete if no associated data
+        return 'safe';
+    }
+
+    /**
+     * Get a descriptive risk message for deletion.
+     */
+    private function getRiskMessage(int $itemBatchesCount, int $transfersCount): string
+    {
+        if ($transfersCount > 0) {
+            return 'This ICS record has transfer history. Deleting it will remove valuable inventory tracking data and audit trails.';
+        }
+
+        if ($itemBatchesCount > 0) {
+            return 'This ICS record has item batches with serial numbers and other identification data.';
+        }
+
+        return 'This ICS record has no associated data and can be safely deleted.';
+    }
+
+    /**
+     * Force delete this ICS number along with all its associations.
+     */
+    public function forceDeleteWithAssociations(): bool
+    {
+        return DB::transaction(function () {
+            // Delete all associated transfers first
+            $this->transfers()->delete();
+            
+            // Delete all associated item batches
+            $this->itemBatches()->delete();
+
+            // Finally delete the ICS number itself
+            return $this->delete();
+        });
+    }
 }

@@ -10,9 +10,11 @@ use App\Models\SecondaryCategory;
 use App\Models\PrimaryCategory;
 use App\Models\Supplier;
 use App\Services\ToastService;
+use Flux\Flux;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Volt\Component;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -1362,7 +1364,17 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function confirmDelete(): void
+    {        
+        // Show the enhanced delete confirmation modal
+        Flux::modal('delete-ics-confirmation')->show();
+    }
 
+    public function cancelDelete(): void
+    {
+        // Close the enhanced delete confirmation modal
+        Flux::modal('delete-ics-confirmation')->close();
+    }
 
     public function destroy(): void
     {
@@ -1372,13 +1384,39 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         try {
             $icsNumber = $this->icsNumber->ics_number; // Store number before deletion
-            $this->icsNumber->delete();
             
-            // Dispatch success toast notification
-            ToastService::success($this, "ICS record #{$icsNumber} deleted successfully.");
-            
+            // Check if there are associations and force delete them
+            if (!$this->icsNumber->canBeDeletedSafely()) {
+                $impact = $this->icsNumber->getDeletionImpact();
+                
+                // Use force delete to remove all associations
+                $this->icsNumber->forceDeleteWithAssociations();
+                
+                // Show specific success message about what was deleted
+                $message = "ICS record #{$icsNumber} deleted successfully";
+                if ($impact['has_associated_data']) {
+                    $parts = [];
+                    if ($impact['item_batches'] > 0) {
+                        $parts[] = $impact['item_batches'] . ' item ' . \Illuminate\Support\Str::plural('batch', $impact['item_batches']);
+                    }
+                    if ($impact['transfers'] > 0) {
+                        $parts[] = $impact['transfers'] . ' ' . \Illuminate\Support\Str::plural('transfer', $impact['transfers']);
+                    }
+                    $message .= ' along with ' . implode(' and ', $parts);
+                }
+                
+                ToastService::success($this, $message . '.');
+            } else {
+                // Safe to delete normally
+                $this->icsNumber->delete();
+                ToastService::success($this, "ICS record #{$icsNumber} deleted successfully.");
+            }
+
+            // Close the modal and redirect
+            Flux::modal('delete-ics-confirmation')->close();
             $this->dispatch('ics-deleted');
             $this->redirect(route('admin.inventory.ics.index'), navigate: true);
+            
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Database error during ICS deletion: ' . $e->getMessage());
             if (($e->errorInfo[1] ?? null) === 1451) { // FK constraint
@@ -1386,12 +1424,26 @@ new #[Layout('components.layouts.app')] class extends Component {
             } else {
                 ToastService::error($this, 'An unexpected database error occurred while deleting the record.');
             }
+            Flux::modal('delete-ics-confirmation')->close();
         } catch (\Throwable $e) {
             // Log the exception for debugging
             \Log::error('Error deleting ICS record: ' . $e->getMessage());
             
-            ToastService::unexpectedError($this, 'An unexpected error occurred while deleting the record.');
+            ToastService::error($this, 'An error occurred while deleting the ICS record. Please try again.');
+            Flux::modal('delete-ics-confirmation')->close();
         }
+    }
+
+    #[On('call-delete')]
+    public function handleDelete(): void
+    {
+        $this->destroy();
+    }
+
+    #[On('call-cancel-delete')]
+    public function handleCancelDelete(): void
+    {
+        $this->cancelDelete();
     }
 }; ?>
 
@@ -1423,12 +1475,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span wire:loading.remove wire:target="resetForm">Reset</span>
                         <span wire:loading wire:target="resetForm">Resetting...</span>
                     </flux:button>
-                    <flux:modal.trigger name="delete-ics-confirmation">
-                        <flux:button type="button" variant="danger" wire:loading.attr="disabled" wire:target="destroy">
-                            <span wire:loading.remove wire:target="destroy">Delete</span>
-                            <span wire:loading wire:target="destroy">Deleting...</span>
-                        </flux:button>
-                    </flux:modal.trigger>
+                    <flux:button type="button" variant="danger" wire:click="confirmDelete">
+                        Delete
+                    </flux:button>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
                         <span wire:loading wire:target="update">Saving...</span>
@@ -2408,37 +2457,27 @@ new #[Layout('components.layouts.app')] class extends Component {
         </x-slot:footer>
     </flux:modal>
 
-    <!-- Delete Confirmation Modal -->
-    <flux:modal name="delete-ics-confirmation" class="min-w-[26rem]">
-        <div class="space-y-6">
-            <div class="flex items-start space-x-3">
-                <div class="flex-shrink-0">
-                    <x-flux::icon.exclamation-triangle class="h-6 w-6 text-red-500" />
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-stone-900 dark:text-stone-100">Delete ICS Record?</h3>
-                    <div class="mt-2 space-y-1">
-                        <p class="text-sm text-stone-600 dark:text-stone-400">
-                            You're about to delete ICS record <span class="font-medium text-stone-900 dark:text-stone-100">#{{ $icsNumber->ics_number }}</span>.
-                        </p>
-                        <p class="text-sm font-medium text-red-700 dark:text-red-300">
-                            This action cannot be undone.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="flex gap-3 pt-2">
-                <flux:spacer />
-                <flux:modal.close>
-                    <flux:button variant="ghost">Cancel</flux:button>
-                </flux:modal.close>
-                <flux:button wire:click="destroy" variant="danger" wire:loading.attr="disabled" wire:target="destroy">
-                    <span wire:loading.remove wire:target="destroy">Delete Record</span>
-                    <span wire:loading wire:target="destroy">Deleting...</span>
-                </flux:button>
-            </div>
-        </div>
-    </flux:modal>
+    @php
+        $impact = $icsNumber->getDeletionImpact();
+    @endphp
+
+    <!-- Enhanced Delete Confirmation Modal -->
+    <x-admin.enhanced-delete-modal
+        name="delete-ics-confirmation"
+        title="Delete ICS Record"
+        entityType="ICS record"
+        :entityName="'#' . $icsNumber->ics_number"
+        deleteAction="call-delete"
+        cancelAction="call-cancel-delete"
+        :associationCounts="[
+            'item batches' => $impact['item_batches'],
+            'transfers' => $impact['transfers']
+        ]"
+        :hasAssociatedData="$impact['has_associated_data']"
+        :riskLevel="$impact['risk_level']"
+        :riskMessage="$impact['risk_message']"
+        :blockDeletion="false"
+    />
 </div>
 </div>
 
