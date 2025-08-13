@@ -335,7 +335,21 @@ public string $sortDirection = 'desc';
     }
 }; ?>
 
-<div x-data="tableResizer('ics_column_widths', { article: 400, ics_details: 220, doc_source: 300, issued_to: 200, actions: 120 })">
+<div x-data="tableResizer('ics_column_widths', { article: 400, ics_details: 220, doc_source: 300, issued_to: 200, actions: 120 })" 
+     x-init="
+        // Listen for Livewire events to refresh data when changes are made
+        Livewire.on('ics-updated', () => {
+            $wire.$refresh();
+        });
+        
+        Livewire.on('ics-transferred', () => {
+            $wire.$refresh();
+        });
+        
+        Livewire.on('ics-deleted', () => {
+            $wire.$refresh();
+        });
+     ">
     <div class="flex items-center justify-between">
         <!-- Breadcrumbs as Title -->
         <div>
