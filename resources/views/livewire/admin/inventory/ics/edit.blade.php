@@ -858,9 +858,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     private function resetContractItemOnly(): void
     {
         $this->contract_item_id = null;
-        // Preserve all other item information (catalog, specifications, brand, model, etc.)
-        // Only reset the unit price since it's tied to contract item
-        $this->unit_price = 0;
+        // Preserve all other item information (catalog, specifications, brand, model, unit_price, etc.)
+        // In edit context, preserve the existing unit price - user may just want to change contract association
         $this->updateItemType();
     }
 
