@@ -1727,22 +1727,32 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                     </div>
                     <div class="space-y-4 p-4">
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-                            <div>
-                                <flux:input 
-                                    wire:model.blur="par_number" 
-                                    label="PAR Number (Auto-generated)" 
-                                    type="text" 
-                                    readonly
-                                    tabindex="510" />
-                                <x-input-error for="par_number" class="mt-2" />
-                            </div>
-                        </div>
+						<div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+							<div>
+								<label for="par_number_input" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+									PAR Number <span class="text-stone-500 dark:text-stone-400 font-normal">(Auto-generated)</span>
+								</label>
+								<div class="relative">
+									<flux:input 
+										id="par_number_input"
+										wire:model.blur="par_number" 
+										type="number" 
+										readonly
+										tabindex="-1"
+										class="bg-stone-50 dark:bg-stone-800 text-stone-600 dark:text-stone-400 cursor-not-allowed border-stone-200 dark:border-stone-700" />
+									<div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+										<x-flux::icon.lock-closed class="h-4 w-4 text-stone-400 dark:text-stone-500" />
+									</div>
+								</div>
+								<x-input-error for="par_number" class="mt-2" />
+							</div>
+						</div>
 
                         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-3">
                             <div>
-                                <flux:input
-                                    wire:model.blur="date_acquired"
+								<flux:input
+									id="date_acquired"
+									wire:model.blur="date_acquired"
                                     type="text"
                                     label="Date Acquired"
                                     placeholder="MM/DD/YYYY"
@@ -1754,8 +1764,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
 
                             <div>
-                                <flux:input
-                                    wire:model.blur="date_prepared"
+								<flux:input
+									id="date_prepared"
+									wire:model.blur="date_prepared"
                                     type="text"
                                     label="Date Prepared"
                                     placeholder="MM/DD/YYYY"
@@ -1767,8 +1778,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
 
                             <div>
-                                <flux:input
-                                    wire:model.blur="date_accepted"
+								<flux:input
+									id="date_accepted"
+									wire:model.blur="date_accepted"
                                     type="text"
                                     label="Date Accepted"
                                     placeholder="MM/DD/YYYY"
@@ -1965,7 +1977,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                             
                             <!-- Global settings for batches -->
-                            <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: true }">
+                            <div class="flex items-center mb-4" x-data="{ autoSerialNumbers: false }">
                                 <div class="flex items-center h-5">
                                     <input id="auto-serial-numbers" x-model="autoSerialNumbers" type="checkbox" 
                                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
@@ -1988,7 +2000,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 }
                                             }
                                             return batch;
-                                        }))" checked>
+                                        }))"
+                                        @keydown.enter.prevent="$el.click()"
+                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-serial-number'); }">
                                 </div>
                                 <label for="auto-serial-numbers" class="ms-2 text-sm font-medium text-stone-800 dark:text-stone-200">
                                     Auto-populate "Serial Number: " field for all batches
@@ -1997,7 +2011,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
                             <div class="space-y-6">
                                 @foreach ($batches as $batchIndex => $batch)
-                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-700/50" x-data="{
+                                    <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-0 dark:border-stone-600 dark:bg-stone-800/50" x-data="{
                                         expanded: true,
                                         setDefaultSerial() {
                                             if (document.getElementById('auto-serial-numbers').checked && !@this.get('batches.{{ $batchIndex }}.identification_data')) {
@@ -2021,7 +2035,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     <x-flux::icon.chevron-up x-show="expanded" class="h-5 w-5" />
                                                     <x-flux::icon.chevron-down x-show="!expanded" class="h-5 w-5" />
                                                 </button>
-                                                @if ($quantity > 1)
+                                                @if ($quantity > 0)
                                                     <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
                                                         <x-flux::icon.trash class="h-4 w-4" />
                                                     </flux:button>
@@ -2034,8 +2048,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             <div>
                                                 <div class="relative">
                                                     <flux:input 
+                                                        id="{{ $batchIndex === 0 ? 'serial_number_0' : '' }}"
                                                         wire:model="batches.{{ $batchIndex }}.identification_data" 
-                                                        label="Serial Number/Asset Tag" 
+                                                        label="Item Identification" 
                                                         placeholder="Enter serial number, asset tag or other identifying info" 
                                                         tabindex="{{ 10 + ((int) $batchIndex * 100) }}"
                                                         @focus="if ($el.value === 'Serial Number: ') { $el.select(); }" />
