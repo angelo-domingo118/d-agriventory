@@ -100,7 +100,7 @@ public string $sortDirection = 'desc';
         $this->textOverflow = session('ics_text_overflow', 'nowrap');
         $this->fontSize = session('ics_font_size', 'medium');
         $this->perPage = session('ics_per_page', 10);
-        $this->highlightedIcsId = session('highlighted_ics');
+        $this->highlightedIcsId = session()->pull('highlighted_ics');
     }
 
     public function setGroupBy(string $groupBy): void

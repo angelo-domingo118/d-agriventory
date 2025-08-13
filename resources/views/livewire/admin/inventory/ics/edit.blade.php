@@ -1320,8 +1320,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->original_assigned_employee_id = $this->assigned_employee_id;
             // Dispatch success toast notification
             ToastService::success($this, $successMessage);
-            // Reload original data to reflect changes without leaving the page
-            $this->loadOriginalData();
+            
+            // Highlight updated record on index and navigate back
+            session()->flash('highlighted_ics', $this->icsNumber->id);
+            $this->redirect(route('admin.inventory.ics.index'), navigate: true);
+            return;
         } catch (\Exception $e) {
             \Log::error('Error updating ICS record: ' . $e->getMessage());
             
@@ -1384,7 +1387,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-action-message class="me-3" on="form-reset">
                         {{ __('Form reset to original values.') }}
                     </x-action-message>
-                    <flux:button type="button" variant="ghost" @click="history.back()">
+                    <flux:button type="button" variant="ghost" :href="route('admin.inventory.ics.index')" wire:navigate>
                         Cancel
                     </flux:button>
                     <flux:button type="button" variant="filled" wire:click="resetForm" wire:loading.attr="disabled" wire:target="resetForm">
