@@ -940,12 +940,25 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedQuantity($value): void
     {
-        $value = (int) $value;
-        if ($value < 1) {
-            $this->quantity = 1;
-            $value = 1;
+        // Allow the field to be temporarily empty during typing (same UX as create page)
+        if (empty($value) || !is_numeric($value)) {
+            $this->quantity = 0;
+            return;
         }
 
+        $value = (int) $value;
+        if ($value < 0) {
+            $this->quantity = 0;
+            return;
+        }
+
+        // Do not mutate batches when value is 0; wait for a positive target
+        if ($value === 0) {
+            $this->quantity = 0;
+            return;
+        }
+
+        $this->quantity = $value;
         $currentCount = count(array_filter($this->batches, fn($b) => !($b['_destroy'] ?? false)));
 
         if ($value > $currentCount) {
@@ -973,7 +986,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function decrementQuantity(): void
     {
-        if ($this->quantity > 1) {
+        if ($this->quantity > 0) {
             $this->quantity--;
             // The updatedQuantity method will be triggered automatically by Livewire
         }
@@ -1977,9 +1990,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         validateNumber(e) {
                                             // Remove non-numeric characters
                                             let value = e.target.value.replace(/[^\d]/g, '');
-                                            // Allow empty value - will be handled by Livewire
-                                            e.target.value = value;
-                                            $wire.set('quantity', value ? parseInt(value) : 1);
+                                        // Allow empty value - will be handled by Livewire (align with create view)
+                                        e.target.value = value;
+                                        $wire.set('quantity', value ? parseInt(value) : 0);
                                         }
                                     }">
                                         <!-- Minus Button -->
@@ -1988,7 +2001,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             variant="outline"
                                             size="sm"
                                             wire:click="decrementQuantity"
-                                            :disabled="$quantity <= 1"
+                                            :disabled="$quantity <= 0"
                                             class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                             @keydown.enter.prevent=""
                                         >
@@ -2000,7 +2013,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             id="quantity"
                                             wire:model.live="quantity" 
                                             type="number"
-                                            min="1" 
+                                            min="0" 
                                             class="flex-1 text-center"
                                             @input="validateNumber($event)"
                                             @keydown.enter.prevent=""
