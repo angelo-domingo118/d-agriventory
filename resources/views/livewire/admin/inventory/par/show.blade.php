@@ -21,8 +21,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
             'contractItem.contract.supplier',
             'assignedEmployee.division',
-            // Removed '.item.itemSpecification' as ItemComponent currently has no `item` relation. Eager load only components for now.
-            'itemBatches.components',
+            'itemBatches',
             'transfers.fromEmployee.division',
             'transfers.toEmployee.division',
         ]);
@@ -319,8 +318,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         </div>
         <div class="px-6 py-5">
             @php
-                $hasAnyIdentification = $this->parNumber->itemBatches->some(fn($batch) => $batch->identification_data || $batch->components->isNotEmpty());
-                $isDesktopComputer = str_contains(strtoupper($this->parNumber->contractItem?->itemSpecification?->itemCatalog?->name ?? ''), 'DESKTOP COMPUTER');
+                $hasAnyIdentification = $this->parNumber->itemBatches->some(fn($batch) => $batch->identification_data);
             @endphp
             
             @if($this->parNumber->itemBatches->isNotEmpty())
@@ -334,12 +332,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             {{ $loop->iteration }}
                                         </span>
                                         <span>Batch #{{ $loop->iteration }}</span>
-                                        @if ($isDesktopComputer)
-                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300">
-                                                <x-flux::icon.computer-desktop class="mr-1 h-3 w-3" />
-                                                Desktop Computer
-                                            </span>
-                                        @endif
                                     </h4>
                                 </div>
                                 
@@ -356,43 +348,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                     </div>
 
-                                    @if ($isDesktopComputer && $batch->components->isNotEmpty())
-                                        <div class="mt-4 border-t border-stone-200 pt-4 dark:border-stone-600">
-                                            <h5 class="mb-3 flex items-center font-medium text-stone-800 dark:text-stone-200">
-                                                <x-flux::icon.cpu-chip class="mr-2 h-4 w-4" />
-                                                Components ({{ $batch->components->count() }})
-                                            </h5>
-                                            
-                                            <div class="space-y-3">
-                                                @foreach($batch->components as $component)
-                                                    <div class="relative rounded-lg border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-600 dark:bg-stone-700/50">
-                                                        <div class="flex items-center justify-between mb-2">
-                                                            <h6 class="font-medium text-stone-800 dark:text-stone-200 text-sm flex items-center">
-                                                                <x-flux::icon.wrench-screwdriver class="mr-1 h-3 w-3 text-stone-500" />
-                                                                {{ $component->component_type ?: 'Component #' . $loop->iteration }}
-                                                            </h6>
-                                                        </div>
-                                                        <div class="grid grid-cols-1 gap-2 text-sm">
-                                                            @if($component->serial_number)
-                                                                <div class="flex items-center">
-                                                                    <span class="text-stone-500 dark:text-stone-400 min-w-0 flex-shrink-0">S/N:</span>
-                                                                    <span class="ml-2 font-mono text-stone-900 dark:text-stone-100">{{ $component->serial_number }}</span>
-                                                                </div>
-                                                            @endif
-                                                            @if($component->brand || $component->model)
-                                                                <div class="flex items-center">
-                                                                    <span class="text-stone-500 dark:text-stone-400 min-w-0 flex-shrink-0">Brand/Model:</span>
-                                                                    <span class="ml-2 text-stone-900 dark:text-stone-100">
-                                                                        {{ collect([$component->brand, $component->model])->filter()->implode(' ') ?: '—' }}
-                                                                    </span>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
+
                                 </div>
                             </div>
                         @endforeach
