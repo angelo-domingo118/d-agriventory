@@ -32,6 +32,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?int $assigned_employee_id = null;
     public string $ics_type = 'SPLV - Semi-Expendable Property (Low Value) - ₱5,000 or less';
     public int $quantity = 1;
+    public int $quantity_per_batch = 1;
     public ?int $estimated_useful_life = null;
     public ?string $date_prepared = null;
     public ?string $date_accepted = null;
@@ -42,6 +43,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         return [
             'quantity' => 'integer|min:0', // Allow 0 during editing, but validation at submission requires min:1
+            'quantity_per_batch' => 'integer|min:1',
             'estimated_useful_life' => 'nullable|integer|min:1',
         ];
     }
@@ -1359,6 +1361,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
             'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
+            'quantity_per_batch' => 'required|integer|min:1',
             'quantity' => 'required|integer|min:1', // At least 1 batch is required for submission
             'unit_price' => 'required|numeric|gt:0',
             'unit_of_measure' => 'required|string|max:50',
@@ -1486,7 +1489,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'assigned_employee_id' => $this->assigned_employee_id,
                     'contract_item_id' => $final_contract_item->id,
                     'ics_type' => $icsTypeCode,
-                    'quantity' => $this->quantity,
+                    // quantity here means quantity per batch for ICS, matches index display
+                    'quantity' => $this->quantity_per_batch,
                     'estimated_useful_life' => $this->estimated_useful_life ?: null,
                     'remarks' => $this->remarks ?: null,
                     'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
@@ -2166,6 +2170,37 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </flux:button>
                                 </div>
                                 @error('quantity')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
+                            </div>
+
+                            <div class="w-full">
+                                <label for="quantity_per_batch" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Quantity per Batch
+                                </label>
+                                <div class="flex items-center space-x-2" x-data="{ 
+                                    validateQpb(e) {
+                                        let value = e.target.value.replace(/[^\d]/g, '');
+                                        e.target.value = value;
+                                        $wire.set('quantity_per_batch', value ? parseInt(value) : 1);
+                                    }
+                                }">
+                                    <flux:input 
+                                        id="quantity_per_batch"
+                                        wire:model.live="quantity_per_batch" 
+                                        type="number"
+                                        min="1" 
+                                        class="flex-1 text-center"
+                                        @input="validateQpb($event)"
+                                        @keydown.enter.prevent=""
+                                    />
+                                </div>
+                                @error('quantity_per_batch')
                                     <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
                                         <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
