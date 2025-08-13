@@ -1107,7 +1107,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'unit_of_measure' => 'required|string|max:50',
             'estimated_useful_life' => ['nullable', 'integer', 'min:1'],
             'date_prepared' => ['required', 'date'],
-            'date_accepted' => ['nullable', 'date', 'after_or_equal:date_prepared'],
+            'date_accepted' => ['nullable', 'date'],
             'remarks' => ['nullable', 'string'],
             'batches.*.components.*.component_type' => ['required_with:batches.*.components.*.serial_number', 'nullable', 'string', 'max:255'],
             'batches.*.components.*.brand' => ['nullable', 'string', 'max:255'],
