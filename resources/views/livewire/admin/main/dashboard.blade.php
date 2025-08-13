@@ -856,35 +856,35 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <x-dashboard.stat-card title="Total Items" :value="number_format($this->stats['total_items'])" change="+12.5%" change-type="increase">
             <x-slot:icon>
-                <x-flux::icon.box class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.box class="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Total Value" value="₱{{ number_format($this->stats['total_value'] / 1000000, 2) }}M" change="+8.2%" change-type="increase">
             <x-slot:icon>
-                <x-flux::icon.receipt-percent class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.receipt-percent class="h-6 w-6 text-green-600 dark:text-green-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Active Users" :value="$this->stats['active_users']" subtitle="System users">
             <x-slot:icon>
-                <x-flux::icon.users class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.users class="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Pending Actions" :value="$this->stats['pending_actions']" subtitle="Needs attention">
             <x-slot:icon>
-                <x-flux::icon.x-mark class="h-8 w-8 text-amber-500" />
+                <x-flux::icon.exclamation-triangle class="h-6 w-6 text-amber-600 dark:text-amber-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Expiring Soon" :value="$this->stats['expiring_soon']" subtitle="Within 30 days">
             <x-slot:icon>
-                <x-flux::icon.clock-history class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.clock class="h-6 w-6 text-red-600 dark:text-red-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
         <x-dashboard.stat-card title="Total Divisions" :value="$this->stats['total_divisions']" subtitle="Offices/Units">
             <x-slot:icon>
-                <x-flux::icon.building-2 class="h-8 w-8 text-stone-500" />
+                <x-flux::icon.building-office class="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             </x-slot:icon>
         </x-dashboard.stat-card>
     </div>
