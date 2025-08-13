@@ -339,7 +339,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->show_supplier_suggestions = false;
-        $this->resetContractData();
+        // In edit context, only reset contract data, preserve item information
+        $this->resetContractDataOnly();
         $this->dispatch('focus-contract');
     }
 
@@ -428,7 +429,8 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
 
         $this->show_contract_suggestions = false;
-        $this->resetItemData();
+        // In edit context, only reset contract item reference, preserve item catalog information
+        $this->resetContractItemOnly();
         $this->dispatch('focus-item');
     }
 
@@ -839,6 +841,27 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->contract_suggestions = [];
         $this->show_contract_suggestions = false;
         $this->resetItemData();
+    }
+
+    // Selective reset for edit context - only resets contract fields, preserves item data
+    private function resetContractDataOnly(): void
+    {
+        $this->contract_id = null;
+        $this->contract_search = '';
+        $this->selected_contract_name = null;
+        $this->contract_suggestions = [];
+        $this->show_contract_suggestions = false;
+        // Preserve existing contract_item_id and all item information
+    }
+
+    // Selective reset for contract item - only resets contract item reference, preserves item catalog data
+    private function resetContractItemOnly(): void
+    {
+        $this->contract_item_id = null;
+        // Preserve all other item information (catalog, specifications, brand, model, etc.)
+        // Only reset the unit price since it's tied to contract item
+        $this->unit_price = 0;
+        $this->updateItemType();
     }
 
     private function resetItemData(): void
