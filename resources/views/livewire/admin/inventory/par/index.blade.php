@@ -102,7 +102,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->textOverflow = session('par_text_overflow', 'nowrap');
         $this->fontSize = session('par_font_size', 'medium');
         $this->perPage = session('par_per_page', 10);
-        $this->highlightedParId = session('highlighted_par');
+        $this->highlightedParId = session()->pull('highlighted_par');
     }
 
     public function setGroupBy(string $groupBy): void

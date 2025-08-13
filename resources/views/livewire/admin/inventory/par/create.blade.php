@@ -5,8 +5,9 @@ use App\Models\ContractItem;
 use App\Models\Employee;
 use App\Models\ItemsCatalog;
 use App\Models\ItemSpecification;
-use App\Models\SecondaryCategory;
+use App\Models\ParItemBatch;
 use App\Models\PrimaryCategory;
+use App\Models\SecondaryCategory;
 use App\Models\Supplier;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,7 +17,6 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use App\Models\ParNumber;
 use Illuminate\Support\Facades\DB;
-use App\Models\ParItemBatch;
 use App\Services\ToastService;
 use Flux\Flux;
 
@@ -164,19 +164,24 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function generateParNumber(): void
     {
-        $prefix = 'PAR-' . now()->format('Y-m-');
-        $lastPar = ParNumber::where('par_number', 'like', $prefix . '%')
-            ->orderBy('par_number', 'desc')
-            ->first();
-
+        // Find the highest numeric PAR number and its batch count
+        $lastPar = ParNumber::orderByRaw('CAST(par_number AS UNSIGNED) DESC')->first();
+        
         if ($lastPar) {
-            $lastNumber = (int) substr($lastPar->par_number, -4);
-            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            // Count the number of batches for the last PAR number
+            $batchCount = ParItemBatch::where('par_number_id', $lastPar->id)->count();
+            
+            // If there are no batches, default to 1
+            if ($batchCount === 0) {
+                $batchCount = 1;
+            }
+            
+            // Calculated based on previous PAR number + batch count
+            $this->par_number = (string)(((int) $lastPar->par_number) + $batchCount);
         } else {
-            $newNumber = '0001';
+            // If no previous PAR numbers, start with 1
+            $this->par_number = '1';
         }
-
-        $this->par_number = $prefix . $newNumber;
     }
     
     // Unit of measure autocomplete methods
