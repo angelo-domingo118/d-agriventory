@@ -1125,7 +1125,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'date_prepared' => ['required', 'date'],
             'date_accepted' => ['nullable', 'date'],
             'remarks' => ['nullable', 'string'],
-            'batches.*.components.*.component_type' => ['required_with:batches.*.components.*.serial_number', 'nullable', 'string', 'max:255'],
+            // Component fields are optional during edit
+            'batches.*.components.*.component_type' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.brand' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.model' => ['nullable', 'string', 'max:255'],
             'batches.*.components.*.serial_number' => ['nullable', 'string', 'max:255'],
@@ -1160,12 +1161,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['employee_search'] = 'required|string|max:255';
         }
         
-        if ($this->isDesktopComputer) {
-            $rules['batches.*.components.*.component_type'] = 'required|string|max:255';
-            $rules['batches.*.components.*.brand'] = 'nullable|string|max:255';
-            $rules['batches.*.components.*.model'] = 'nullable|string|max:255';
-            $rules['batches.*.components.*.serial_number'] = 'nullable|string|max:255';
-        }
+        // No additional component validation even for Desktop Computer
 
         $messages = [
             'supplier_id.required_unless' => 'Please select a supplier or specify a new one.',
@@ -2164,14 +2160,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                                                 @endif
                                                                             </div>
                                                                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" required tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
-                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.component_type'" class="mt-2" />
+                                                                                <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.component_type" label="Component Type" placeholder="e.g., Monitor, Casing, UPS" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 1 }}" />
                                                                                 <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.serial_number" label="Serial Number" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 2 }}" />
-                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.serial_number'" class="mt-2" />
                                                                                 <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.brand" label="Brand" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 3 }}" />
-                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.brand'" class="mt-2" />
                                                                                 <flux:input wire:model="batches.{{ $batchIndex }}.components.{{ $componentIndex }}.model" label="Model" tabindex="{{ 11 + ((int) $batchIndex * 100) + ((int) $componentIndex * 4) + 4 }}" />
-                                                                                <x-input-error :for="'batches.' . $batchIndex . '.components.' . $componentIndex . '.model'" class="mt-2" />
+                                                                                
                                                                             </div>
                                                                         </div>
                                                                     @endif
