@@ -246,15 +246,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Account Code</span>
                                     <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->account_code ?: '—' }}</p>
                                 </div>
-                                <div>
-                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</span>
-                                    <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->inventory_code ?: '—' }}</p>
-                                </div>
+
                             </div>
-                            <div>
-                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Responsibility Center Code</span>
-                                <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->responsibility_center_code ?: '—' }}</p>
-                            </div>
+
                         </div>
                     </div>
 
@@ -273,10 +267,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Accepted</span>
                                 <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->date_accepted?->format('F d, Y') ?? '—' }}</p>
                             </div>
-                            <div>
-                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Acquired</span>
-                                <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->date_acquired?->format('F d, Y') ?? '—' }}</p>
-                            </div>
+
                         </div>
                     </div>
 

@@ -375,7 +375,7 @@ class ParDataSeeder extends Seeder
             'account_code' => $record['Account Code'],
             'date_prepared' => $this->parseDate($record['Date Prepared']),
             'date_accepted' => $this->parseDate($record['Date Accepted']),
-            'date_acquired' => $this->parseDate($record['Year Acquired'] . '-01-01'),
+
             'inventory_code' => $this->generateInventoryCode($record),
             'remarks' => $record['Remarks'] ?? null,
         ]);

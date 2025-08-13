@@ -223,8 +223,6 @@ erDiagram
         varchar account_code "Accounting classification code"
         date date_prepared "When PAR document was prepared"
         date date_accepted "When employee accepted the property"
-        varchar inventory_code "PAR-specific inventory classification"
-        date date_acquired "Date when the property was acquired"
         text remarks "nullable - Additional notes or comments"
         timestamp created_at "Record creation timestamp"
         timestamp updated_at "Record last update timestamp"

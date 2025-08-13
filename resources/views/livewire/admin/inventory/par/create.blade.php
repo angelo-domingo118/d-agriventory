@@ -31,14 +31,13 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?int $assigned_employee_id = null;
     public int $quantity = 1;
     public int $quantity_per_batch = 1;
-    public ?string $date_acquired = null;
     public ?string $date_prepared = null;
     public ?string $date_accepted = null;
     public string $area_code = '';
     public string $building_code = '';
     public string $account_code = '';
-    public string $inventory_code = '';
-    public string $responsibility_center_code = '';
+
+
     public string $remarks = '';
 
     // New fields for main item
@@ -159,7 +158,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->selected_model = '';
         
         // Set default dates
-        $this->date_acquired = now()->format('m/d/Y');
+        $this->date_prepared = now()->format('m/d/Y');
     }
 
     public function generateParNumber(): void
@@ -1229,14 +1228,13 @@ new #[Layout('components.layouts.app')] class extends Component {
             'quantity' => 'required|integer|min:1', // At least 1 batch is required for submission
             'unit_price' => 'required|numeric|gt:0',
             'unit_of_measure' => 'required|string|max:50',
-            'date_acquired' => 'nullable|date',
             'date_prepared' => 'required|date',
             'date_accepted' => 'required|date',
             'area_code' => 'nullable|string|max:255',
             'building_code' => 'nullable|string|max:255',
             'account_code' => 'nullable|string|max:255',
-            'inventory_code' => 'nullable|string|max:255',
-            'responsibility_center_code' => 'nullable|string|max:255',
+
+
             'batches.*.identification_data' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
         ];
@@ -1323,10 +1321,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'area_code' => $this->area_code,
                 'building_code' => $this->building_code,
                 'account_code' => $this->account_code,
-                'inventory_code' => $this->inventory_code,
-                'responsibility_center_code' => $this->responsibility_center_code,
+
+
                 'remarks' => $this->remarks,
-                'date_acquired' => $this->date_acquired ? Carbon::parse($this->date_acquired) : null,
                 'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
                 'date_accepted' => $this->date_accepted ? Carbon::parse($this->date_accepted) : null,
             ]);
@@ -1727,8 +1724,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
                     </div>
                     <div class="space-y-4 p-4">
-						<div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
-							<div>
+                        <!-- 2 Column x 3 Row Grid for Document Details -->
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                            <!-- Row 1 -->
+                            <div>
 								<label for="par_number_input" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
 									PAR Number <span class="text-stone-500 dark:text-stone-400 font-normal">(Auto-generated)</span>
 								</label>
@@ -1746,22 +1745,6 @@ new #[Layout('components.layouts.app')] class extends Component {
 								</div>
 								<x-input-error for="par_number" class="mt-2" />
 							</div>
-						</div>
-
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-3">
-                            <div>
-								<flux:input
-									id="date_acquired"
-									wire:model.blur="date_acquired"
-                                    type="text"
-                                    label="Date Acquired"
-                                    placeholder="MM/DD/YYYY"
-                                    :disabled="$isIcsItem"
-                                    tabindex="511"
-                                    @input="formatDate($event)"
-                                />
-                                <x-input-error for="date_acquired" class="mt-2" />
-                            </div>
 
                             <div>
 								<flux:input
@@ -1771,12 +1754,13 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     label="Date Prepared"
                                     placeholder="MM/DD/YYYY"
                                     :disabled="$isIcsItem"
-                                    tabindex="512"
+                                    tabindex="511"
                                     @input="formatDate($event)"
                                 />
                                 <x-input-error for="date_prepared" class="mt-2" />
                             </div>
 
+                            <!-- Row 2 -->
                             <div>
 								<flux:input
 									id="date_accepted"
@@ -1785,31 +1769,30 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     label="Date Accepted"
                                     placeholder="MM/DD/YYYY"
                                     :disabled="$isIcsItem"
-                                    tabindex="513"
+                                    tabindex="512"
                                     @input="formatDate($event)"
                                 />
                                 <x-input-error for="date_accepted" class="mt-2" />
                             </div>
-                        </div>
 
-                        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-3">
                             <div>
-                                <flux:input wire:model.blur="area_code" label="Area Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="514" />
+                                <flux:input wire:model.blur="area_code" label="Area Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="513" />
                                 <x-input-error for="area_code" class="mt-2" />
                             </div>
 
+                            <!-- Row 3 -->
                             <div>
-                                <flux:input wire:model.blur="building_code" label="Building/Room Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="515" />
+                                <flux:input wire:model.blur="building_code" label="Building/Room Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="514" />
                                 <x-input-error for="building_code" class="mt-2" />
                             </div>
 
                             <div>
-                                <flux:input wire:model.blur="account_code" label="Account Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="516" />
+                                <flux:input wire:model.blur="account_code" label="Account Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="515" />
                                 <x-input-error for="account_code" class="mt-2" />
                             </div>
                         </div>
 
-                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isIcsItem" tabindex="517" rows="5" />
+                        <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." :disabled="$isIcsItem" tabindex="516" rows="5" />
                     </div>
                 </div>
             </div>

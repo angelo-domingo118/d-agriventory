@@ -35,7 +35,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public int $quantity_per_batch = 1;
     public ?string $date_prepared = null;
     public ?string $date_accepted = null;
-    public ?string $date_acquired = null;
+
     public string $area_code = '';
     public string $building_code = '';
     public string $account_code = '';
@@ -134,7 +134,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->quantity_per_batch = $this->par->quantity_per_batch ?? 1;
         $this->date_prepared = $this->par->date_prepared ? $this->par->date_prepared->format('m/d/Y') : null;
         $this->date_accepted = $this->par->date_accepted ? $this->par->date_accepted->format('m/d/Y') : null;
-        $this->date_acquired = $this->par->date_acquired ? $this->par->date_acquired->format('m/d/Y') : null;
+
         $this->area_code = $this->par->area_code ?? '';
         $this->building_code = $this->par->building_code ?? '';
         $this->account_code = $this->par->account_code ?? '';
@@ -246,7 +246,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'unit_price' => $this->unit_price,
             'date_prepared' => $this->date_prepared,
             'date_accepted' => $this->date_accepted,
-            'date_acquired' => $this->date_acquired,
+
             'area_code' => $this->area_code,
             'building_code' => $this->building_code,
             'account_code' => $this->account_code,
@@ -1014,7 +1014,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'unit_price' => 'required|numeric|gt:0',
             'date_prepared' => 'nullable|date',
             'date_accepted' => 'nullable|date',
-            'date_acquired' => 'nullable|date',
+
             'area_code' => 'nullable|string|max:255',
             'building_code' => 'nullable|string|max:255',
             'account_code' => 'nullable|string|max:255',
@@ -1035,7 +1035,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'assigned_employee_id.required' => 'Please assign this item to an employee.',
             'date_prepared.required' => 'The "Date Prepared" field is required.',
             'date_accepted.required' => 'The "Date Accepted" field is required.',
-            'date_acquired.required' => 'The "Date Acquired" field is required.',
+
             'unit_price.required' => 'The "Unit Cost" field is required.',
             'unit_price.gt' => 'The "Unit Cost" must be greater than zero.',
             'quantity.required' => 'At least 1 batch is required.',
@@ -1054,7 +1054,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     'quantity_per_batch' => $this->quantity_per_batch,
                     'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
                     'date_accepted' => $this->date_accepted ? Carbon::parse($this->date_accepted) : null,
-                    'date_acquired' => $this->date_acquired ? Carbon::parse($this->date_acquired) : null,
+
                     'area_code' => $this->area_code,
                     'building_code' => $this->building_code,
                     'account_code' => $this->account_code,
@@ -1271,7 +1271,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         </div>
 
                         <div class="sm:col-span-2">
-                            <flux:input wire:model="date_acquired" type="date" label="Date Acquired" />
+
                         </div>
                         
                         <div class="sm:col-span-2">

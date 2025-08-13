@@ -37,8 +37,6 @@ class ParNumber extends Model
         'date_prepared',
         'date_accepted',
         'remarks',
-        'inventory_code',
-        'date_acquired',
     ];
 
     /**
@@ -49,7 +47,6 @@ class ParNumber extends Model
     protected $casts = [
         'date_prepared' => 'date',
         'date_accepted' => 'date',
-        'date_acquired' => 'date',
     ];
 
     /**
