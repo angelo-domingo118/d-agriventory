@@ -740,7 +740,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             $specName = collect([$spec->brand, $spec->model])->filter()->implode(' ');
             return [
                 'id' => $spec->id,
-                'name' => $specName ?: 'Default Specification',
+                'name' => $specName ?: 'No brand and model provided',
                 'type' => 'existing',
                 'brand' => $spec->brand,
                 'model' => $spec->model,
