@@ -30,6 +30,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public ?int $contract_item_id = null;
     public ?int $assigned_employee_id = null;
     public int $quantity = 1;
+    public int $quantity_per_batch = 1;
     public ?string $date_acquired = null;
     public ?string $date_prepared = null;
     public ?string $date_accepted = null;
@@ -84,6 +85,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         return [
             'quantity' => 'integer|min:0', // Allow 0 during editing, but validation at submission requires min:1
+            'quantity_per_batch' => 'integer|min:1',
         ];
     }
 
@@ -143,7 +145,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->generateParNumber();
         
         // Start with one batch
-        $this->updatedQuantity($this->quantity);
+        $this->updateBatches();
         
         // Set default unit of measure - empty string initially
         $this->unit_of_measure = '';
@@ -1124,20 +1126,42 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function updatedQuantity($value): void
     {
-        $value = (int) $value;
-        if ($value < 1) {
-            $this->quantity = 1;
-            $value = 1;
+        // Handle empty or invalid input
+        if (empty($value) || !is_numeric($value)) {
+            $this->quantity = 0;
+            $this->resetValidation('quantity');
+            $this->updateBatches();
+            return;
         }
 
+        $numericValue = (int) $value;
+        
+        // Allow any positive value or 0
+        if ($numericValue < 0) {
+            $this->quantity = 0;
+            $this->resetValidation('quantity');
+            $this->updateBatches();
+            return;
+        }
+
+        // Set the valid quantity
+        $this->quantity = $numericValue;
+        $this->resetValidation('quantity');
+        $this->updateBatches();
+    }
+
+    public function updateBatches(): void
+    {
         $currentCount = count($this->batches);
 
-        if ($value > $currentCount) {
-            for ($i = 0; $i < $value - $currentCount; $i++) {
+        // Adjust batches based on the new quantity
+        if ($this->quantity > $currentCount) {
+            for ($i = 0; $i < $this->quantity - $currentCount; $i++) {
                 $this->addBatch();
             }
-        } elseif ($value < $currentCount) {
-            array_splice($this->batches, $value);
+        } elseif ($this->quantity < $currentCount) {
+            // Remove excess batches, but ensure we don't have negative array splicing
+            array_splice($this->batches, max(0, $this->quantity));
         }
     }
 
@@ -1196,7 +1220,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
             'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
             'item_specification_id' => 'nullable|string',
-            'quantity' => 'required|integer|min:1',
+            'quantity_per_batch' => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1', // At least 1 batch is required for submission
             'unit_price' => 'required|numeric|gt:0',
             'unit_of_measure' => 'required|string|max:50',
             'date_acquired' => 'nullable|date',
@@ -1288,7 +1313,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'par_number' => $this->par_number,
                 'assigned_employee_id' => $this->assigned_employee_id,
                 'contract_item_id' => $final_contract_item->id,
-                'quantity' => $this->quantity,
+                // quantity here means quantity per batch for PAR, matches index display
+                'quantity' => $this->quantity_per_batch,
                 'area_code' => $this->area_code,
                 'building_code' => $this->building_code,
                 'account_code' => $this->account_code,
@@ -1334,9 +1360,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <flux:breadcrumbs.item :href="route('admin.inventory.par.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">PAR Management</flux:breadcrumbs.item>
                     <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">Create New PAR</flux:breadcrumbs.item>
                 </flux:breadcrumbs>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Fill in the details for the new PAR. Items must be valued at ₱50,000 or more.
-                </p>
+
             </div>
             <div class="flex items-center gap-x-4">
                 <x-action-message class="me-3" on="par-created">
@@ -1784,8 +1808,155 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <div class="w-full">
-                                <x-quantity-input wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required class="w-full" />
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div class="w-full">
+                                    <label for="quantity" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        Number of Batches
+                                    </label>
+                                    <div class="flex items-center space-x-2" x-data="{ 
+                                        localQuantity: $wire.entangle('quantity'),
+                                        
+                                        validateNumber(e) {
+                                            // Remove non-numeric characters
+                                            let value = e.target.value.replace(/[^\d]/g, '');
+                                            const numValue = value ? parseInt(value) : 0;
+                                            this.localQuantity = numValue;
+                                            this.updateBatches();
+                                        },
+                                        
+                                        increment() {
+                                            this.localQuantity++;
+                                            this.updateBatches();
+                                        },
+                                        
+                                        decrement() {
+                                            if (this.localQuantity > 0) {
+                                                this.localQuantity--;
+                                                this.updateBatches();
+                                            }
+                                        },
+                                        
+                                        updateBatches() {
+                                            // Update server-side quantity first, then call updateBatches
+                                            $wire.set('quantity', this.localQuantity);
+                                            $wire.call('updateBatches');
+                                        }
+                                    }">
+                                        <!-- Minus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="decrement()"
+                                            x-bind:disabled="localQuantity <= 0"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.minus class="h-4 w-4" />
+                                        </flux:button>
+                                        
+                                        <!-- Input Field -->
+                                        <flux:input 
+                                            id="quantity"
+                                            x-model="localQuantity"
+                                            type="number"
+                                            min="0" 
+                                            class="flex-1 text-center"
+                                            @input="validateNumber($event)"
+                                            @keydown.enter.prevent=""
+                                        />
+                                        
+                                        <!-- Plus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="increment()"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.plus class="h-4 w-4" />
+                                        </flux:button>
+                                    </div>
+                                    @error('quantity')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="quantity_per_batch" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        Quantity per Batch
+                                    </label>
+                                    <div class="flex items-center space-x-2" x-data="{ 
+                                        localQuantityPerBatch: $wire.entangle('quantity_per_batch'),
+                                        
+                                        validateQpb(e) {
+                                            // Remove non-numeric characters
+                                            let value = e.target.value.replace(/[^\d]/g, '');
+                                            const numValue = value ? parseInt(value) : 1;
+                                            this.localQuantityPerBatch = Math.max(1, numValue);
+                                        },
+                                        
+                                        increment() {
+                                            this.localQuantityPerBatch++;
+                                        },
+                                        
+                                        decrement() {
+                                            if (this.localQuantityPerBatch > 1) {
+                                                this.localQuantityPerBatch--;
+                                            }
+                                        }
+                                    }">
+                                        <!-- Minus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="decrement()"
+                                            x-bind:disabled="localQuantityPerBatch <= 1"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.minus class="h-4 w-4" />
+                                        </flux:button>
+                                        
+                                        <!-- Input Field -->
+                                        <flux:input 
+                                            id="quantity_per_batch"
+                                            x-model="localQuantityPerBatch"
+                                            type="number"
+                                            min="1" 
+                                            class="flex-1 text-center"
+                                            @input="validateQpb($event)"
+                                            @keydown.enter.prevent=""
+                                        />
+                                        
+                                        <!-- Plus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="increment()"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.plus class="h-4 w-4" />
+                                        </flux:button>
+                                    </div>
+                                    @error('quantity_per_batch')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
                             </div>
                             
                             <!-- Global settings for batches -->
