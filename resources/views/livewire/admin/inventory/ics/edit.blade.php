@@ -981,14 +981,16 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function incrementQuantity(): void
     {
         $this->quantity++;
-        // The updatedQuantity method will be triggered automatically by Livewire
+        // Manually synchronize batches since this update happens server-side
+        $this->updatedQuantity($this->quantity);
     }
 
     public function decrementQuantity(): void
     {
         if ($this->quantity > 0) {
             $this->quantity--;
-            // The updatedQuantity method will be triggered automatically by Livewire
+            // Manually synchronize batches since this update happens server-side
+            $this->updatedQuantity($this->quantity);
         }
     }
 
@@ -1018,6 +1020,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             'components' => [['id' => null, 'component_type' => '', 'brand' => '', 'model' => '', 'serial_number' => '', '_destroy' => false]],
             '_destroy' => false,
         ];
+        $this->dispatch('batch-added');
     }
 
     public function removeBatch(int $index): void
