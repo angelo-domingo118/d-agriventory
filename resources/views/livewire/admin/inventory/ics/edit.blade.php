@@ -1242,6 +1242,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     }
                 }
 
+                // Update the unit of measure on the existing item catalog when changed
+                if (!$this->creating_new_item && $catalog_id) {
+                    $existingCatalog = ItemsCatalog::find($catalog_id);
+                    if ($existingCatalog && $existingCatalog->unit !== $this->unit_of_measure) {
+                        $existingCatalog->update(['unit' => $this->unit_of_measure]);
+                        $recordChanged = true;
+                    }
+                }
+
                 // Find or update ContractItem
                 $previousContractItem = $this->icsNumber->contractItem; // capture before update
                 $final_contract_item = ContractItem::updateOrCreate(
