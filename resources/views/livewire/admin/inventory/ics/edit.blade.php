@@ -1231,10 +1231,20 @@ new #[Layout('components.layouts.app')] class extends Component {
                 }
 
                 // Find or update ContractItem
+                $previousContractItem = $this->icsNumber->contractItem; // capture before update
                 $final_contract_item = ContractItem::updateOrCreate(
                     ['contract_id' => $this->contract_id, 'item_specification_id' => $spec_id],
                     ['unit_price' => $this->unit_price, 'item_type' => $this->isParItem ? 'PAR' : 'ICS']
                 );
+                // Detect change in contract item (unit price/item type/association)
+                if (
+                    !$previousContractItem ||
+                    $previousContractItem->id !== $final_contract_item->id ||
+                    round((float)($previousContractItem->unit_price ?? 0), 2) !== round((float)$this->unit_price, 2) ||
+                    (($previousContractItem->item_type ?? null) !== ($this->isParItem ? 'PAR' : 'ICS'))
+                ) {
+                    $recordChanged = true;
+                }
 
                 // 1. Update the main IcsNumber record
                 $this->icsNumber->fill([
