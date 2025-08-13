@@ -1294,6 +1294,18 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
+    public function incrementQuantityPerBatch(): void
+    {
+        $this->quantity_per_batch++;
+    }
+
+    public function decrementQuantityPerBatch(): void
+    {
+        if ($this->quantity_per_batch > 1) {
+            $this->quantity_per_batch--;
+        }
+    }
+
     public function incrementEstimatedLife(): void
     {
         if ($this->estimated_useful_life === null) {
@@ -2119,95 +2131,124 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="p-4">
                         <div class="space-y-4">
-                            <div class="w-full">
-                                <label for="quantity" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Number of Batches
-                                </label>
-                                <div class="flex items-center space-x-2" x-data="{ 
-                                    validateNumber(e) {
-                                        // Remove non-numeric characters
-                                        let value = e.target.value.replace(/[^\d]/g, '');
-                                        // Allow empty value - will be handled by Livewire
-                                        e.target.value = value;
-                                        $wire.set('quantity', value ? parseInt(value) : 0);
-                                    }
-                                }">
-                                    <!-- Minus Button -->
-                                    <flux:button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        wire:click="decrementQuantity"
-                                        :disabled="$quantity <= 0"
-                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
-                                        @keydown.enter.prevent=""
-                                    >
-                                        <x-flux::icon.minus class="h-4 w-4" />
-                                    </flux:button>
-                                    
-                                    <!-- Input Field -->
-                                    <flux:input 
-                                        id="quantity"
-                                        wire:model.live="quantity" 
-                                        type="number"
-                                        min="0" 
-                                        class="flex-1 text-center"
-                                        @input="validateNumber($event)"
-                                        @keydown.enter.prevent=""
-                                        @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-auto-populate'); }"
-                                    />
-                                    
-                                    <!-- Plus Button -->
-                                    <flux:button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        wire:click="incrementQuantity"
-                                        class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
-                                        @keydown.enter.prevent=""
-                                    >
-                                        <x-flux::icon.plus class="h-4 w-4" />
-                                    </flux:button>
-                                </div>
-                                @error('quantity')
-                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
-                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                                        </svg>
-                                        <span>{{ $message }}</span>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div class="w-full">
+                                    <label for="quantity" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        Number of Batches
+                                    </label>
+                                    <div class="flex items-center space-x-2" x-data="{ 
+                                        validateNumber(e) {
+                                            // Remove non-numeric characters
+                                            let value = e.target.value.replace(/[^\d]/g, '');
+                                            // Allow empty value - will be handled by Livewire
+                                            e.target.value = value;
+                                            $wire.set('quantity', value ? parseInt(value) : 0);
+                                        }
+                                    }">
+                                        <!-- Minus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            wire:click="decrementQuantity"
+                                            :disabled="$quantity <= 0"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.minus class="h-4 w-4" />
+                                        </flux:button>
+                                        
+                                        <!-- Input Field -->
+                                        <flux:input 
+                                            id="quantity"
+                                            wire:model.live="quantity" 
+                                            type="number"
+                                            min="0" 
+                                            class="flex-1 text-center"
+                                            @input="validateNumber($event)"
+                                            @keydown.enter.prevent=""
+                                        />
+                                        
+                                        <!-- Plus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            wire:click="incrementQuantity"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.plus class="h-4 w-4" />
+                                        </flux:button>
                                     </div>
-                                @enderror
-                            </div>
+                                    @error('quantity')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
 
-                            <div class="w-full">
-                                <label for="quantity_per_batch" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Quantity per Batch
-                                </label>
-                                <div class="flex items-center space-x-2" x-data="{ 
-                                    validateQpb(e) {
-                                        let value = e.target.value.replace(/[^\d]/g, '');
-                                        e.target.value = value;
-                                        $wire.set('quantity_per_batch', value ? parseInt(value) : 1);
-                                    }
-                                }">
-                                    <flux:input 
-                                        id="quantity_per_batch"
-                                        wire:model.live="quantity_per_batch" 
-                                        type="number"
-                                        min="1" 
-                                        class="flex-1 text-center"
-                                        @input="validateQpb($event)"
-                                        @keydown.enter.prevent=""
-                                    />
-                                </div>
-                                @error('quantity_per_batch')
-                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
-                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                                        </svg>
-                                        <span>{{ $message }}</span>
+                                <div class="w-full">
+                                    <label for="quantity_per_batch" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        Quantity per Batch
+                                    </label>
+                                    <div class="flex items-center space-x-2" x-data="{ 
+                                        validateQpb(e) {
+                                            // Remove non-numeric characters
+                                            let value = e.target.value.replace(/[^\d]/g, '');
+                                            // Allow empty value - will be handled by Livewire
+                                            e.target.value = value;
+                                            $wire.set('quantity_per_batch', value ? parseInt(value) : 0);
+                                        }
+                                    }">
+                                        <!-- Minus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            wire:click="decrementQuantityPerBatch"
+                                            :disabled="$quantity_per_batch <= 1"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.minus class="h-4 w-4" />
+                                        </flux:button>
+                                        
+                                        <!-- Input Field -->
+                                        <flux:input 
+                                            id="quantity_per_batch"
+                                            wire:model.live="quantity_per_batch" 
+                                            type="number"
+                                            min="1" 
+                                            class="flex-1 text-center"
+                                            @input="validateQpb($event)"
+                                            @keydown.enter.prevent=""
+                                        />
+                                        
+                                        <!-- Plus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            wire:click="incrementQuantityPerBatch"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                            @keydown.enter.prevent=""
+                                        >
+                                            <x-flux::icon.plus class="h-4 w-4" />
+                                        </flux:button>
                                     </div>
-                                @enderror
+                                    @error('quantity_per_batch')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
                             </div>
                             
                             <!-- Global settings for batches -->
