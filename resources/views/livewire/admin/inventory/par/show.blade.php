@@ -1,219 +1,508 @@
 <?php
 
+use App\Models\Employee;
 use App\Models\ParNumber;
+use App\Models\ParTransfer;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.app')] class extends Component {
-    public ParNumber $par;
+    public ParNumber $parNumber;
 
-    public function mount(ParNumber $par): void
+    public function mount(ParNumber $parNumber): void
     {
         if (!auth()->user()->hasAdminPermission('view_inventory')) {
             abort(403);
         }
-        $this->par = $par->load([
-            'assignedEmployee.division',
-            'contractItem.itemSpecification.itemCatalog',
-            'contractItem.contract.supplier',
-            'itemBatches'
-        ]);
-    }
 
-    #[Computed]
-    public function totalValue()
-    {
-        return $this->par->quantity * $this->par->contractItem->unit_price;
+        $this->parNumber = $parNumber->load([
+            'contractItem.itemSpecification.itemCatalog.secondaryCategory.primaryCategory',
+            'contractItem.contract.supplier',
+            'assignedEmployee.division',
+            // Removed '.item.itemSpecification' as ItemComponent currently has no `item` relation. Eager load only components for now.
+            'itemBatches.components',
+            'transfers.fromEmployee.division',
+            'transfers.toEmployee.division',
+        ]);
     }
 }; ?>
 
 <div>
+<div class="space-y-6">
     <div class="border-b border-stone-200 pb-5 dark:border-stone-700">
-        <div class="flex flex-wrap items-center justify-between sm:flex-nowrap">
+        <div class="flex items-center justify-between">
+            <!-- Breadcrumbs as Title -->
             <div>
                 <flux:breadcrumbs class="text-2xl font-semibold">
                     <flux:breadcrumbs.item :href="route('admin.dashboard')" wire:navigate icon="home" class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300" />
                     <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">Inventory</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item :href="route('admin.inventory.par.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-500 dark:text-stone-400">PAR Management</flux:breadcrumbs.item>
-                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">PAR Details #{{ $par->par_number }}</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item :href="route('admin.inventory.par.index')" wire:navigate class="text-xl sm:text-2xl font-semibold text-stone-700 dark:text-stone-300">PAR Management</flux:breadcrumbs.item>
+                    <flux:breadcrumbs.item class="text-xl sm:text-2xl font-semibold text-stone-900 dark:text-stone-100">PAR {{ $parNumber->par_number }}</flux:breadcrumbs.item>
                 </flux:breadcrumbs>
-                <p class="mt-1 text-sm text-stone-600 dark:text-stone-400">
-                    Viewing Property Acknowledgement Receipt #<span class="font-bold">{{ $par->par_number }}</span>
-                </p>
             </div>
-            <div class="mt-3 flex flex-shrink-0 gap-x-3 sm:mt-0">
-                 <a href="{{ route('admin.inventory.par.index') }}" wire:navigate class="flux-button-ghost">
-                    <x-flux::icon.arrow-left class="h-5 w-5" />
-                    <span>Back to list</span>
-                </a>
-                <a href="{{ route('admin.inventory.par.edit', $par) }}" wire:navigate class="flux-button-primary">
-                    <x-flux::icon.edit class="h-5 w-5" />
-                    <span>Edit</span>
-                </a>
-                <button type="button" @click="window.print()" class="flux-button-secondary">
-                    <x-flux::icon.printer class="h-5 w-5" />
-                    <span>Print</span>
-                </button>
+            <div class="flex items-center gap-x-4">
+                <flux:button variant="ghost" :href="route('admin.inventory.par.index')" wire:navigate>
+                    &larr; Back to List
+                </flux:button>
+                <flux:button variant="primary" :href="route('admin.inventory.par.edit', $parNumber)" wire:navigate>
+                    Edit PAR
+                </flux:button>
             </div>
         </div>
     </div>
 
-    <div class="mt-6">
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {{-- Main Details --}}
-            <div class="space-y-6 lg:col-span-2">
-                <div class="overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-800">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-base font-semibold leading-7 text-stone-900 dark:text-white">
-                            PAR Information
-                        </h3>
-                        <p class="mt-1 max-w-2xl text-sm leading-6 text-stone-500 dark:text-stone-400">
-                            Details about the receipt and assigned custodian.
-                        </p>
+    <!-- Top Row: Supplier & Contract + Employee Assignment -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Supplier & Contract Section -->
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                    <x-flux::icon.building-office class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                    Supplier & Contract
+                </h3>
+            </div>
+            <div class="px-6 py-5">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Supplier</span>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->contract?->supplier?->name ?? '—' }}</p>
                     </div>
-                    <div class="border-t border-stone-200 px-4 py-5 dark:border-stone-700 sm:p-0">
-                        <dl class="sm:divide-y sm:divide-stone-200 dark:sm:divide-stone-700">
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">PAR Number</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->par_number }}</dd>
-                            </div>
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Assigned Employee</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    {{ $par->assignedEmployee?->name ?? 'Employee not found' }}
-                                    @if($par->assignedEmployee?->division)
-                                        <br><span class="text-stone-500">{{ $par->assignedEmployee->division->name }}</span>
-                                    @endif
-                                </dd>
-                            </div>
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Item</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    {{ $par->contractItem?->itemSpecification?->itemCatalog?->name ?? 'Item not found' }}
-                                    @if($par->contractItem?->itemSpecification)
-                                        @php $spec = $par->contractItem->itemSpecification; @endphp
-                                        @if($spec->brand || $spec->model)
-                                            <br><span class="text-stone-500">{{ collect([$spec->brand, $spec->model])->filter()->join(' / ') }}</span>
-                                        @endif
-                                    @endif
-                                </dd>
-                            </div>
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Supplier</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    {{ $par->contractItem?->contract?->supplier?->name ?? 'Supplier not found' }}
-                                    @if($par->contractItem?->contract?->contract_po_ib_number)
-                                        <br><span class="text-stone-500">Contract: {{ $par->contractItem->contract->contract_po_ib_number }}</span>
-                                    @endif
-                                </dd>
-                            </div>
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Quantity & Cost</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    {{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)
-                                    <br><span class="text-stone-500">₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }} per unit</span>
-                                </dd>
-                            </div>
-                            @if($par->date_prepared || $par->date_accepted || $par->date_acquired)
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Dates</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                        @if($par->date_prepared)
-                                            <div>Prepared: {{ $par->date_prepared->format('F j, Y') }}</div>
-                                        @endif
-                                        @if($par->date_accepted)
-                                            <div>Accepted: {{ $par->date_accepted->format('F j, Y') }}</div>
-                                        @endif
-                                        @if($par->date_acquired)
-                                            <div>Acquired: {{ $par->date_acquired->format('F j, Y') }}</div>
-                                        @endif
-                                    </dd>
+                    <div>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Contract/PO/IB No.</span>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->contract?->contract_po_ib_number ?? '—' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employee Assignment Section -->
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                    <x-flux::icon.user class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                    Employee Assignment
+                </h3>
+            </div>
+            <div class="px-6 py-5">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Current Custodian</span>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->assignedEmployee?->name ?? 'Unassigned' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Position</span>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->assignedEmployee?->position ?? '—' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Division/Office</span>
+                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->assignedEmployee?->division?->name ?? '—' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Column 1: Item Information -->
+        <div class="space-y-6">
+            <!-- Item Catalog & Specifications -->
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                    <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                        <x-flux::icon.cube class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                        Item Information
+                    </h3>
+                </div>
+                <div class="px-6 py-5">
+                    <div class="space-y-6">
+                        <!-- Item Catalog Details -->
+                        <div>
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                                <x-flux::icon.tag class="mr-2 h-4 w-4" />
+                                Item Catalog
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Name</span>
+                                    <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->itemSpecification?->itemCatalog?->name ?? '—' }}</p>
                                 </div>
-                            @endif
-                            @if($par->inventory_code)
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->inventory_code }}</dd>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Item Code</span>
+                                    <p class="mt-2 font-mono text-sm text-stone-700 dark:text-stone-300">{{ $this->parNumber->contractItem?->itemSpecification?->itemCatalog?->code ?? '—' }}</p>
                                 </div>
-                            @endif
-                            <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Location Codes</dt>
-                                <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">
-                                    <div>Area: {{ $par->area_code ?? 'N/A' }}</div>
-                                    <div>Building: {{ $par->building_code ?? 'N/A' }}</div>
-                                    <div>Account: {{ $par->account_code ?? 'N/A' }}</div>
-                                </dd>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Category</span>
+                                    <p class="mt-2 text-base text-stone-900 dark:text-stone-100">
+                                        @php
+                                            $secondary = $this->parNumber->contractItem?->itemSpecification?->itemCatalog?->secondaryCategory;
+                                            $primary = $secondary?->primaryCategory;
+                                        @endphp
+                                        {{ $primary?->name ?? 'N/A' }} / {{ $secondary?->name ?? 'N/A' }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Unit of Measure</span>
+                                    <p class="mt-2 text-base text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}</p>
+                                </div>
                             </div>
-                            @if($par->remarks)
-                                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
-                                    <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">Remarks</dt>
-                                    <dd class="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-200 sm:col-span-2 sm:mt-0">{{ $par->remarks }}</dd>
+                        </div>
+
+                        <!-- Item Specifications -->
+                        <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                            <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                                <x-flux::icon.cog-6-tooth class="mr-2 h-4 w-4" />
+                                Item Specifications
+                            </h4>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Brand</span>
+                                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->itemSpecification?->brand ?? '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Model</span>
+                                        <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->contractItem?->itemSpecification?->model ?? '—' }}</p>
+                                    </div>
                                 </div>
-                            @endif
-                        </dl>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Detailed Specifications</span>
+                                    <div class="mt-2 rounded-md bg-stone-50 p-3 dark:bg-stone-800/50">
+                                        <p class="text-sm text-stone-700 dark:text-stone-300">{{ $this->parNumber->contractItem?->itemSpecification?->detailed_specifications ?: 'No specifications provided.' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Summary --}}
-            <div class="lg:col-span-1">
-                <div class="rounded-lg bg-white p-6 shadow dark:bg-stone-800">
-                    <h3 class="text-lg font-medium text-stone-900 dark:text-white">Summary</h3>
-                    <div class="mt-6 space-y-4">
-                        <div class="flex justify-between">
-                            <p class="text-stone-600 dark:text-stone-300">Quantity</p>
-                            <p class="font-semibold text-stone-900 dark:text-white">{{ $par->quantity }} {{ $par->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</p>
+            <!-- Pricing Information -->
+            <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                    <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                        <x-flux::icon.currency-dollar class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                        Pricing Information
+                    </h3>
+                </div>
+                <div class="px-6 py-5">
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+                            <span class="text-sm font-medium text-green-600 dark:text-green-400">Unit Cost</span>
+                            <p class="mt-2 text-2xl font-bold text-green-700 dark:text-green-300">₱{{ number_format($this->parNumber->contractItem?->unit_price ?? 0, 2) }}</p>
                         </div>
-                        <div class="flex justify-between">
-                            <p class="text-stone-600 dark:text-stone-300">Unit Price</p>
-                            <p class="font-semibold text-stone-900 dark:text-white">₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</p>
-                        </div>
-                        <div class="flex justify-between border-t pt-4">
-                            <p class="text-stone-600 dark:text-stone-300">Total Value</p>
-                            <p class="font-semibold text-stone-900 dark:text-white">₱{{ number_format($this->totalValue, 2) }}</p>
-                        </div>
-                        <div class="flex justify-between">
-                            <p class="text-stone-600 dark:text-stone-300">Identification Batches</p>
-                            <p class="font-semibold text-stone-900 dark:text-white">{{ $par->itemBatches->count() }}</p>
+                        <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">Total Value</span>
+                            <p class="mt-2 text-2xl font-bold text-blue-700 dark:text-blue-300">₱{{ number_format(($this->parNumber->contractItem?->unit_price ?? 0) * $this->parNumber->quantity, 2) }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Identification Data Batches --}}
-        @if($par->itemBatches->isNotEmpty())
-            <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-800">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-base font-semibold leading-7 text-stone-900 dark:text-white">
-                        Identification Data
-                    </h3>
-                    <p class="mt-1 text-sm text-stone-500 dark:text-stone-400">
-                        Serial numbers, asset tags, and other identification data for individual items.
-                    </p>
+        <!-- Column 2: Document Details -->
+        <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+            <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+                <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                    <x-flux::icon.document-text class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                    Document Details
+                </h3>
+            </div>
+            <div class="px-6 py-5">
+                <div class="space-y-6">
+                    <!-- PAR Information -->
+                    <div>
+                        <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                            <x-flux::icon.hashtag class="mr-2 h-4 w-4" />
+                            PAR Information
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="rounded-lg bg-stone-50 p-4 dark:bg-stone-800/50">
+                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">PAR Number</span>
+                                <p class="mt-1 text-2xl font-bold text-stone-900 dark:text-stone-100">{{ $this->parNumber->par_number }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Codes & Classification -->
+                    <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                        <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                            <x-flux::icon.qr-code class="mr-2 h-4 w-4" />
+                            Codes & Classification
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Area Code</span>
+                                    <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->area_code ?: '—' }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Building Code</span>
+                                    <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->building_code ?: '—' }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Account Code</span>
+                                    <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->account_code ?: '—' }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Inventory Code</span>
+                                    <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->inventory_code ?: '—' }}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Responsibility Center Code</span>
+                                <p class="mt-2 text-base font-mono text-stone-900 dark:text-stone-100">{{ $this->parNumber->responsibility_center_code ?: '—' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Dates -->
+                    <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                        <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                            <x-flux::icon.calendar-days class="mr-2 h-4 w-4" />
+                            Document Dates
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Prepared</span>
+                                <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->date_prepared?->format('F d, Y') ?? '—' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Accepted</span>
+                                <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->date_accepted?->format('F d, Y') ?? '—' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Date Acquired</span>
+                                <p class="mt-2 text-base font-medium text-stone-900 dark:text-stone-100">{{ $this->parNumber->date_acquired?->format('F d, Y') ?? '—' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quantity Information -->
+                    <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                        <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                            <x-flux::icon.squares-2x2 class="mr-2 h-4 w-4" />
+                            Quantity & Batches
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="rounded-lg bg-orange-50 p-4 dark:bg-orange-900/20">
+                                <span class="text-sm font-medium text-orange-600 dark:text-orange-400">Total Quantity</span>
+                                <p class="mt-1 text-xl font-bold text-orange-700 dark:text-orange-300">{{ $this->parNumber->quantity }}</p>
+                                <p class="text-xs text-orange-600 dark:text-orange-400">{{ $this->parNumber->contractItem?->itemSpecification?->itemCatalog?->unit ?? 'unit' }}(s)</p>
+                            </div>
+                            <div class="rounded-lg bg-indigo-50 p-4 dark:bg-indigo-900/20">
+                                <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400">Batches</span>
+                                <p class="mt-1 text-xl font-bold text-indigo-700 dark:text-indigo-300">{{ $this->parNumber->itemBatches->count() }}</p>
+                                <p class="text-xs text-indigo-600 dark:text-indigo-400">{{ Str::plural('batch', $this->parNumber->itemBatches->count()) }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="border-t border-stone-200 pt-6 dark:border-stone-700">
+                        <h4 class="mb-4 flex items-center text-sm font-semibold text-stone-700 dark:text-stone-300 uppercase tracking-wide">
+                            <x-flux::icon.chat-bubble-left-ellipsis class="mr-2 h-4 w-4" />
+                            Remarks
+                        </h4>
+                        <div class="rounded-md bg-stone-50 p-4 dark:bg-stone-800/50">
+                            <p class="text-sm text-stone-700 dark:text-stone-300">{{ $this->parNumber->remarks ?: 'No remarks provided.' }}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="border-t border-stone-200 dark:border-stone-700">
-                    <div class="divide-y divide-stone-200 dark:divide-stone-700">
-                        @foreach($par->itemBatches as $batch)
-                            <div wire:key="batch-{{ $batch->id }}" class="px-6 py-4">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-medium text-stone-900 dark:text-stone-100">
-                                            Batch #{{ $loop->iteration }}
-                                        </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Full-width Batches & Components -->
+    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+        <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+            <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                <x-flux::icon.queue-list class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                Batches & Identification Data
+                <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300">
+                    {{ $this->parNumber->itemBatches->count() }} {{ Str::plural('batch', $this->parNumber->itemBatches->count()) }}
+                </span>
+            </h3>
+        </div>
+        <div class="px-6 py-5">
+            @php
+                $hasAnyIdentification = $this->parNumber->itemBatches->some(fn($batch) => $batch->identification_data || $batch->components->isNotEmpty());
+                $isDesktopComputer = str_contains(strtoupper($this->parNumber->contractItem?->itemSpecification?->itemCatalog?->name ?? ''), 'DESKTOP COMPUTER');
+            @endphp
+            
+            @if($this->parNumber->itemBatches->isNotEmpty())
+                @if($hasAnyIdentification)
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                        @foreach($this->parNumber->itemBatches as $batch)
+                            <div wire:key="show-batch-{{ $batch->id }}" class="rounded-lg border border-stone-300 bg-gradient-to-br from-white to-stone-50 dark:border-stone-600 dark:from-stone-800 dark:to-stone-800/50">
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-stone-100 to-stone-50 dark:from-stone-700 dark:to-stone-700/50 rounded-t-lg border-b border-stone-200 dark:border-stone-600">
+                                    <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm dark:bg-stone-600 text-sm font-bold text-stone-700 dark:text-stone-200">
+                                            {{ $loop->iteration }}
+                                        </span>
+                                        <span>Batch #{{ $loop->iteration }}</span>
+                                        @if ($isDesktopComputer)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-800/20 dark:text-purple-300">
+                                                <x-flux::icon.computer-desktop class="mr-1 h-3 w-3" />
+                                                Desktop Computer
+                                            </span>
+                                        @endif
+                                    </h4>
+                                </div>
+                                
+                                <div class="p-4">
+                                    <!-- Identification Data (Serial number, Asset tag, etc.) -->
+                                    <div>
+                                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">Identification Data</span>
                                         @if($batch->identification_data)
-                                            <div class="mt-1 text-sm text-stone-600 dark:text-stone-300 whitespace-pre-wrap">{{ $batch->identification_data }}</div>
+                                            <div class="mt-2 rounded-md bg-white p-3 border border-stone-200 dark:bg-stone-700 dark:border-stone-600">
+                                                <p class="text-sm font-mono text-stone-900 dark:text-stone-100 break-all">{{ $batch->identification_data }}</p>
+                                            </div>
                                         @else
-                                            <div class="mt-1 text-sm italic text-stone-500 dark:text-stone-400">No identification data recorded</div>
+                                            <p class="mt-2 italic text-stone-500">No identification data recorded for this batch.</p>
                                         @endif
                                     </div>
+
+                                    @if ($isDesktopComputer && $batch->components->isNotEmpty())
+                                        <div class="mt-4 border-t border-stone-200 pt-4 dark:border-stone-600">
+                                            <h5 class="mb-3 flex items-center font-medium text-stone-800 dark:text-stone-200">
+                                                <x-flux::icon.cpu-chip class="mr-2 h-4 w-4" />
+                                                Components ({{ $batch->components->count() }})
+                                            </h5>
+                                            
+                                            <div class="space-y-3">
+                                                @foreach($batch->components as $component)
+                                                    <div class="relative rounded-lg border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-600 dark:bg-stone-700/50">
+                                                        <div class="flex items-center justify-between mb-2">
+                                                            <h6 class="font-medium text-stone-800 dark:text-stone-200 text-sm flex items-center">
+                                                                <x-flux::icon.wrench-screwdriver class="mr-1 h-3 w-3 text-stone-500" />
+                                                                {{ $component->component_type ?: 'Component #' . $loop->iteration }}
+                                                            </h6>
+                                                        </div>
+                                                        <div class="grid grid-cols-1 gap-2 text-sm">
+                                                            @if($component->serial_number)
+                                                                <div class="flex items-center">
+                                                                    <span class="text-stone-500 dark:text-stone-400 min-w-0 flex-shrink-0">S/N:</span>
+                                                                    <span class="ml-2 font-mono text-stone-900 dark:text-stone-100">{{ $component->serial_number }}</span>
+                                                                </div>
+                                                            @endif
+                                                            @if($component->brand || $component->model)
+                                                                <div class="flex items-center">
+                                                                    <span class="text-stone-500 dark:text-stone-400 min-w-0 flex-shrink-0">Brand/Model:</span>
+                                                                    <span class="ml-2 text-stone-900 dark:text-stone-100">
+                                                                        {{ collect([$component->brand, $component->model])->filter()->implode(' ') ?: '—' }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
+                @else
+                    <div class="text-center py-12">
+                        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+                            <x-flux::icon.document-text class="h-8 w-8 text-stone-400" />
+                        </div>
+                        <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No identification data recorded</h3>
+                        <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">No identification data has been recorded for any batches.</p>
+                    </div>
+                @endif
+            @else
+                <div class="text-center py-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+                        <x-flux::icon.cube class="h-8 w-8 text-stone-400" />
+                    </div>
+                    <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No batches recorded</h3>
+                    <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">No item batches have been recorded for this PAR.</p>
                 </div>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
-</div> 
+
+    <!-- Transfer History Section -->
+    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+        <div class="border-b border-stone-200 px-6 py-4 dark:border-stone-700">
+            <h3 class="flex items-center font-semibold text-stone-800 dark:text-stone-200">
+                <x-flux::icon.arrow-path class="mr-2 h-5 w-5 text-stone-500 dark:text-stone-400" />
+                Transfer History
+                @if ($this->parNumber->transfers->isNotEmpty())
+                    <span class="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300">
+                        {{ $this->parNumber->transfers->count() }} {{ Str::plural('transfer', $this->parNumber->transfers->count()) }}
+                    </span>
+                @endif
+            </h3>
+        </div>
+        <div class="px-6 py-5">
+            @if ($this->parNumber->transfers->isNotEmpty())
+                <div class="space-y-4">
+                    @foreach ($this->parNumber->transfers->sortByDesc('transfer_date') as $transfer)
+                        <div wire:key="transfer-{{ $transfer->id }}" class="flex items-start space-x-4 p-4 bg-stone-50 dark:bg-stone-800/50 rounded-lg border border-stone-200 dark:border-stone-600">
+                            <div class="flex-shrink-0 mt-1">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/20">
+                                    <x-flux::icon.arrow-right class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-sm font-medium text-stone-600 dark:text-stone-300">
+                                            From: {{ $transfer->fromEmployee?->name ?? 'N/A' }}
+                                        </span>
+                                        <x-flux::icon.arrow-right class="h-4 w-4 text-stone-400" />
+                                        <span class="text-sm font-medium text-stone-900 dark:text-stone-100">
+                                            To: {{ $transfer->toEmployee?->name ?? 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <span class="text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-700 px-3 py-1 rounded-full border border-stone-200 dark:border-stone-600">
+                                        {{ $transfer->transfer_date->format('F d, Y') }}
+                                    </span>
+                                </div>
+                                
+                                @if ($transfer->fromEmployee?->division || $transfer->toEmployee?->division)
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        @if ($transfer->fromEmployee?->division)
+                                            <div>
+                                                <span class="text-stone-500 dark:text-stone-400">From Division:</span>
+                                                <span class="ml-2 text-stone-700 dark:text-stone-300">{{ $transfer->fromEmployee->division->name }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($transfer->toEmployee?->division)
+                                            <div>
+                                                <span class="text-stone-500 dark:text-stone-400">To Division:</span>
+                                                <span class="ml-2 text-stone-700 dark:text-stone-300">{{ $transfer->toEmployee->division->name }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                                
+                                @if ($transfer->remarks)
+                                    <div class="mt-3 p-3 bg-white dark:bg-stone-700 rounded-md border border-stone-200 dark:border-stone-600">
+                                        <span class="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">Remarks:</span>
+                                        <p class="mt-1 text-sm text-stone-700 dark:text-stone-300">{{ $transfer->remarks }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-12">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-800">
+                        <x-flux::icon.clock class="h-8 w-8 text-stone-400" />
+                    </div>
+                    <h3 class="mt-4 text-base font-medium text-stone-900 dark:text-stone-100">No transfers recorded</h3>
+                    <p class="mt-2 text-sm text-stone-500 dark:text-stone-400">This item has remained with its original assignee since creation.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+</div>
