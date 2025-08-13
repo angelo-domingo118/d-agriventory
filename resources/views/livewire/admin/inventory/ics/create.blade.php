@@ -1265,7 +1265,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->updateBatches();
     }
 
-    private function updateBatches(): void
+    public function updateBatches(): void
     {
         $currentCount = count($this->batches);
 
@@ -1280,49 +1280,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         }
     }
 
-    public function incrementQuantity(): void
-    {
-        $this->quantity++;
-        $this->updateBatches();
-    }
 
-    public function decrementQuantity(): void
-    {
-        if ($this->quantity > 0) {
-            $this->quantity--;
-            $this->updateBatches();
-        }
-    }
-
-    public function incrementQuantityPerBatch(): void
-    {
-        $this->quantity_per_batch++;
-    }
-
-    public function decrementQuantityPerBatch(): void
-    {
-        if ($this->quantity_per_batch > 1) {
-            $this->quantity_per_batch--;
-        }
-    }
-
-    public function incrementEstimatedLife(): void
-    {
-        if ($this->estimated_useful_life === null) {
-            $this->estimated_useful_life = 1;
-        } else {
-            $this->estimated_useful_life++;
-        }
-        $this->resetValidation('estimated_useful_life');
-    }
-
-    public function decrementEstimatedLife(): void
-    {
-        if ($this->estimated_useful_life !== null && $this->estimated_useful_life > 1) {
-            $this->estimated_useful_life--;
-            $this->resetValidation('estimated_useful_life');
-        }
-    }
 
     public function addBatch(): void
     {
@@ -2007,10 +1965,26 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     Estimated Useful Life (Years)
                                 </label>
                                 <div class="flex items-center space-x-2" x-data="{ 
+                                    localEstimatedLife: $wire.entangle('estimated_useful_life'),
+                                    
                                     validateNumber(e) {
                                         // Remove non-numeric characters
                                         let value = e.target.value.replace(/[^\d]/g, '');
-                                        $wire.set('estimated_useful_life', value ? parseInt(value) : null);
+                                        this.localEstimatedLife = value ? parseInt(value) : null;
+                                    },
+                                    
+                                    increment() {
+                                        if (this.localEstimatedLife === null) {
+                                            this.localEstimatedLife = 1;
+                                        } else {
+                                            this.localEstimatedLife++;
+                                        }
+                                    },
+                                    
+                                    decrement() {
+                                        if (this.localEstimatedLife !== null && this.localEstimatedLife > 1) {
+                                            this.localEstimatedLife--;
+                                        }
                                     }
                                 }">
                                     <!-- Minus Button -->
@@ -2018,8 +1992,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        wire:click="decrementEstimatedLife"
-                                        :disabled="$isParItem || ($estimated_useful_life === null || $estimated_useful_life <= 1)"
+                                        @click="decrement()"
+                                        x-bind:disabled="$wire.isParItem || (localEstimatedLife === null || localEstimatedLife <= 1)"
                                         class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                         @keydown.enter.prevent=""
                                     >
@@ -2029,7 +2003,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     <!-- Input Field -->
                                     <flux:input 
                                         id="estimated_useful_life_wrapper"
-                                        wire:model="estimated_useful_life" 
+                                        x-model="localEstimatedLife"
                                         placeholder="Optional" 
                                         :disabled="$isParItem"
                                         type="number"
@@ -2044,8 +2018,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        wire:click="incrementEstimatedLife"
-                                        :disabled="$isParItem"
+                                        @click="increment()"
+                                        x-bind:disabled="$wire.isParItem"
                                         class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                         @keydown.enter.prevent=""
                                     >
@@ -2137,12 +2111,31 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         Number of Batches
                                     </label>
                                     <div class="flex items-center space-x-2" x-data="{ 
+                                        localQuantity: $wire.entangle('quantity'),
+                                        
                                         validateNumber(e) {
                                             // Remove non-numeric characters
                                             let value = e.target.value.replace(/[^\d]/g, '');
-                                            // Allow empty value - will be handled by Livewire
-                                            e.target.value = value;
-                                            $wire.set('quantity', value ? parseInt(value) : 0);
+                                            const numValue = value ? parseInt(value) : 0;
+                                            this.localQuantity = numValue;
+                                            this.updateBatches();
+                                        },
+                                        
+                                        increment() {
+                                            this.localQuantity++;
+                                            this.updateBatches();
+                                        },
+                                        
+                                        decrement() {
+                                            if (this.localQuantity > 0) {
+                                                this.localQuantity--;
+                                                this.updateBatches();
+                                            }
+                                        },
+                                        
+                                        updateBatches() {
+                                            // Only call the server-side updateBatches when needed
+                                            $wire.call('updateBatches');
                                         }
                                     }">
                                         <!-- Minus Button -->
@@ -2150,8 +2143,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            wire:click="decrementQuantity"
-                                            :disabled="$quantity <= 0"
+                                            @click="decrement()"
+                                            x-bind:disabled="localQuantity <= 0"
                                             class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                             @keydown.enter.prevent=""
                                         >
@@ -2161,7 +2154,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <!-- Input Field -->
                                         <flux:input 
                                             id="quantity"
-                                            wire:model.live="quantity" 
+                                            x-model="localQuantity"
                                             type="number"
                                             min="0" 
                                             class="flex-1 text-center"
@@ -2174,7 +2167,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            wire:click="incrementQuantity"
+                                            @click="increment()"
                                             class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                             @keydown.enter.prevent=""
                                         >
@@ -2196,12 +2189,23 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         Quantity per Batch
                                     </label>
                                     <div class="flex items-center space-x-2" x-data="{ 
+                                        localQuantityPerBatch: $wire.entangle('quantity_per_batch'),
+                                        
                                         validateQpb(e) {
                                             // Remove non-numeric characters
                                             let value = e.target.value.replace(/[^\d]/g, '');
-                                            // Allow empty value - will be handled by Livewire
-                                            e.target.value = value;
-                                            $wire.set('quantity_per_batch', value ? parseInt(value) : 0);
+                                            const numValue = value ? parseInt(value) : 1;
+                                            this.localQuantityPerBatch = Math.max(1, numValue);
+                                        },
+                                        
+                                        increment() {
+                                            this.localQuantityPerBatch++;
+                                        },
+                                        
+                                        decrement() {
+                                            if (this.localQuantityPerBatch > 1) {
+                                                this.localQuantityPerBatch--;
+                                            }
                                         }
                                     }">
                                         <!-- Minus Button -->
@@ -2209,8 +2213,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            wire:click="decrementQuantityPerBatch"
-                                            :disabled="$quantity_per_batch <= 1"
+                                            @click="decrement()"
+                                            x-bind:disabled="localQuantityPerBatch <= 1"
                                             class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                             @keydown.enter.prevent=""
                                         >
@@ -2220,7 +2224,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         <!-- Input Field -->
                                         <flux:input 
                                             id="quantity_per_batch"
-                                            wire:model.live="quantity_per_batch" 
+                                            x-model="localQuantityPerBatch"
                                             type="number"
                                             min="1" 
                                             class="flex-1 text-center"
@@ -2233,7 +2237,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                             type="button"
                                             variant="outline"
                                             size="sm"
-                                            wire:click="incrementQuantityPerBatch"
+                                            @click="increment()"
                                             class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
                                             @keydown.enter.prevent=""
                                         >
