@@ -17,6 +17,8 @@ use Livewire\Volt\Component;
 use App\Models\ParNumber;
 use Illuminate\Support\Facades\DB;
 use App\Models\ParItemBatch;
+use App\Services\ToastService;
+use Flux\Flux;
 
 new #[Layout('components.layouts.app')] class extends Component {
     // Form state
@@ -34,6 +36,8 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $area_code = '';
     public string $building_code = '';
     public string $account_code = '';
+    public string $inventory_code = '';
+    public string $responsibility_center_code = '';
     public string $remarks = '';
 
     // New fields for main item
@@ -74,6 +78,14 @@ new #[Layout('components.layouts.app')] class extends Component {
     public bool $isDesktopComputer = false;
 
     public array $batches = [];
+
+    // Validation rules for live validation
+    protected function rules()
+    {
+        return [
+            'quantity' => 'integer|min:0', // Allow 0 during editing, but validation at submission requires min:1
+        ];
+    }
 
     // Auto-complete data
     public string $supplier_search = '';
@@ -1179,19 +1191,24 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $rules = [
             'par_number' => ['required', 'string', Rule::unique('par_number')],
-            'assigned_employee_id' => 'required_without:creating_new_employee|nullable|exists:employees,id',
-            'supplier_id' => 'required_without:creating_new_supplier|nullable|exists:suppliers,id',
-            'contract_id' => 'required_without:creating_new_contract|nullable|exists:contracts,id',
-            'items_catalog_id' => 'required_without:creating_new_item|nullable|exists:items_catalog,id',
-            'item_specification_id' => 'required|string',
+            'assigned_employee_id' => 'required_unless:creating_new_employee,true|nullable|exists:employees,id',
+            'supplier_id' => 'required_unless:creating_new_supplier,true|nullable|exists:suppliers,id',
+            'contract_id' => 'required_unless:creating_new_contract,true|nullable|exists:contracts,id',
+            'items_catalog_id' => 'required_unless:creating_new_item,true|nullable|exists:items_catalog,id',
+            'item_specification_id' => 'nullable|string',
             'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|gt:0',
+            'unit_of_measure' => 'required|string|max:50',
             'date_acquired' => 'nullable|date',
-            'date_prepared' => 'nullable|date',
-            'date_accepted' => 'nullable|date',
+            'date_prepared' => 'required|date',
+            'date_accepted' => 'required|date',
             'area_code' => 'nullable|string|max:255',
             'building_code' => 'nullable|string|max:255',
             'account_code' => 'nullable|string|max:255',
+            'inventory_code' => 'nullable|string|max:255',
+            'responsibility_center_code' => 'nullable|string|max:255',
             'batches.*.identification_data' => 'nullable|string|max:255',
+            'remarks' => 'nullable|string',
         ];
 
         if ($this->creating_new_supplier) {
@@ -1216,7 +1233,8 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->validate($rules);
 
-        DB::transaction(function () {
+        try {
+            DB::transaction(function () {
             if ($this->creating_new_supplier) {
                 $newSupplier = Supplier::create(['name' => $this->supplier_search]);
                 $this->supplier_id = $newSupplier->id;
@@ -1274,6 +1292,8 @@ new #[Layout('components.layouts.app')] class extends Component {
                 'area_code' => $this->area_code,
                 'building_code' => $this->building_code,
                 'account_code' => $this->account_code,
+                'inventory_code' => $this->inventory_code,
+                'responsibility_center_code' => $this->responsibility_center_code,
                 'remarks' => $this->remarks,
                 'date_acquired' => $this->date_acquired ? Carbon::parse($this->date_acquired) : null,
                 'date_prepared' => $this->date_prepared ? Carbon::parse($this->date_prepared) : null,
@@ -1287,9 +1307,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                  ]);
              }
 
-            session()->flash('success', 'PAR record created successfully.');
-            $this->redirectRoute('admin.inventory.par.index');
-        });
+                // Dispatch success toast notification
+                ToastService::created($this, 'PAR record');
+
+                session()->flash('highlighted_par', $parNumber->id);
+                $this->redirectRoute('admin.inventory.par.index', navigate: true);
+            });
+        } catch (\Exception $e) {
+            // Log the exception for debugging
+            \Log::error('Error creating PAR record: ' . $e->getMessage());
+
+            // Dispatch error toast notification
+            ToastService::error($this, $e->getMessage());
+        }
     }
 
 }; ?>
