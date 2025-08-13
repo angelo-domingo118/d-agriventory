@@ -1075,6 +1075,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->showTransferModal = false;
         $this->dispatch('ics-transferred');
+        \Log::info('ICS transferred event dispatched for ICS: ' . $this->icsNumber->ics_number);
         
         // Dispatch success toast notification (same as create.blade.php)
         ToastService::transferred($this, 'Item');
@@ -1303,6 +1304,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             });
 
             $this->dispatch('ics-updated');
+            \Log::info('ICS updated event dispatched for ICS: ' . $this->icsNumber->ics_number);
             
             $anyChanges = $recordChanged || $transferCreated;
             if (! $anyChanges) {
@@ -1320,8 +1322,9 @@ new #[Layout('components.layouts.app')] class extends Component {
             $this->original_assigned_employee_id = $this->assigned_employee_id;
             // Dispatch success toast notification
             ToastService::success($this, $successMessage);
-            // Reload original data to reflect changes without leaving the page
-            $this->loadOriginalData();
+            
+            // Redirect back to index page after successful update
+            $this->redirect(route('admin.inventory.ics.index'), navigate: true);
         } catch (\Exception $e) {
             \Log::error('Error updating ICS record: ' . $e->getMessage());
             
@@ -1346,6 +1349,7 @@ new #[Layout('components.layouts.app')] class extends Component {
             ToastService::success($this, "ICS record #{$icsNumber} deleted successfully.");
             
             $this->dispatch('ics-deleted');
+            \Log::info('ICS deleted event dispatched for ICS: ' . $icsNumber);
             $this->redirect(route('admin.inventory.ics.index'), navigate: true);
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Database error during ICS deletion: ' . $e->getMessage());
@@ -1360,6 +1364,19 @@ new #[Layout('components.layouts.app')] class extends Component {
             
             ToastService::unexpectedError($this, 'An unexpected error occurred while deleting the record.');
         }
+    }
+
+    public function cancel(): void
+    {
+        // Redirect back to index page
+        $this->redirect(route('admin.inventory.ics.index'), navigate: true);
+    }
+
+    public function testEvent(): void
+    {
+        // Test method to dispatch an event
+        $this->dispatch('ics-updated');
+        \Log::info('Test event dispatched');
     }
 }; ?>
 
@@ -1384,8 +1401,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <x-action-message class="me-3" on="form-reset">
                         {{ __('Form reset to original values.') }}
                     </x-action-message>
-                    <flux:button type="button" variant="ghost" @click="history.back()">
-                        Cancel
+                    <flux:button type="button" variant="ghost" wire:click="cancel" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="cancel">Cancel</span>
+                        <span wire:loading wire:target="cancel">Canceling...</span>
                     </flux:button>
                     <flux:button type="button" variant="filled" wire:click="resetForm" wire:loading.attr="disabled" wire:target="resetForm">
                         <span wire:loading.remove wire:target="resetForm">Reset</span>
@@ -1400,6 +1418,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="update">
                         <span wire:loading.remove wire:target="update">Save Changes</span>
                         <span wire:loading wire:target="update">Saving...</span>
+                    </flux:button>
+                    <flux:button type="button" variant="outline" wire:click="testEvent" class="!p-2">
+                        <x-flux::icon.bell class="h-5 w-5" />
+                        <span class="sr-only">Test Event</span>
                     </flux:button>
                 </div>
             </div>

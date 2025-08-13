@@ -333,21 +333,48 @@ public string $sortDirection = 'desc';
     {
         $this->redirect(route('admin.inventory.ics.create'), navigate: true);
     }
+
+    public function refreshData(): void
+    {
+        // Manual refresh method for testing
+        $this->dispatch('$refresh');
+    }
+
+    public function handleIcsUpdated(): void
+    {
+        // Handle ICS updated event
+        $this->dispatch('$refresh');
+    }
+
+    public function handleIcsTransferred(): void
+    {
+        // Handle ICS transferred event
+        $this->dispatch('$refresh');
+    }
+
+    public function handleIcsDeleted(): void
+    {
+        // Handle ICS deleted event
+        $this->dispatch('$refresh');
+    }
 }; ?>
 
 <div x-data="tableResizer('ics_column_widths', { article: 400, ics_details: 220, doc_source: 300, issued_to: 200, actions: 120 })" 
      x-init="
         // Listen for Livewire events to refresh data when changes are made
         Livewire.on('ics-updated', () => {
-            $wire.$refresh();
+            console.log('ICS updated event received, refreshing...');
+            $wire.handleIcsUpdated();
         });
         
         Livewire.on('ics-transferred', () => {
-            $wire.$refresh();
+            console.log('ICS transferred event received, refreshing...');
+            $wire.handleIcsTransferred();
         });
         
         Livewire.on('ics-deleted', () => {
-            $wire.$refresh();
+            console.log('ICS deleted event received, refreshing...');
+            $wire.handleIcsDeleted();
         });
      ">
     <div class="flex items-center justify-between">
@@ -360,6 +387,10 @@ public string $sortDirection = 'desc';
             </flux:breadcrumbs>
         </div>
         <div class="flex items-center gap-x-2">
+            <flux:button type="button" variant="outline" wire:click="refreshData" wire:loading.attr="disabled" class="!p-2">
+                <x-flux::icon.arrow-path class="h-5 w-5" wire:loading.class="animate-spin" />
+                <span class="sr-only">Refresh</span>
+            </flux:button>
             <div x-data="{ open: false }" class="relative">
                 <flux:button
                     variant="outline"
@@ -1005,5 +1036,46 @@ public string $sortDirection = 'desc';
                 window.addEventListener('mouseup', mouseUpHandler);
             }
         }));
+    });
+
+    // Global event listeners for ICS updates
+    document.addEventListener('livewire:initialized', () => {
+        // Listen for ICS events globally
+        Livewire.on('ics-updated', () => {
+            console.log('Global ICS updated event received');
+            // Find the ICS index component and refresh it
+            const icsIndexComponent = document.querySelector('[wire\\:id]');
+            if (icsIndexComponent) {
+                const componentId = icsIndexComponent.getAttribute('wire:id');
+                const component = Livewire.find(componentId);
+                if (component) {
+                    component.handleIcsUpdated();
+                }
+            }
+        });
+
+        Livewire.on('ics-transferred', () => {
+            console.log('Global ICS transferred event received');
+            const icsIndexComponent = document.querySelector('[wire\\:id]');
+            if (icsIndexComponent) {
+                const componentId = icsIndexComponent.getAttribute('wire:id');
+                const component = Livewire.find(componentId);
+                if (component) {
+                    component.handleIcsTransferred();
+                }
+            }
+        });
+
+        Livewire.on('ics-deleted', () => {
+            console.log('Global ICS deleted event received');
+            const icsIndexComponent = document.querySelector('[wire\\:id]');
+            if (icsIndexComponent) {
+                const componentId = icsIndexComponent.getAttribute('wire:id');
+                const component = Livewire.find(componentId);
+                if (component) {
+                    component.handleIcsDeleted();
+                }
+            }
+        });
     });
 </script> 
