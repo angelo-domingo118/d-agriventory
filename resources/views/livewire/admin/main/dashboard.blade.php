@@ -263,11 +263,11 @@ new #[Layout('components.layouts.app')] class extends Component
                 'color' => 'text-amber-500',
             ],
             [
-                'label' => 'Asset Transfers',
-                'value' => IcsTransfer::count() + ParTransfer::count(),
-                'unit' => 'Transfers',
+                'label' => 'Consumables',
+                'value' => ConsumableItem::sum('current_quantity'),
+                'unit' => 'Items',
                 'change' => '',
-                'icon' => 'flux::icon.arrows-right-left',
+                'icon' => 'flux::icon.box',
                 'color' => 'text-purple-500',
             ],
         ];
@@ -1083,7 +1083,7 @@ new #[Layout('components.layouts.app')] class extends Component
                     </div>
                 </div>
                 <div class="flex-shrink-0 p-3 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                    <x-flux::icon.receipt-percent class="h-6 w-6 text-green-600 dark:text-green-400" />
+                    <x-flux::icon.chart-bar class="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
             </div>
         </div>
