@@ -2397,22 +2397,22 @@ new #[Layout('components.layouts.app')] class extends Component
                                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-violet-100 to-purple-100 text-violet-800 dark:from-violet-900/40 dark:to-purple-900/40 dark:text-violet-200 mr-2">
                                                             {{ $activity['user_name'] }}
                                                         </span>
-                                                        <span class="text-stone-600 dark:text-stone-400">
-                                                {{ $activity['action'] }} 
+                                                        <span class="text-stone-800 dark:text-stone-200 font-medium">
+                                                {{ ucfirst($activity['action']) }} 
                                                         </span>
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300 ml-1">
-                                                            {{ $activity['table'] }}
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-violet-100 text-violet-800 dark:bg-violet-800/50 dark:text-violet-200 ml-1">
+                                                            {{ Str::title(str_replace('_', ' ', $activity['table'])) }}
                                                         </span>
                                                     </p>
                                                 @if($activity['description'])
-                                                        <p class="text-xs text-stone-500 dark:text-stone-400 mt-2 pl-1 border-l-2 border-stone-200 dark:border-stone-700 bg-stone-50/50 dark:bg-stone-800/50 p-2 rounded-r">
-                                                            {{ $activity['description'] }}
+                                                        <p class="text-xs text-stone-700 dark:text-stone-200 mt-2 pl-3 border-l-2 border-violet-200 dark:border-violet-600 bg-violet-50/70 dark:bg-violet-900/20 p-2.5 rounded-r font-medium">
+                                                            {{ Str::limit($activity['description'], 80) }}
                                             </p>
                                                     @endif
                                         </div>
                                                 <div class="flex flex-col items-end ml-4">
-                                                    <div class="flex items-center text-xs text-stone-500 dark:text-stone-400 mb-1">
-                                                        <x-flux::icon.clock class="h-3 w-3 mr-1" />
+                                                    <div class="flex items-center text-xs text-stone-600 dark:text-stone-300 mb-1">
+                                                        <x-flux::icon.clock-history class="h-3 w-3 mr-1" />
                                                         <time datetime="{{ $activity['created_at'] }}" class="whitespace-nowrap font-medium">
                                                             {{ $activity['time_ago'] }}
                                                         </time>
