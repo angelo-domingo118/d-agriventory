@@ -10,13 +10,9 @@
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
                 <!-- Logo Area -->
-                <div class="flex-shrink-0 border-b border-stone-200/30 dark:border-stone-700/30 pb-4 mb-4 px-4">
-                    <a href="{{ route('dashboard') }}" class="logo-area flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-300 group" wire:navigate>
-                        <div class="flex-shrink-0">
-                            <x-app-logo />
-                        </div>
-                        <div class="flex-grow">
-                        </div>
+                <div class="flex-shrink-0 border-b border-stone-200/30 dark:border-stone-700/30 pb-6 mb-6 px-4">
+                    <a href="{{ route('dashboard') }}" class="logo-area flex items-center justify-center px-4 py-4 rounded-xl hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-300 group w-full" wire:navigate>
+                        <x-app-logo />
                     </a>
                 </div>
 
