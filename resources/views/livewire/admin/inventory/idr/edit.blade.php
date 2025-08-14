@@ -31,7 +31,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public string $date_prepared = '';
     public string $date_accepted = '';
     public string $date = '';
-    public string $remarks = '';
+	public ?string $remarks = '';
 
     // Display only property
     public ?float $unit_price = 0.0;
@@ -306,7 +306,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="flex items-center gap-x-4">
                     @can('transfer_inventory')
                         <flux:button variant="outline" @click="$set('showTransferModal', true)" type="button">
-                            <x-flux::icon.arrow-right-on-rectangle class="mr-2 h-4 w-4" />
+                            <x-flux::icon.arrows-right-left class="mr-2 h-4 w-4" />
                             Transfer Item
                         </flux:button>
                     @endcan
@@ -430,7 +430,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <div class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/10">
                     <div class="flex">
                         <div class="flex-shrink-0">
-                            <x-flux::icon.information-circle class="h-5 w-5 text-blue-400" />
+                            <x-flux::icon.document-text class="h-5 w-5 text-blue-400" />
                         </div>
                         <div class="ml-3">
                             <p class="text-sm text-blue-700 dark:text-blue-300">
