@@ -818,14 +818,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             return strtolower($employee['name']) === strtolower($query);
         });
 
-        if (!$exactExists && strlen(trim($query)) >= 2) {
-            array_unshift($this->employee_suggestions, [
-                'id' => 'new',
-                'name' => $query,
-                'type' => 'new'
-            ]);
-        }
-
         $this->show_employee_suggestions = count($this->employee_suggestions) > 0;
     }
 
