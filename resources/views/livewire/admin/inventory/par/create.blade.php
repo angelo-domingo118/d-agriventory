@@ -1238,7 +1238,11 @@ new #[Layout('components.layouts.app')] class extends Component {
             $rules['supplier_search'] = 'required|string|max:255|unique:suppliers,name';
         }
         if ($this->creating_new_contract) {
-            $rules['contract_search'] = 'required|string|max:255|unique:contracts,contract_po_ib_number';
+            $rules['contract_search'] = ['required', 'string', 'max:255',
+                // Ensure the contract number is unique **for the selected supplier only**
+                Rule::unique('contracts', 'contract_po_ib_number')
+                    ->where(fn ($q) => $q->where('supplier_id', $this->supplier_id))
+            ];
         }
         if ($this->creating_new_item) {
             $rules['item_search'] = 'required|string|max:255|unique:items_catalog,name';
