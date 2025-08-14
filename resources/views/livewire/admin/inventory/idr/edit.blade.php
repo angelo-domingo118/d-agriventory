@@ -316,14 +316,18 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div class="lg:col-span-2">
-                <div class="space-y-8">
-                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3></div>
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                                <div class="sm:col-span-1">
+        <div class="mt-6">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                <!-- Column 1: Item & Contract Information -->
+                <div class="space-y-6">
+                    <!-- Item & Contract Section -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Item & Contract Information</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="space-y-4">
+                                <div>
                                     <flux:select wire:model.live="contract_id" label="Contract" required>
                                         <option value="">Select a contract</option>
                                         @foreach($this->allContracts as $contract)
@@ -331,7 +335,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endforeach
                                     </flux:select>
                                 </div>
-                                <div class="sm:col-span-1">
+                                <div>
                                     <flux:select wire:model.live="contract_item_id" label="Item" :disabled="!$this->contract_id" required>
                                         <option value="">Select an item</option>
                                         @if ($this->contractItems)
@@ -341,7 +345,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         @endif
                                     </flux:select>
                                 </div>
-                                <div class="sm:col-span-1">
+                                <div>
                                     <flux:input wire:model="unit_price" label="Unit Cost" type="text" :disabled="true">
                                         <x-slot:leading><span class="text-stone-500">₱</span></x-slot:leading>
                                     </flux:input>
@@ -349,65 +353,188 @@ new #[Layout('components.layouts.app')] class extends Component {
                             </div>
                         </div>
                     </div>
-                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches / Serial Numbers</h3></div>
-                        <div class="p-6">
-                            <div class="space-y-6">
-                                <flux:input type="number" wire:model.live="quantity" label="Total Quantity / Number of Batches" min="1" required />
+                </div>
+
+                <!-- Column 2: Personnel & Document Details -->
+                <div class="space-y-6">
+                    <!-- Personnel Section -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3>
+                        </div>
+                        <div class="space-y-4 p-4">
+                            <flux:select wire:model="assigned_employee_id" label="Assigned To (Stock Officer)" required>
+                                <option value="">Select</option>
+                                @foreach($this->allEmployees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                            <flux:select wire:model="approving_employee_id" label="Approving Official" required>
+                                <option value="">Select</option>
+                                @foreach($this->allEmployees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                            <flux:select wire:model="received_by_id" label="Received By" required>
+                                <option value="">Select</option>
+                                @foreach($this->allEmployees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                            <flux:select wire:model="received_from_id" label="Issued By" required>
+                                <option value="">Select</option>
+                                @foreach($this->allEmployees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                                @endforeach
+                            </flux:select>
+                        </div>
+                    </div>
+
+                    <!-- Document Details -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3>
+                        </div>
+                        <div class="space-y-4 p-4">
+                            <flux:input wire:model="number" label="IDR Number" required />
+                            <flux:input wire:model="inventory_code" label="Inventory Code" required />
+                            <flux:input wire:model="ors" label="ORS Number" required />
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
+                                <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
+                            </div>
+                            <flux:input wire:model="date" type="date" label="IDR Date" required />
+                            <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." rows="2" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Batches -->
+                <div class="space-y-6 lg:col-span-2 xl:col-span-1">
+                    <!-- Batches & Serial Numbers -->
+                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
+                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700">
+                            <h3 class="font-semibold text-stone-800 dark:text-stone-200">Batches / Serial Numbers</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="space-y-4">
+                                <div class="w-full">
+                                    <label for="quantity" class="mb-1 block text-sm font-medium text-stone-700 dark:text-stone-300">
+                                        Total Quantity / Number of Batches
+                                    </label>
+                                    <div class="flex items-center space-x-2" x-data="{ 
+                                        localQuantity: $wire.entangle('quantity'),
+                                        
+                                        validateNumber(e) {
+                                            let value = e.target.value.replace(/[^\d]/g, '');
+                                            const numValue = value ? parseInt(value) : 1;
+                                            this.localQuantity = Math.max(1, numValue);
+                                        },
+                                        
+                                        increment() {
+                                            this.localQuantity++;
+                                        },
+                                        
+                                        decrement() {
+                                            if (this.localQuantity > 1) {
+                                                this.localQuantity--;
+                                            }
+                                        }
+                                    }">
+                                        <!-- Minus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="decrement()"
+                                            x-bind:disabled="localQuantity <= 1"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        >
+                                            <x-flux::icon.minus class="h-4 w-4" />
+                                        </flux:button>
+                                        
+                                        <!-- Input Field -->
+                                        <flux:input 
+                                            id="quantity"
+                                            x-model="localQuantity"
+                                            type="number"
+                                            min="1" 
+                                            class="flex-1 text-center"
+                                            @input="validateNumber($event)"
+                                        />
+                                        
+                                        <!-- Plus Button -->
+                                        <flux:button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="increment()"
+                                            class="flex-shrink-0 w-10 h-10 p-0 flex items-center justify-center"
+                                        >
+                                            <x-flux::icon.plus class="h-4 w-4" />
+                                        </flux:button>
+                                    </div>
+                                    @error('quantity')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
+
                                 <div class="space-y-4">
                                     @foreach ($batches as $batchIndex => $batch)
                                         @if (!($batch['_destroy'] ?? false))
-                                        <div wire:key="batch-{{ $batchIndex }}" class="relative rounded-md border border-stone-300 bg-stone-50 p-4 dark:border-stone-600 dark:bg-stone-800/50">
-                                            <div class="flex items-center justify-between">
-                                                <label class="text-sm font-medium text-stone-700 dark:text-stone-300">Batch #{{ $loop->iteration }} Serial/Identification</label>
-                                                @if ($quantity > 1)
-                                                    <button type="button" wire:click.prevent="removeBatch({{ $batchIndex }})" class="text-red-500 hover:text-red-700">&times; Remove</button>
-                                                @endif
+                                            <div wire:key="batch-{{ $batchIndex }}" class="rounded-lg border border-stone-300 bg-white p-4 dark:border-stone-600 dark:bg-stone-800/50">
+                                                <div class="flex items-center justify-between mb-3">
+                                                    <h4 class="font-semibold text-stone-800 dark:text-stone-200 flex items-center space-x-2">
+                                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-600 text-sm font-medium">
+                                                            {{ $loop->iteration }}
+                                                        </span>
+                                                        <span>Batch #{{ $loop->iteration }}</span>
+                                                    </h4>
+                                                    @if ($quantity > 1)
+                                                        <flux:button type="button" variant="danger" size="sm" wire:click.prevent="removeBatch({{ $batchIndex }})">
+                                                            <x-flux::icon.trash class="h-4 w-4" />
+                                                        </flux:button>
+                                                    @endif
+                                                </div>
+                                                <flux:input 
+                                                    wire:model="batches.{{ $batchIndex }}.identification_data" 
+                                                    label="Serial/Identification Data"
+                                                    placeholder="e.g. SN: 12345, Asset Tag: 67890" 
+                                                />
                                             </div>
-                                            <flux:input wire:model="batches.{{ $batchIndex }}.identification_data" placeholder="e.g. SN: 12345, Asset Tag: 67890" />
-                                        </div>
                                         @endif
                                     @endforeach
-                                    <flux:button type="button" variant="ghost" wire:click.prevent="addBatch">Add Batch</flux:button>
+                                    
+                                    <div class="mt-4 text-center">
+                                        <flux:button type="button" variant="outline" wire:click.prevent="addBatch" class="w-full">
+                                            <div class="flex items-center justify-center">
+                                                <x-flux::icon.plus class="mr-2 h-4 w-4" />
+                                                <span>Add Another Batch</span>
+                                            </div>
+                                        </flux:button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Danger Zone -->
                     @can('delete_inventory')
                     <div class="overflow-hidden rounded-lg border border-red-500 bg-red-50 shadow-sm dark:border-red-600/50 dark:bg-red-900/10">
-                         <div class="border-b border-red-200 p-4 dark:border-red-600/20"><h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3></div>
-                        <div class="p-6">
-                            <p class="text-sm text-red-700 dark:text-red-300">Deleting this IDR record is a permanent action and cannot be undone.</p>
-                             <flux:button type="button" variant="danger" class="mt-4" @click="showDeleteModal = true">Delete this IDR Record</flux:button>
+                        <div class="border-b border-red-200 px-4 py-3 dark:border-red-600/20">
+                            <h3 class="font-semibold text-red-800 dark:text-red-200">Danger Zone</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-sm text-red-700 dark:text-red-300 mb-4">Deleting this IDR record is a permanent action and cannot be undone.</p>
+                            <flux:button type="button" variant="danger" @click="showDeleteModal = true">Delete this IDR Record</flux:button>
                         </div>
                     </div>
                     @endcan
-                </div>
-            </div>
-
-            <div class="lg:col-span-1">
-                <div class="space-y-8">
-                     <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Personnel</h3></div>
-                        <div class="space-y-6 p-6">
-                            <flux:select wire:model="assigned_employee_id" label="Assigned To (Stock Officer)" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
-                            <flux:select wire:model="approving_employee_id" label="Approving Official" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
-                            <flux:select wire:model="received_by_id" label="Received By" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
-                            <flux:select wire:model="received_from_id" label="Issued By" required><option value="">Select</option>@foreach($this->allEmployees as $employee)<option value="{{ $employee->id }}">{{ $employee->name }}</option>@endforeach</flux:select>
-                        </div>
-                    </div>
-                    <div class="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-                        <div class="border-b border-stone-200 px-4 py-3 dark:border-stone-700"><h3 class="font-semibold text-stone-800 dark:text-stone-200">Document Details</h3></div>
-                        <div class="space-y-6 p-6">
-                             <flux:input wire:model="number" label="IDR Number" required />
-                             <flux:input wire:model="inventory_code" label="Inventory Code" required />
-                             <flux:input wire:model="ors" label="ORS Number" required />
-                             <flux:input wire:model="date_prepared" type="date" label="Date Prepared" required />
-                             <flux:input wire:model="date_accepted" type="date" label="Date Accepted" required />
-                             <flux:input wire:model="date" type="date" label="IDR Date" required />
-                             <flux:textarea wire:model="remarks" label="Remarks" placeholder="Add any notes or remarks here..." />
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
