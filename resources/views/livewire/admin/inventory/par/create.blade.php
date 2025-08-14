@@ -157,8 +157,7 @@ new #[Layout('components.layouts.app')] class extends Component {
         $this->selected_brand = '';
         $this->selected_model = '';
         
-        // Set default dates
-        $this->date_prepared = now()->format('m/d/Y');
+        // Set default dates - removed auto-filling of date_prepared
     }
 
     public function generateParNumber(): void
@@ -1352,7 +1351,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
 }; ?>
 
-<form wire:submit="store">
+<form wire:submit="store" novalidate @keydown.enter.prevent="if (event.target.type !== 'submit') { return false; }">
     <div class="border-b border-stone-200 pb-4 dark:border-stone-700">
         <div class="flex items-center justify-between">
             <div>
@@ -1390,7 +1389,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="p-4">
                         <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                             <div>
-                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" error="supplier_id" />
+                                <x-autocomplete id="supplier_search" wire:model.live="supplier_search" wire:suggestions="supplier_suggestions" wire:showSuggestions="show_supplier_suggestions" label="Supplier" placeholder="Type to search suppliers..." required onFocus="$wire.showAllSuppliers()" onSelect="$wire.selectSupplier" />
+                                @error('supplier_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
                                 @if ($creating_new_supplier)
                                     <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                         <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1401,8 +1408,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 @endif
                             </div>
                             <div>
-                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" error="contract_id" />
-                                <x-input-error for="contract_search_error" class="mt-2" />
+                                <x-autocomplete id="contract_search" wire:model.live="contract_search" wire:suggestions="contract_suggestions" wire:showSuggestions="show_contract_suggestions" label="Contract/PO/IB No." placeholder="{{ $creating_new_supplier ? 'Enter new contract number...' : 'Type to search contracts...' }}" :disabled="!$this->supplier_id && !$this->creating_new_supplier" required onFocus="$wire.showAllContracts()" onSelect="$wire.selectContract" />
+                                @error('contract_id')
+                                    <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                        <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span>{{ $message }}</span>
+                                    </div>
+                                @enderror
+
                                 @if ($creating_new_contract)
                                     <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                         <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1427,7 +1442,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <div>
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Catalog</h4>
                                 <div>
-                                    <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" error="items_catalog_id" />
+                                    <x-autocomplete id="item_search" wire:model.live="item_search" wire:suggestions="item_suggestions" wire:showSuggestions="show_item_suggestions" label="Select Item" placeholder="Search by item name..." required :disabled="!$this->contract_id && !$this->creating_new_contract" onFocus="$wire.showAllItems()" onSelect="$wire.selectItem" />
+                                    @error('items_catalog_id')
+                                        <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                            <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
                                     @if ($creating_new_item)
                                         <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                             <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1454,9 +1477,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 placeholder="Search primary categories..." 
                                                 required 
                                                 onFocus="$wire.showAllPrimaryCategories()" 
-                                                onSelect="$wire.selectPrimaryCategory" 
-                                                error="primary_category_id" />
-                                            <x-input-error for="primary_category_id" class="mt-2" />
+                                                onSelect="$wire.selectPrimaryCategory" />
+                                            @error('primary_category_id')
+                                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ $message }}</span>
+                                                </div>
+                                            @enderror
                                         </div>
                                         <div>
                                             <x-autocomplete 
@@ -1469,9 +1498,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 required 
                                                 :disabled="!$this->primary_category_id" 
                                                 onFocus="$wire.showAllSecondaryCategories()" 
-                                                onSelect="$wire.selectSecondaryCategory" 
-                                                error="secondary_category_id" />
-                                            <x-input-error for="secondary_category_id" class="mt-2" />
+                                                onSelect="$wire.selectSecondaryCategory" />
+                                            @error('secondary_category_id')
+                                                <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                    <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>{{ $message }}</span>
+                                                </div>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
@@ -1482,7 +1517,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                 <h4 class="mb-4 font-medium text-stone-800 dark:text-stone-200">Item Specifications</h4>
                                 @if ($this->items_catalog_id && !$creating_new_item)
                                     <div class="mb-4">
-                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search existing specifications..." required onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" error="item_specification_id" />
+                                        <x-autocomplete id="specification_search" wire:model.live="specification_search" wire:suggestions="specification_suggestions" wire:showSuggestions="show_specification_suggestions" label="Specification Template" placeholder="Search existing specifications..." required onFocus="$wire.showAllSpecifications()" onSelect="$wire.selectSpecification" />
                                         @if ($creating_new_specification)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1504,7 +1539,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="font-medium">New brand will be used.</span>
                                             </div>
                                         @endif
-                                        <x-input-error for="main_item_brand" class="mt-2" />
                                     </div>
                                     <div>
                                         <x-autocomplete id="model_search" wire:model.live="model_search" wire:suggestions="model_suggestions" wire:showSuggestions="show_model_suggestions" label="Model" placeholder="e.g., ProBook 450 G9, XPS 15" :disabled="!$creating_new_item && !$creating_new_specification" onFocus="$wire.showAllModels()" onSelect="$wire.selectModel" />
@@ -1516,12 +1550,10 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 <span class="font-medium">New model will be used.</span>
                                             </div>
                                         @endif
-                                        <x-input-error for="main_item_model" class="mt-2" />
                                     </div>
                                 </div>
                                 <div class="mt-4">
                                     <flux:textarea id="detailed_specifications" wire:model="detailed_specifications" label="Detailed Specifications" placeholder="Enter detailed specifications here, e.g., RAM, CPU, Storage, etc." :disabled="!$creating_new_item && !$creating_new_specification" rows="3" @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); }" />
-                                    <x-input-error for="detailed_specifications" class="mt-2" />
                                 </div>
                             </div>
 
@@ -1622,11 +1654,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 @input="updatePrice($event)"
                                                 @keydown.tab="if (!event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit'); }" />
                                         </div>
-                                        <x-input-error for="unit_price" class="mt-2" />
+                                        @error('unit_price')
+                                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span>{{ $message }}</span>
+                                            </div>
+                                        @enderror
                                     </div>
                                     <div>
-                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" error="unit_of_measure" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
-                                        <x-input-error for="unit_of_measure" class="mt-2" />
+                                        <x-autocomplete id="unit_search_pricing" wire:model.live="unit_search" wire:suggestions="unit_suggestions" wire:showSuggestions="show_unit_suggestions" label="Unit of Measure" placeholder="e.g., piece, unit, kg" required onFocus="$wire.showAllUnits()" onSelect="$wire.selectUnit" @keydown.tab="if (event.shiftKey) { event.preventDefault(); $wire.dispatch('focus-unit-cost'); } else { event.preventDefault(); $wire.dispatch('focus-employee'); }" />
+                                        @error('unit_of_measure')
+                                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span>{{ $message }}</span>
+                                            </div>
+                                        @enderror
                                         @if ($creating_new_unit)
                                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1661,7 +1707,15 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <h3 class="font-semibold text-stone-800 dark:text-stone-200">Employee Assignment</h3>
                     </div>
                     <div class="p-4">
-                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" error="assigned_employee_id" />
+                        <x-autocomplete id="employee_search" wire:model.live="employee_search" wire:suggestions="employee_suggestions" wire:showSuggestions="show_employee_suggestions" label="Assign To Employee" placeholder="Type to search employees..." required onFocus="$wire.showAllEmployees()" onSelect="$wire.selectEmployee" />
+                        @error('assigned_employee_id')
+                            <div class="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
+                                <svg class="mr-2 h-5 w-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                </svg>
+                                <span>{{ $message }}</span>
+                            </div>
+                        @enderror
                         @if ($creating_new_employee)
                             <div class="mt-2 flex items-center rounded-lg bg-green-50 p-2 text-sm text-green-700 dark:bg-green-800/20 dark:text-green-400" role="alert">
                                 <svg class="mr-2 h-4 w-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
@@ -1743,7 +1797,6 @@ new #[Layout('components.layouts.app')] class extends Component {
 										<x-flux::icon.lock-closed class="h-4 w-4 text-stone-400 dark:text-stone-500" />
 									</div>
 								</div>
-								<x-input-error for="par_number" class="mt-2" />
 							</div>
 
                             <div>
@@ -1757,7 +1810,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     tabindex="511"
                                     @input="formatDate($event)"
                                 />
-                                <x-input-error for="date_prepared" class="mt-2" />
                             </div>
 
                             <!-- Row 2 -->
@@ -1772,23 +1824,19 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     tabindex="512"
                                     @input="formatDate($event)"
                                 />
-                                <x-input-error for="date_accepted" class="mt-2" />
                             </div>
 
                             <div>
                                 <flux:input wire:model.blur="area_code" label="Area Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="513" />
-                                <x-input-error for="area_code" class="mt-2" />
                             </div>
 
                             <!-- Row 3 -->
                             <div>
                                 <flux:input wire:model.blur="building_code" label="Building/Room Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="514" />
-                                <x-input-error for="building_code" class="mt-2" />
                             </div>
 
                             <div>
                                 <flux:input wire:model.blur="account_code" label="Account Code" placeholder="Optional" :disabled="$isIcsItem" tabindex="515" />
-                                <x-input-error for="account_code" class="mt-2" />
                             </div>
                         </div>
 
