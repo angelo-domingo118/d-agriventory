@@ -149,3 +149,6 @@ select:focus[data-flux-control] {
     background-color: #292524 !important;
     color: #f5f5f4 !important;
 }
+
+/* Import sidebar enhancements */
+@import "./sidebar-enhancements.css";

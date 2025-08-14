@@ -4,16 +4,27 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-stone-800">
-        <flux:sidebar sticky stashable class="w-80 border-e border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-900 overflow-hidden">
+        <flux:sidebar sticky stashable class="w-80 border-e border-stone-200/60 bg-gradient-to-b from-stone-50 to-stone-100/50 dark:border-stone-700/50 dark:bg-gradient-to-b dark:from-stone-900 dark:to-stone-950/80 overflow-hidden shadow-xl backdrop-blur-sm">
             <div class="flex flex-col h-full overflow-hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-                <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                    <x-app-logo />
-                </a>
+                <div class="border-b border-stone-200/30 dark:border-stone-700/30 pb-6 mb-4">
+                    <a href="{{ route('dashboard') }}" class="logo-area me-5 flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-xl hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-300 group" wire:navigate>
+                        <div class="flex-shrink-0">
+                            <x-app-logo />
+                        </div>
+                        <div class="ml-2 flex-grow">
+                            <h3 class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">D'Agriventory</h3>
+                            <p class="text-xs text-stone-500 dark:text-stone-400 font-medium">Admin Portal</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        </div>
+                    </a>
+                </div>
 
                 <div
-                    class="relative flex-1 overflow-y-auto"
+                    class="relative flex-1 overflow-y-auto sidebar-nav"
                     x-data="{
                         showIndicator: false,
                         checkScroll() {
@@ -26,7 +37,7 @@
                     @scroll.debounce.50ms="checkScroll()"
                     @resize.window.debounce.150ms="checkScroll()"
                 >
-                    <flux:navlist class="grid gap-0.5 mt-4" variant="outline">
+                    <flux:navlist class="grid gap-2 px-3" variant="outline">
                         @if (auth()->check())
                             @if (auth()->user()->adminUser)
                                 @include('partials.navigation.admin')
