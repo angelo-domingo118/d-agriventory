@@ -896,7 +896,7 @@ new #[Layout('components.layouts.app')] class extends Component
                                             class="inline-flex items-center text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:underline"
                                         >
                                             Resolve Issue
-                                            <x-flux::icon.arrows-right-left class="ml-1 h-3 w-3" />
+                                            <x-flux::icon.arrow-up-right class="ml-1 h-3 w-3" />
                                         </a>
                                     </div>
                                 @endif
@@ -931,7 +931,7 @@ new #[Layout('components.layouts.app')] class extends Component
                                 title="Refresh system alerts"
                             >
                                 <div wire:loading.remove wire:target="refreshAlerts">
-                                    <x-flux::icon.rotate-cw class="mr-1 h-3 w-3" x-bind:class="refreshing ? 'animate-spin' : ''" />
+                                    <x-flux::icon.arrow-path class="mr-1 h-3 w-3" x-bind:class="refreshing ? 'animate-spin' : ''" />
                                 </div>
                                 <div wire:loading wire:target="refreshAlerts">
                                     <svg class="mr-1 h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1250,7 +1250,7 @@ new #[Layout('components.layouts.app')] class extends Component
                             Inventory System Breakdown
                         </h3>
                         <div class="flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                            <x-flux::icon.layout-grid class="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                            <x-flux::icon.squares-2x2 class="h-3 w-3 text-purple-600 dark:text-purple-400" />
                         </div>
                     </div>
                     <div class="relative">
@@ -1288,7 +1288,7 @@ new #[Layout('components.layouts.app')] class extends Component
                         </div>
                         <div class="mt-4 text-center">
                             <div class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full">
-                                <x-flux::icon.check class="h-3 w-3 text-amber-600 dark:text-amber-400 mr-1" />
+                                <x-flux::icon.star class="h-3 w-3 text-amber-600 dark:text-amber-400 mr-1" />
                                 <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Top 10 suppliers by total spending</span>
                             </div>
                         </div>
@@ -2288,7 +2288,7 @@ new #[Layout('components.layouts.app')] class extends Component
                             </div>
                             <a href="{{ route('admin.system.audit-logs.index') }}" wire:navigate class="inline-flex items-center text-xs font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline transition-colors">
                                 View all activity
-                                <x-flux::icon.arrows-right-left class="ml-1 h-3 w-3" />
+                                <x-flux::icon.arrow-up-right class="ml-1 h-3 w-3" />
                             </a>
                         </div>
                     </div>
@@ -2543,7 +2543,7 @@ new #[Layout('components.layouts.app')] class extends Component
                         <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-4">User management shortcuts and tools</p>
                         </div>
                     <div class="flex items-center px-2 py-1 bg-violet-100 dark:bg-violet-900/30 rounded-full">
-                        <x-flux::icon.zap class="h-3 w-3 text-violet-600 dark:text-violet-400" />
+                        <x-flux::icon.arrows-trending-up class="h-3 w-3 text-violet-600 dark:text-violet-400" />
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
