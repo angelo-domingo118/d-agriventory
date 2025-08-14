@@ -377,8 +377,6 @@ class ParDataSeeder extends Seeder
             'account_code' => $record['Account Code'],
             'date_prepared' => $this->parseDate($record['Date Prepared']),
             'date_accepted' => $this->parseDate($record['Date Accepted']),
-
-            'inventory_code' => $this->generateInventoryCode($record),
             'remarks' => $record['Remarks'] ?? null,
         ]);
     }
@@ -478,18 +476,6 @@ class ParDataSeeder extends Seeder
         } catch (\Exception $e) {
             return Carbon::now();
         }
-    }
-
-    /**
-     * Generate inventory code.
-     */
-    protected function generateInventoryCode(array $record): string
-    {
-        $accountCode = $record['Account Code'];
-        $article = strtoupper($record['Article']);
-        $articleAbbrev = substr(preg_replace('/[^A-Z]/', '', $article), 0, 3);
-
-        return "PAR-{$accountCode}-{$articleAbbrev}-".uniqid();
     }
 
     /**
