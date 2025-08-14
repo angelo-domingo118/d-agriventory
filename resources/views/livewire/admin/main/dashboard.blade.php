@@ -713,132 +713,184 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Inventory Alerts -->
-    <div class="bg-white dark:bg-stone-800/50 rounded-lg p-3 sm:p-4 shadow-sm border border-stone-200 dark:border-stone-700/60">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 mb-4">
-            <h2 class="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100 flex items-center">
-                <x-flux::icon.settings-2 class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                <span class="truncate">Inventory Alerts</span>
-                <span class="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">{{ collect($this->alerts)->filter(fn($val) => $val > 0)->count() }}</span>
-            </h2>
-            <button wire:click="toggleAlerts" class="text-xs sm:text-sm font-medium text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 self-start sm:self-auto">
-                {{ $showAllAlerts ? 'Dismiss' : 'Show Alerts' }}
-            </button>
-        </div>
-    @if($showAllAlerts)
-        <div class="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-red-200 dark:border-red-900/50">
-                <div class="flex items-start">
-                    <x-flux::icon.x-mark class="h-5 w-5 sm:h-6 sm:w-6 text-red-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                    <div class="min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-base font-semibold text-red-500">Low Stock Alert</h3>
-                        <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['low_stock'] }} consumable items are running low across {{ $this->alerts['low_stock_divisions'] }} divisions</p>
-                        <a href="#" class="text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 hover:underline mt-2 inline-block">View Items</a>
+    <div 
+        class="bg-white dark:bg-stone-800/50 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700/60 overflow-hidden"
+        x-data="{ expanded: @js($showAllAlerts) }"
+        x-init="$watch('$wire.showAllAlerts', value => expanded = value)"
+    >
+        @php
+            $criticalAlerts = collect([
+                ['key' => 'low_stock', 'title' => 'Low Stock Alert', 'description' => $this->alerts['low_stock'] . ' consumable items are running low across ' . $this->alerts['low_stock_divisions'] . ' divisions', 'icon' => 'flux::icon.x-mark', 'color' => 'red', 'severity' => 'critical', 'count' => $this->alerts['low_stock'], 'route' => null],
+                ['key' => 'expiring_soon', 'title' => 'Items Expiring Soon', 'description' => $this->alerts['expiring_soon'] . ' items have useful life expiring within 30 days', 'icon' => 'flux::icon.clock-history', 'color' => 'orange', 'severity' => 'high', 'count' => $this->alerts['expiring_soon'], 'route' => null],
+                ['key' => 'pending_transfers', 'title' => 'Pending Transfers', 'description' => $this->alerts['pending_transfers'] . ' transfer requests awaiting approval (ICS, PAR, IDR)', 'icon' => 'flux::icon.clock-history', 'color' => 'amber', 'severity' => 'medium', 'count' => $this->alerts['pending_transfers'], 'route' => null],
+            ])->filter(fn($alert) => $alert['count'] > 0);
+            
+            $warningAlerts = collect([
+                ['key' => 'uncategorized_items', 'title' => 'Uncategorized Items', 'description' => ($this->alerts['uncategorized_items'] ?? 0) . ' items are missing category information', 'icon' => 'flux::icon.tag', 'color' => 'sky', 'severity' => 'low', 'count' => $this->alerts['uncategorized_items'] ?? 0, 'route' => 'admin.data.items-and-categories'],
+                ['key' => 'inactive_suppliers', 'title' => 'Inactive Suppliers', 'description' => ($this->alerts['inactive_suppliers'] ?? 0) . ' suppliers have had no activity in the last year', 'icon' => 'flux::icon.truck', 'color' => 'teal', 'severity' => 'low', 'count' => $this->alerts['inactive_suppliers'] ?? 0, 'route' => 'admin.data.suppliers-and-contracts.suppliers.index'],
+                ['key' => 'unmanaged_divisions', 'title' => 'Unmanaged Divisions', 'description' => ($this->alerts['unmanaged_divisions'] ?? 0) . ' divisions do not have an assigned inventory manager', 'icon' => 'flux::icon.user-minus', 'color' => 'purple', 'severity' => 'medium', 'count' => $this->alerts['unmanaged_divisions'] ?? 0, 'route' => 'admin.data.employees-and-divisions.divisions.index'],
+                ['key' => 'items_missing_specs', 'title' => 'Items Missing Specs', 'description' => ($this->alerts['items_missing_specs'] ?? 0) . ' items in the catalog are missing specifications', 'icon' => 'flux::icon.puzzle-piece', 'color' => 'violet', 'severity' => 'low', 'count' => $this->alerts['items_missing_specs'] ?? 0, 'route' => 'admin.data.items-and-categories'],
+                ['key' => 'unassigned_employees', 'title' => 'Unassigned Employees', 'description' => ($this->alerts['unassigned_employees'] ?? 0) . ' employees are not yet assigned to a division', 'icon' => 'flux::icon.user-circle', 'color' => 'pink', 'severity' => 'low', 'count' => $this->alerts['unassigned_employees'] ?? 0, 'route' => 'admin.data.employees-and-divisions'],
+                ['key' => 'empty_contracts', 'title' => 'Empty Contracts', 'description' => ($this->alerts['empty_contracts'] ?? 0) . ' contracts have no items associated with them', 'icon' => 'flux::icon.document-minus', 'color' => 'cyan', 'severity' => 'low', 'count' => $this->alerts['empty_contracts'] ?? 0, 'route' => 'admin.data.suppliers-and-contracts.contracts.index'],
+            ])->filter(fn($alert) => $alert['count'] > 0);
+            
+            $allAlerts = $criticalAlerts->merge($warningAlerts);
+            $totalActiveAlerts = $allAlerts->count();
+        @endphp
+
+        <!-- Alert Header -->
+        <div class="p-3 sm:p-4 border-b border-stone-200 dark:border-stone-700">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        @if($totalActiveAlerts > 0)
+                            <div class="relative">
+                                <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-500" />
+                                <div class="absolute -top-2 -right-2 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ $totalActiveAlerts }}</div>
+                            </div>
+                        @else
+                            <x-flux::icon.check-circle class="h-5 w-5 text-green-500" />
+                        @endif
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-semibold text-stone-900 dark:text-stone-100">
+                            System Alerts
+                        </h2>
+                        <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
+                            @if($totalActiveAlerts > 0)
+                                {{ $totalActiveAlerts }} {{ Str::plural('issue', $totalActiveAlerts) }} requiring attention
+                            @else
+                                All systems operating normally
+                            @endif
+                        </p>
                     </div>
                 </div>
+                
+                @if($totalActiveAlerts > 0)
+                    <button 
+                        @click="expanded = !expanded; $wire.call('toggleAlerts')"
+                        class="flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-md transition-colors"
+                    >
+                        <span x-text="expanded ? 'Collapse' : 'View Details'">{{ $showAllAlerts ? 'Collapse' : 'View Details' }}</span>
+                        <x-flux::icon.chevron-down class="ml-1 h-4 w-4 transform transition-transform" x-bind:class="expanded ? 'rotate-180' : ''" />
+                    </button>
+                @endif
             </div>
-            <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-amber-200 dark:border-amber-800/50">
-                <div class="flex items-start">
-                    <x-flux::icon.clock-history class="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                    <div class="min-w-0 flex-1">
-                        <h3 class="text-sm sm:text-base font-semibold text-amber-500">Pending Transfers</h3>
-                        <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['pending_transfers'] }} transfer requests awaiting approval (ICS, PAR, IDR)</p>
-                        <a href="#" class="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 hover:underline mt-2 inline-block">Review</a>
-                    </div>
-                </div>
-            </div>
-            @if ($this->alerts['expiring_soon'] > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-orange-200 dark:border-orange-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.clock-history class="h-5 w-5 sm:h-6 sm:w-6 text-orange-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-orange-500">Items Expiring Soon</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['expiring_soon'] }} items have useful life expiring within 30 days</p>
-                            <a href="#" class="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 hover:underline mt-2 inline-block">Details</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['uncategorized_items'] ?? 0) > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-sky-200 dark:border-sky-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.tag class="h-5 w-5 sm:h-6 sm:w-6 text-sky-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-sky-500">Uncategorized Items</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['uncategorized_items'] ?? 0 }} items are missing category information.</p>
-                            <a href="{{ route('admin.data.items-and-categories') }}" wire:navigate class="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 hover:underline mt-2 inline-block">Categorize Items</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['inactive_suppliers'] ?? 0) > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-teal-200 dark:border-teal-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.truck class="h-5 w-5 sm:h-6 sm:w-6 text-teal-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-teal-500">Inactive Suppliers</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['inactive_suppliers'] ?? 0 }} suppliers have had no activity in the last year.</p>
-                            <a href="{{ route('admin.data.suppliers-and-contracts.suppliers.index') }}" wire:navigate class="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 hover:underline mt-2 inline-block">Review Suppliers</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['unmanaged_divisions'] ?? 0) > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-purple-200 dark:border-purple-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.user-minus class="h-5 w-5 sm:h-6 sm:w-6 text-purple-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-purple-500">Unmanaged Divisions</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['unmanaged_divisions'] ?? 0 }} divisions do not have an assigned inventory manager.</p>
-                            <a href="{{ route('admin.data.employees-and-divisions.divisions.index') }}" wire:navigate class="text-xs sm:text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline mt-2 inline-block">Assign Managers</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['items_missing_specs'] ?? 0) > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-violet-200 dark:border-violet-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.puzzle-piece class="h-5 w-5 sm:h-6 sm:w-6 text-violet-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-violet-500">Items Missing Specs</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['items_missing_specs'] }} items in the catalog are missing specifications.</p>
-                            <a href="{{ route('admin.data.items-and-categories') }}" wire:navigate class="text-xs sm:text-sm font-medium text-violet-600 dark:text-violet-400 hover:underline mt-2 inline-block">Add Details</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['unassigned_employees'] ?? 0) > 0)
-                <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-pink-200 dark:border-pink-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.user-circle class="h-5 w-5 sm:h-6 sm:w-6 text-pink-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-pink-500">Unassigned Employees</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['unassigned_employees'] }} employees are not yet assigned to a division.</p>
-                             <a href="{{ route('admin.data.employees-and-divisions') }}" wire:navigate class="text-xs sm:text-sm font-medium text-pink-600 dark:text-pink-400 hover:underline mt-2 inline-block">Assign Division</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            @if (($this->alerts['empty_contracts'] ?? 0) > 0)
-                 <div class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900 rounded-lg shadow-sm border border-cyan-200 dark:border-cyan-900/50">
-                    <div class="flex items-start">
-                        <x-flux::icon.document-minus class="h-5 w-5 sm:h-6 sm:w-6 text-cyan-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
-                        <div class="min-w-0 flex-1">
-                            <h3 class="text-sm sm:text-base font-semibold text-cyan-500">Empty Contracts</h3>
-                            <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">{{ $this->alerts['empty_contracts'] }} contracts have no items associated with them.</p>
-                             <a href="{{ route('admin.data.suppliers-and-contracts.contracts.index') }}" wire:navigate class="text-xs sm:text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:underline mt-2 inline-block">Review Contracts</a>
-                        </div>
-                    </div>
-                </div>
-            @endif
         </div>
-    @endif
+
+        @if($totalActiveAlerts == 0)
+            <!-- No Alerts State -->
+            <div class="p-6 sm:p-8 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 mb-4">
+                    <x-flux::icon.check-circle class="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 class="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">All Clear!</h3>
+                <p class="text-sm text-stone-500 dark:text-stone-400">Your inventory system is running smoothly with no urgent issues.</p>
+            </div>
+        @else
+            <!-- Critical Alerts Summary (Always Visible) -->
+            @if($criticalAlerts->isNotEmpty())
+                <div class="p-3 sm:p-4 bg-red-50 dark:bg-red-950/20 border-b border-red-200 dark:border-red-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/40">
+                                <x-flux::icon.exclamation-triangle class="h-4 w-4 text-red-600 dark:text-red-400" />
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm font-semibold text-red-800 dark:text-red-200">Critical Issues</h3>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                @foreach($criticalAlerts as $alert)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
+                                        {{ $alert['count'] }} {{ $alert['title'] }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Detailed Alerts (Collapsible) -->
+            <div 
+                x-show="expanded"
+                x-collapse.duration.300ms
+                class="divide-y divide-stone-200 dark:divide-stone-700"
+            >
+                @foreach($allAlerts as $alert)
+                    <div class="p-3 sm:p-4 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 mt-0.5">
+                                @php
+                                    $severityColors = [
+                                        'critical' => 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400',
+                                        'high' => 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400',
+                                        'medium' => 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
+                                        'low' => 'bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-400'
+                                    ];
+                                    $colorClass = $severityColors[$alert['severity']] ?? $severityColors['low'];
+                                @endphp
+                                <div class="flex items-center justify-center h-8 w-8 rounded-full {{ $colorClass }}">
+                                    <x-dynamic-component :component="$alert['icon']" class="h-4 w-4" />
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                        {{ $alert['title'] }}
+                                    </h4>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-300">
+                                        {{ $alert['count'] }}
+                                    </span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">
+                                    {{ $alert['description'] }}
+                                </p>
+                                
+                                @if($alert['route'])
+                                    <div class="mt-2">
+                                        <a 
+                                            href="{{ route($alert['route']) }}" 
+                                            wire:navigate 
+                                            class="inline-flex items-center text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 hover:underline"
+                                        >
+                                            Resolve Issue
+                                            <x-flux::icon.arrow-up-right class="ml-1 h-3 w-3" />
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Action Footer (when expanded) -->
+            <div 
+                x-show="expanded && @js($totalActiveAlerts > 0)"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="p-3 sm:p-4 bg-stone-50 dark:bg-stone-900/50 border-t border-stone-200 dark:border-stone-700"
+            >
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                        <div class="text-xs sm:text-sm text-stone-600 dark:text-stone-400">
+                            Last updated: {{ now()->format('M j, Y \a\t g:i A') }}
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="inline-flex items-center px-2 py-1 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700 rounded transition-colors">
+                                <x-flux::icon.arrow-path class="mr-1 h-3 w-3" />
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+            </div>
     </div>
+    @endif
 
     <!-- Quick Actions -->
     <div>
