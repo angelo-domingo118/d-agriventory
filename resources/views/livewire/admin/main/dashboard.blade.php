@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public string $tab = 'overview';
-    public bool $showAllAlerts = true;
+    public bool $showAllAlerts = false;
 
     // Chart data tracking for change detection
     public ?string $chartDataChecksum = null;
