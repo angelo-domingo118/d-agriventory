@@ -1218,31 +1218,41 @@ new #[Layout('components.layouts.app')] class extends Component
                             <x-flux::icon.chart-bar class="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                         </div>
                     </div>
-                    <div class="h-56 sm:h-72 lg:h-80 xl:h-96 flex items-center justify-center">
+                    <div class="h-64 sm:h-80 lg:h-96 xl:h-[28rem] flex items-stretch">
                         <div class="flex w-full h-full">
-                            <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
-                            <div wire:ignore class="flex-shrink-0 flex items-center justify-center bg-white/50 dark:bg-stone-900/30 rounded-lg p-3 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30 w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] lg:w-[240px] lg:h-[240px]">
+                            <!-- Large Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
+                            <div wire:ignore class="flex-shrink-0 flex items-center justify-center bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30" style="width: 65%; height: 100%;">
                                 <canvas id="donut-chart-canvas" class="w-full h-full"></canvas>
                             </div>
-                            <!-- Compact Legend -->
-                            <div class="flex-1 ml-3 flex flex-col justify-center space-y-1.5 max-h-full overflow-y-auto bg-stone-50/80 dark:bg-stone-800/50 rounded-lg p-2 backdrop-blur-sm">
-                                @foreach($this->categoryDistribution->take(6) as $index => $category)
-                                    <div class="flex items-center justify-between text-xs bg-white dark:bg-stone-700 rounded-md p-2 shadow-sm">
-                                        <div class="flex items-center min-w-0 flex-1">
-                                            <div class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][$index % 6] }}"></div>
-                                            <span class="text-stone-800 dark:text-stone-200 font-medium truncate">{{ Str::limit($category['name'], 12) }}</span>
-                                        </div>
-                                        <span class="ml-2 text-stone-600 dark:text-stone-400 font-semibold flex-shrink-0">{{ $category['percentage'] }}%</span>
-                                    </div>
-                                @endforeach
-                                @if($this->categoryDistribution->count() > 6)
-                                    <div class="text-center text-xs text-stone-500 dark:text-stone-400 pt-1">
-                                        +{{ $this->categoryDistribution->count() - 6 }} more categories
-                                    </div>
-                                @endif
-                                <div class="mt-2 text-center border-t border-stone-200 dark:border-stone-600 pt-2 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-md p-1.5">
-                                    <div class="text-sm font-bold text-stone-900 dark:text-stone-100">{{ number_format($this->categoryDistribution->sum('count')) }}</div>
+                            <!-- Compact Vertical Legend - Fixed Height, No Scroll -->
+                            <div class="flex-1 ml-2 flex flex-col h-full bg-stone-50/80 dark:bg-stone-800/50 rounded-lg p-2 backdrop-blur-sm">
+                                <!-- Summary Stats -->
+                                <div class="text-center border-b border-stone-200 dark:border-stone-600 pb-2 mb-2 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-md p-2 flex-shrink-0">
+                                    <div class="text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($this->categoryDistribution->sum('count')) }}</div>
                                     <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Total Items</div>
+                                </div>
+                                <!-- Category List - Flexible to fill remaining space -->
+                                <div class="flex-1 flex flex-col justify-center space-y-1">
+                                    @foreach($this->categoryDistribution->take(6) as $index => $category)
+                                        <div class="flex items-center justify-between bg-white dark:bg-stone-700 rounded-md p-2 shadow-sm">
+                                            <div class="flex items-center min-w-0 flex-1">
+                                                <div class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][$index % 6] }}"></div>
+                                                <span class="text-stone-800 dark:text-stone-200 font-medium truncate text-xs">{{ Str::limit($category['name'], 11) }}</span>
+                                            </div>
+                                            <div class="flex flex-col items-end ml-2">
+                                                <span class="text-stone-600 dark:text-stone-400 font-bold text-xs">{{ $category['percentage'] }}%</span>
+                                                <span class="text-stone-500 dark:text-stone-500 text-xs">{{ number_format($category['count']) }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    @if($this->categoryDistribution->count() > 6)
+                                        <div class="text-center text-xs text-stone-500 dark:text-stone-400 py-1.5 bg-white dark:bg-stone-700 rounded-md border border-stone-200 dark:border-stone-600">
+                                            <span class="font-medium">{{ $this->categoryDistribution->count() - 6 }} more categories</span>
+                                            <div class="text-xs text-stone-400 dark:text-stone-500 mt-0.5">
+                                                {{ number_format($this->categoryDistribution->skip(6)->sum('count')) }} items
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1409,7 +1419,7 @@ new #[Layout('components.layouts.app')] class extends Component
                     datasets: [{
                         data: categoryData.map(d => d.count),
                         backgroundColor: colors.slice(0, categoryData.length),
-                        borderWidth: 2,
+                        borderWidth: 3,
                         borderColor: '#ffffff'
                     }]
                 };
@@ -1420,9 +1430,38 @@ new #[Layout('components.layouts.app')] class extends Component
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const percentage = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percent = ((value / percentage) * 100).toFixed(1);
+                                    return `${label}: ${value.toLocaleString()} items (${percent}%)`;
+                                }
+                            }
                         }
                     },
-                    cutout: '60%'
+                    cutout: '65%',
+                    elements: {
+                        arc: {
+                            borderWidth: 3,
+                            borderColor: '#ffffff',
+                            hoverBorderWidth: 4
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
                 };
                 
                 window.initializeChart(data[0].chartId, 'doughnut', doughnutChartData, doughnutChartOptions);
@@ -1491,12 +1530,48 @@ new #[Layout('components.layouts.app')] class extends Component
                     datasets: [{
                         data: categoryData.map(d => d.count),
                         backgroundColor: colors.slice(0, categoryData.length),
-                        borderWidth: 2,
+                        borderWidth: 3,
                         borderColor: '#ffffff'
                     }]
                 };
                 
-                window.updateChart(data[0].chartId, newData);
+                const doughnutUpdateOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            displayColors: true,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const percentage = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percent = ((value / percentage) * 100).toFixed(1);
+                                    return `${label}: ${value.toLocaleString()} items (${percent}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%',
+                    elements: {
+                        arc: {
+                            borderWidth: 3,
+                            borderColor: '#ffffff',
+                            hoverBorderWidth: 4
+                        }
+                    }
+                };
+                
+                window.updateChart(data[0].chartId, newData, doughnutUpdateOptions);
             });
 
             // Inventory System Breakdown Chart Event Handlers
