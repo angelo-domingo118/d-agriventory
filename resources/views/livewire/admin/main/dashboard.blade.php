@@ -1822,6 +1822,9 @@ new #[Layout('components.layouts.app')] class extends Component
             <a href="#" wire:click.prevent="setTab('recent-activity')" class="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm {{ $tab === 'recent-activity' ? 'text-accent dark:text-accent-content border-accent' : 'text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-600 border-transparent' }} mr-4 sm:mr-8" @if($tab === 'recent-activity') aria-current="page" @endif>
                 Activity
             </a>
+            <a href="#" wire:click.prevent="setTab('employees')" class="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm {{ $tab === 'employees' ? 'text-accent dark:text-accent-content border-accent' : 'text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-600 border-transparent' }} mr-4 sm:mr-8" @if($tab === 'employees') aria-current="page" @endif>
+                Employees
+            </a>
              <a href="#" wire:click.prevent="setTab('user-management')" class="whitespace-nowrap py-3 sm:py-4 px-2 sm:px-3 border-b-2 font-medium text-xs sm:text-sm {{ $tab === 'user-management' ? 'text-accent dark:text-accent-content border-accent' : 'text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:border-stone-600 border-transparent' }}" @if($tab === 'user-management') aria-current="page" @endif>
                 Users
             </a>
@@ -1960,104 +1963,6 @@ new #[Layout('components.layouts.app')] class extends Component
         </div>
     </div>
 
-    <!-- Employee Inventory Overview -->
-    <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm mt-6">
-        <div class="p-4 sm:p-6 lg:p-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                        <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-3"></div>
-                        Top Employee Assignments
-                    </h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Employees with the most ICS/PAR/IDR assignments</p>
-                </div>
-                <div class="flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-xs text-emerald-700 dark:text-emerald-300">
-                    <x-flux::icon.user-group class="h-4 w-4 mr-1" />
-                    <span class="hidden sm:inline font-medium">Top 10 Assignees</span>
-                </div>
-            </div>
-            
-            <div class="overflow-hidden rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-stone-200/50 dark:divide-stone-700/50">
-                        <thead class="bg-gradient-to-r from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20">
-                            <tr>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
-                                    <div class="flex items-center space-x-1">
-                                        <x-flux::icon.user class="h-4 w-4" />
-                                        <span>Employee</span>
-                                    </div>
-                                </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
-                                    <div class="flex items-center space-x-1">
-                                        <x-flux::icon.package class="h-4 w-4" />
-                                        <span>Total Items</span>
-                                    </div>
-                                </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
-                                    <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-md text-green-700 dark:text-green-400 text-xs font-semibold">ICS</span>
-                                </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
-                                    <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 rounded-md text-yellow-700 dark:text-yellow-400 text-xs font-semibold">PAR</span>
-                                </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden md:table-cell">
-                                    <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-md text-purple-700 dark:text-purple-400 text-xs font-semibold">IDR</span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm divide-y divide-stone-200/30 dark:divide-stone-700/30">
-                        @forelse($this->employeeInventoryTopAssignees as $index => $employee)
-                            <tr class="group hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-950/20 dark:hover:to-green-950/20 transition-all duration-200 hover:shadow-sm">
-                                <td class="px-4 sm:px-6 py-4">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10">
-                                            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                                <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">#{{ $index + 1 }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="ml-3">
-                                            <div class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">{{ $employee->name ?: 'Unknown' }}</div>
-                                            <div class="text-xs text-stone-500 dark:text-stone-400">
-                                                {{ $employee->division_name ?: 'No division assigned' }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 sm:px-6 py-4">
-                                    <div class="flex items-center">
-                                        <span class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($employee->total_items) }}</span>
-                                        <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">items</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                                    <div class="text-sm font-semibold text-green-700 dark:text-green-400">{{ number_format($employee->ics_total) }}</div>
-                                </td>
-                                <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                                    <div class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ number_format($employee->par_total) }}</div>
-                                </td>
-                                <td class="px-4 sm:px-6 py-4 hidden md:table-cell">
-                                    <div class="text-sm font-semibold text-purple-700 dark:text-purple-400">{{ number_format($employee->idr_total) }}</div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center">
-                                        <div class="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mb-4">
-                                            <x-flux::icon.user-group class="h-8 w-8 text-stone-400 dark:text-stone-500" />
-                                        </div>
-                                        <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">No employee assignments found</h3>
-                                        <p class="text-xs text-stone-500 dark:text-stone-400 max-w-sm">Employees with assigned inventory items will appear here.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                </div>
-            </div>
-        </div>
-    </div>
     @endif
 
     @if ($tab === 'item-categories')
@@ -2836,6 +2741,290 @@ new #[Layout('components.layouts.app')] class extends Component
                             <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-500 pointer-events-none"></div>
                         </a>
                     @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    
+    @if ($tab === 'employees')
+    <!-- Employee Inventory Overview -->
+    <div class="space-y-6 sm:space-y-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                    <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-3"></div>
+                    Employee Inventory Assignments
+                </h3>
+                <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">ICS, PAR, and IDR assignments by employee</p>
+            </div>
+            <div class="flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-xs text-emerald-700 dark:text-emerald-300">
+                <x-flux::icon.user-group class="h-4 w-4 mr-1" />
+                <span class="hidden sm:inline font-medium">{{ count($this->employeeInventoryTopAssignees) }} Active Assignees</span>
+            </div>
+        </div>
+        
+        <!-- Employee Assignment Stats Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            @php
+                $topAssignees = collect($this->employeeInventoryTopAssignees);
+                $totalEmployeesWithAssignments = $topAssignees->count();
+                $totalAssignments = $topAssignees->sum('total_items');
+                $totalIcsAssignments = $topAssignees->sum('ics_total');
+                $totalParAssignments = $topAssignees->sum('par_total');
+                $totalIdrAssignments = $topAssignees->sum('idr_total');
+                $employeesWithDivisions = $topAssignees->whereNotNull('division_name')->count();
+            @endphp
+            
+            <div class="group bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/30 dark:to-green-950/30 rounded-xl shadow-lg border border-emerald-200/50 dark:border-emerald-800/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <x-flux::icon.users class="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Active Assignees</dt>
+                            <dd class="text-2xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-100 mt-1">{{ number_format($totalEmployeesWithAssignments) }}</dd>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">With inventory assignments</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl shadow-lg border border-blue-200/50 dark:border-blue-800/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <x-flux::icon.package class="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-xs sm:text-sm font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Total Assignments</dt>
+                            <dd class="text-2xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100 mt-1">{{ number_format($totalAssignments) }}</dd>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-blue-600 dark:text-blue-400 font-medium">All systems combined</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/30 dark:to-violet-950/30 rounded-xl shadow-lg border border-purple-200/50 dark:border-purple-800/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <x-flux::icon.building-2 class="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-xs sm:text-sm font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">With Divisions</dt>
+                            <dd class="text-2xl sm:text-3xl font-bold text-purple-900 dark:text-purple-100 mt-1">{{ number_format($employeesWithDivisions) }}</dd>
+                            <div class="flex items-center mt-2">
+                                @php $divisionPercentage = $totalEmployeesWithAssignments > 0 ? round(($employeesWithDivisions / $totalEmployeesWithAssignments) * 100) : 0; @endphp
+                                <span class="text-xs text-purple-600 dark:text-purple-400 font-medium">{{ $divisionPercentage }}% assigned</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl shadow-lg border border-amber-200/50 dark:border-amber-800/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <x-flux::icon.exclamation-triangle class="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <dt class="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Unassigned</dt>
+                            <dd class="text-2xl sm:text-3xl font-bold text-amber-900 dark:text-amber-100 mt-1">{{ number_format($totalEmployeesWithAssignments - $employeesWithDivisions) }}</dd>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-amber-600 dark:text-amber-400 font-medium">No division assigned</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Breakdown -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-green-500 to-green-600 rounded-full mr-2"></div>
+                            ICS Assignments
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                            <x-flux::icon.clipboard-document-list class="h-3 w-3 text-green-600 dark:text-green-400" />
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($totalIcsAssignments) }}</div>
+                        <div class="text-sm text-stone-500 dark:text-stone-400 mt-1">Semi-expendable items</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-yellow-500 to-yellow-600 rounded-full mr-2"></div>
+                            PAR Assignments
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
+                            <x-flux::icon.clipboard-document-check class="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ number_format($totalParAssignments) }}</div>
+                        <div class="text-sm text-stone-500 dark:text-stone-400 mt-1">Property acknowledgments</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full mr-2"></div>
+                            IDR Assignments
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                            <x-flux::icon.clipboard-document class="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($totalIdrAssignments) }}</div>
+                        <div class="text-sm text-stone-500 dark:text-stone-400 mt-1">Delivery receipts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Employee Assignments Table -->
+        <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm">
+            <div class="p-4 sm:p-6 lg:p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-3"></div>
+                            Top Employee Assignments
+                        </h3>
+                        <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Employees with the most ICS/PAR/IDR assignments</p>
+                    </div>
+                    <div class="flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-xs text-emerald-700 dark:text-emerald-300">
+                        <x-flux::icon.user-group class="h-4 w-4 mr-1" />
+                        <span class="hidden sm:inline font-medium">Top Assignees</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-hidden rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-stone-200/50 dark:divide-stone-700/50">
+                            <thead class="bg-gradient-to-r from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20">
+                                <tr>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
+                                        <div class="flex items-center space-x-1">
+                                            <x-flux::icon.user class="h-4 w-4" />
+                                            <span>Employee</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
+                                        <div class="flex items-center space-x-1">
+                                            <x-flux::icon.package class="h-4 w-4" />
+                                            <span>Total Items</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
+                                        <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-md text-green-700 dark:text-green-400 text-xs font-semibold">ICS</span>
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
+                                        <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 rounded-md text-yellow-700 dark:text-yellow-400 text-xs font-semibold">PAR</span>
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden md:table-cell">
+                                        <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-md text-purple-700 dark:text-purple-400 text-xs font-semibold">IDR</span>
+                                    </th>
+                                    <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden lg:table-cell">
+                                        <div class="flex items-center space-x-1">
+                                            <x-flux::icon.building-2 class="h-4 w-4" />
+                                            <span>Division</span>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm divide-y divide-stone-200/30 dark:divide-stone-700/30">
+                            @forelse($this->employeeInventoryTopAssignees as $index => $employee)
+                                <tr class="group hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-950/20 dark:hover:to-green-950/20 transition-all duration-200 hover:shadow-sm">
+                                    <td class="px-4 sm:px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                                    <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">#{{ $index + 1 }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-3">
+                                                <div class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">{{ $employee->name ?: 'Unknown' }}</div>
+                                                <div class="text-xs text-stone-500 dark:text-stone-400 lg:hidden">
+                                                    {{ $employee->division_name ?: 'No division assigned' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4">
+                                        <div class="flex items-center">
+                                            <span class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($employee->total_items) }}</span>
+                                            <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">items</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                        <div class="text-sm font-semibold text-green-700 dark:text-green-400">{{ number_format($employee->ics_total) }}</div>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                        <div class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ number_format($employee->par_total) }}</div>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 hidden md:table-cell">
+                                        <div class="text-sm font-semibold text-purple-700 dark:text-purple-400">{{ number_format($employee->idr_total) }}</div>
+                                    </td>
+                                    <td class="px-4 sm:px-6 py-4 hidden lg:table-cell">
+                                        @if($employee->division_name)
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                                {{ $employee->division_name }}
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                <x-flux::icon.exclamation-triangle class="h-3 w-3 mr-1" />
+                                                Unassigned
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <div class="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mb-4">
+                                                <x-flux::icon.user-group class="h-8 w-8 text-stone-400 dark:text-stone-500" />
+                                            </div>
+                                            <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">No employee assignments found</h3>
+                                            <p class="text-xs text-stone-500 dark:text-stone-400 max-w-sm">Employees with assigned inventory items will appear here.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                    </div>
                 </div>
             </div>
         </div>
