@@ -37,6 +37,19 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->tab = $tab;
     }
+
+    public function refreshAlerts(): void
+    {
+        // Clear cache to force refresh of alert data
+        Cache::forget('admin.dashboard.alerts');
+        Cache::forget('admin.dashboard.stats');
+        
+        // Add a small delay to show the loading animation
+        usleep(500000); // 0.5 seconds
+        
+        // Dispatch browser event for toast notification
+        $this->dispatch('alert-refreshed');
+    }
     
     public function mount(): void
     {
@@ -714,9 +727,14 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <!-- Inventory Alerts -->
     <div 
-        class="bg-white dark:bg-stone-800/50 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700/60 overflow-hidden"
-        x-data="{ expanded: @js($showAllAlerts) }"
+        class="bg-white dark:bg-stone-800/50 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700/60 overflow-hidden transition-all duration-300"
+        x-data="{ 
+            expanded: @js($showAllAlerts),
+            refreshed: false 
+        }"
         x-init="$watch('$wire.showAllAlerts', value => expanded = value)"
+        x-on:alert-refreshed.window="refreshed = true; setTimeout(() => refreshed = false, 600)"
+        x-bind:class="refreshed ? 'ring-2 ring-blue-500/20 shadow-lg' : ''"
     >
         @php
             $criticalAlerts = collect([
@@ -745,11 +763,22 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="flex-shrink-0">
                         @if($totalActiveAlerts > 0)
                             <div class="relative">
-                                <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-500" />
-                                <div class="absolute -top-2 -right-2 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ $totalActiveAlerts }}</div>
+                                <div wire:loading.remove wire:target="refreshAlerts">
+                                    <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-500" />
+                                    <div class="absolute -top-2 -right-2 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ $totalActiveAlerts }}</div>
+                                </div>
+                                <div wire:loading wire:target="refreshAlerts" class="relative">
+                                    <div class="h-5 w-5 rounded-full bg-amber-200 dark:bg-amber-800 animate-pulse"></div>
+                                    <div class="absolute -top-2 -right-2 h-4 w-4 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+                                </div>
                             </div>
                         @else
-                            <x-flux::icon.check-circle class="h-5 w-5 text-green-500" />
+                            <div wire:loading.remove wire:target="refreshAlerts">
+                                <x-flux::icon.check-circle class="h-5 w-5 text-green-500" />
+                            </div>
+                            <div wire:loading wire:target="refreshAlerts">
+                                <div class="h-5 w-5 rounded-full bg-green-200 dark:bg-green-800 animate-pulse"></div>
+                            </div>
                         @endif
                     </div>
                     <div>
@@ -757,11 +786,16 @@ new #[Layout('components.layouts.app')] class extends Component {
                             System Alerts
                         </h2>
                         <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400">
-                            @if($totalActiveAlerts > 0)
-                                {{ $totalActiveAlerts }} {{ Str::plural('issue', $totalActiveAlerts) }} requiring attention
-                            @else
-                                All systems operating normally
-                            @endif
+                            <span wire:loading.remove wire:target="refreshAlerts">
+                                @if($totalActiveAlerts > 0)
+                                    {{ $totalActiveAlerts }} {{ Str::plural('issue', $totalActiveAlerts) }} requiring attention
+                                @else
+                                    All systems operating normally
+                                @endif
+                            </span>
+                            <span wire:loading wire:target="refreshAlerts" class="text-blue-500 dark:text-blue-400">
+                                Checking system status...
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -882,9 +916,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                             Last updated: {{ now()->format('M j, Y \a\t g:i A') }}
                         </div>
                         <div class="flex space-x-2">
-                            <button class="inline-flex items-center px-2 py-1 text-xs font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-700 rounded transition-colors">
-                                <x-flux::icon.arrow-path class="mr-1 h-3 w-3" />
-                                Refresh
+                            <button 
+                                wire:click="refreshAlerts"
+                                wire:loading.attr="disabled"
+                                x-data="{ refreshing: false }"
+                                x-on:click="refreshing = true; setTimeout(() => refreshing = false, 1500)"
+                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-sm focus:ring-2 focus:ring-blue-500/20"
+                                title="Refresh system alerts"
+                            >
+                                <div wire:loading.remove wire:target="refreshAlerts">
+                                    <x-flux::icon.arrow-path class="mr-1 h-3 w-3" x-bind:class="refreshing ? 'animate-spin' : ''" />
+                                </div>
+                                <div wire:loading wire:target="refreshAlerts">
+                                    <svg class="mr-1 h-3 w-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <span wire:loading.remove wire:target="refreshAlerts">Refresh</span>
+                                <span wire:loading wire:target="refreshAlerts">Refreshing...</span>
                             </button>
                         </div>
                     </div>
@@ -1324,6 +1374,53 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         });
     </script>
+
+    <!-- Toast Notification -->
+    <div 
+        x-data="{ 
+            show: false, 
+            message: '', 
+            type: 'success',
+            showToast(msg, toastType = 'success') {
+                this.message = msg;
+                this.type = toastType;
+                this.show = true;
+                setTimeout(() => this.show = false, 3000);
+            }
+        }"
+        x-on:alert-refreshed.window="showToast('System alerts refreshed successfully!', 'success')"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2"
+        class="fixed top-4 right-4 z-50 max-w-sm w-full bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg shadow-lg p-4"
+        x-cloak
+    >
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div x-show="type === 'success'" class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/40">
+                    <x-flux::icon.check class="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div x-show="type === 'error'" class="flex items-center justify-center h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/40">
+                    <x-flux::icon.x-mark class="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+            </div>
+            <div class="ml-3 w-0 flex-1 pt-0.5">
+                <p class="text-sm font-medium text-stone-900 dark:text-stone-100" x-text="message"></p>
+            </div>
+            <div class="ml-4 flex-shrink-0 flex">
+                <button 
+                    @click="show = false"
+                    class="bg-white dark:bg-stone-800 rounded-md inline-flex text-stone-400 hover:text-stone-500 focus:outline-none"
+                >
+                    <x-flux::icon.x-mark class="h-4 w-4" />
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Tabs -->
     <div class="border-b border-stone-200 dark:border-stone-700">
