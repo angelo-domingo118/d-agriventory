@@ -1155,115 +1155,153 @@ new #[Layout('components.layouts.app')] class extends Component {
     </div>
 
     <!-- Analytics & Reports -->
-    <div>
-        <div class="flex items-center justify-between mb-6 sm:mb-8">
-            <div>
-                <h2 class="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                    <div class="w-2 h-7 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-3"></div>
-                    Analytics & Reports
-                </h2>
-                <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Real-time insights and data visualization</p>
+    <div class="bg-white dark:bg-stone-800/90 backdrop-blur-sm rounded-lg shadow-lg border border-stone-200 dark:border-stone-700/70 hover:shadow-xl transition-all duration-300">
+        <div class="p-4 sm:p-6 lg:p-8">
+            <div class="flex items-center justify-between mb-6 sm:mb-8">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                        <div class="w-2 h-7 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-3"></div>
+                        Analytics & Reports
+                    </h2>
+                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Real-time insights and data visualization</p>
+                </div>
+                <div class="flex items-center px-3 py-1.5 bg-stone-100 dark:bg-stone-700/50 rounded-full text-xs text-stone-500 dark:text-stone-400">
+                    <x-flux::icon.chart-bar class="h-4 w-4 mr-1" />
+                    <span class="hidden sm:inline font-medium">Live Data</span>
+                </div>
             </div>
-            <div class="flex items-center px-3 py-1.5 bg-stone-100 dark:bg-stone-700/50 rounded-full text-xs text-stone-500 dark:text-stone-400">
-                <x-flux::icon.chart-bar class="h-4 w-4 mr-1" />
-                <span class="hidden sm:inline font-medium">Live Data</span>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
-            <!-- Chart 1: Inventory Value Over Time -->
-            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-4 sm:p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-sm sm:text-base font-semibold text-stone-700 dark:text-stone-300 mb-3 sm:mb-4">Inventory Value Over Time</h3>
-                <div class="relative">
-                    <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
-                    <div wire:ignore class="h-48 sm:h-64 relative">
-                        <canvas id="line-chart-canvas" class="w-full h-full"></canvas>
+            
+            <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
+                <!-- Chart 1: Inventory Value Over Time -->
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-2"></div>
+                            Inventory Value Over Time
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                            <x-flux::icon.arrows-trending-up class="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        </div>
                     </div>
-                        <!-- Chart Legend -->
-                        <div class="flex flex-wrap justify-center mt-2 sm:mt-3 gap-2 sm:gap-4 text-xs">
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 rounded-full mr-1"></div>
-                                <span class="text-stone-600 dark:text-stone-400">Total Value</span>
+                    <div class="relative">
+                        <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
+                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                            <canvas id="line-chart-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <!-- Enhanced Chart Legend -->
+                        <div class="flex flex-wrap justify-center mt-4 gap-3 sm:gap-4 p-3 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
+                            <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">Total Value</span>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full mr-1"></div>
-                                <span class="text-stone-600 dark:text-stone-400">ICS</span>
+                            <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">ICS</span>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded-full mr-1"></div>
-                                <span class="text-stone-600 dark:text-stone-400">PAR</span>
+                            <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">PAR</span>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-purple-500 rounded-full mr-1"></div>
-                                <span class="text-stone-600 dark:text-stone-400">IDR</span>
+                            <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">IDR</span>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full mr-1"></div>
-                                <span class="text-stone-600 dark:text-stone-400">Consumables</span>
+                            <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">Consumables</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Item Distribution by Category -->
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-2"></div>
+                            Item Distribution by Category
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
+                            <x-flux::icon.chart-bar class="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                    </div>
+                    <div class="flex flex-col lg:flex-row items-center justify-center lg:space-x-6">
+                        <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
+                        <div wire:ignore class="relative mb-4 lg:mb-0 bg-white/50 dark:bg-stone-900/30 rounded-lg p-4 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                            <canvas id="donut-chart-canvas" width="160" height="160" class="sm:w-[200px] sm:h-[200px]"></canvas>
+                        </div>
+                        <!-- Enhanced Legend -->
+                        <div class="w-full lg:w-auto lg:ml-6 space-y-2 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg p-4 backdrop-blur-sm">
+                            @foreach($this->categoryDistribution as $index => $category)
+                                <div class="flex items-center justify-between text-xs sm:text-sm bg-white dark:bg-stone-700 rounded-lg p-2 shadow-sm">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full mr-3 flex-shrink-0 shadow-sm" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'][$index % 8] }}"></div>
+                                        <span class="text-stone-800 dark:text-stone-200 font-medium truncate">{{ $category['name'] }}</span>
+                                    </div>
+                                    <span class="ml-3 text-stone-600 dark:text-stone-400 font-semibold flex-shrink-0">{{ $category['percentage'] }}%</span>
+                                </div>
+                            @endforeach
+                            <div class="mt-4 text-center border-t border-stone-200 dark:border-stone-600 pt-3 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg p-2">
+                                <div class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($this->categoryDistribution->sum('count')) }}</div>
+                                <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Total Items</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Inventory System Breakdown -->
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full mr-2"></div>
+                            Inventory System Breakdown
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                            <x-flux::icon.squares-2x2 class="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <!-- Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
+                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                            <canvas id="inventory-system-chart-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <!-- Enhanced Chart Legend -->
+                        <div class="flex flex-wrap justify-center mt-4 gap-3 p-3 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
+                            @foreach($this->inventorySystemBreakdown as $system)
+                                <div class="flex items-center px-3 py-1.5 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                    <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ $system['color'] }}"></div>
+                                    <span class="text-xs font-medium text-stone-700 dark:text-stone-300">{{ $system['system'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Top Suppliers Spending -->
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                            <div class="w-2 h-5 bg-gradient-to-b from-amber-500 to-amber-600 rounded-full mr-2"></div>
+                            Top Suppliers Spending
+                        </h3>
+                        <div class="flex items-center px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
+                            <x-flux::icon.truck class="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <!-- Horizontal Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
+                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                            <canvas id="top-suppliers-chart-canvas" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <div class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full">
+                                <x-flux::icon.star class="h-3 w-3 text-amber-600 dark:text-amber-400 mr-1" />
+                                <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Top 10 suppliers by total spending</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Chart 2: Item Distribution by Category -->
-            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-4 sm:p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-sm sm:text-base font-semibold text-stone-700 dark:text-stone-300 mb-3 sm:mb-4">Item Distribution by Category</h3>
-                <div class="flex flex-col lg:flex-row items-center justify-center lg:space-x-6">
-                    <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
-                    <div wire:ignore class="relative mb-4 lg:mb-0">
-                        <canvas id="donut-chart-canvas" width="160" height="160" class="sm:w-[200px] sm:h-[200px]"></canvas>
-                    </div>
-                    <!-- Legend -->
-                    <div class="w-full lg:w-auto lg:ml-6 space-y-1 sm:space-y-2">
-                        @foreach($this->categoryDistribution as $index => $category)
-                            <div class="flex items-center text-xs sm:text-sm">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-2 flex-shrink-0" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'][$index % 8] }}"></div>
-                                <span class="text-stone-700 dark:text-stone-300 truncate">{{ $category['name'] }}</span>
-                                <span class="ml-auto text-stone-500 dark:text-stone-400 flex-shrink-0">{{ $category['percentage'] }}%</span>
-                            </div>
-                        @endforeach
-                        <div class="mt-3 sm:mt-4 text-center border-t border-stone-200 dark:border-stone-600 pt-2">
-                            <div class="text-base sm:text-lg font-bold text-stone-800 dark:text-stone-200">{{ $this->categoryDistribution->sum('count') }}</div>
-                            <div class="text-xs text-stone-500 dark:text-stone-400">Total Items</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chart 3: Inventory System Breakdown -->
-            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-4 sm:p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-sm sm:text-base font-semibold text-stone-700 dark:text-stone-300 mb-3 sm:mb-4">Inventory System Breakdown</h3>
-                <div class="relative">
-                    <!-- Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
-                    <div wire:ignore class="h-48 sm:h-64 relative">
-                        <canvas id="inventory-system-chart-canvas" class="w-full h-full"></canvas>
-                    </div>
-                    <!-- Chart Legend -->
-                    <div class="flex flex-wrap justify-center mt-2 sm:mt-3 gap-2 sm:gap-4 text-xs">
-                        @foreach($this->inventorySystemBreakdown as $system)
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-1" style="background-color: {{ $system['color'] }}"></div>
-                                <span class="text-stone-600 dark:text-stone-400">{{ $system['system'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chart 4: Top Suppliers Spending -->
-            <div class="bg-white dark:bg-stone-800 rounded-lg shadow-sm p-4 sm:p-6 border border-stone-200 dark:border-stone-700">
-                <h3 class="text-sm sm:text-base font-semibold text-stone-700 dark:text-stone-300 mb-3 sm:mb-4">Top Suppliers Spending</h3>
-                <div class="relative">
-                    <!-- Horizontal Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
-                    <div wire:ignore class="h-48 sm:h-64 relative">
-                        <canvas id="top-suppliers-chart-canvas" class="w-full h-full"></canvas>
-                    </div>
-                    <div class="mt-2 sm:mt-3 text-xs text-center text-stone-500 dark:text-stone-400">
-                        Top 10 suppliers by total spending
-                    </div>
-                </div>
-            </div>
-
-
         </div>
     </div>
 
