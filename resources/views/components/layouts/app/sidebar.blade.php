@@ -5,26 +5,24 @@
     </head>
     <body class="min-h-screen bg-white dark:bg-stone-800">
         <flux:sidebar sticky stashable class="w-80 border-e border-stone-200/60 bg-gradient-to-b from-stone-50 to-stone-100/50 dark:border-stone-700/50 dark:bg-gradient-to-b dark:from-stone-900 dark:to-stone-950/80 overflow-hidden shadow-xl backdrop-blur-sm">
-            <div class="flex flex-col h-full overflow-hidden">
+            <div class="flex flex-col h-full">
+                <!-- Mobile Toggle -->
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-                <div class="border-b border-stone-200/30 dark:border-stone-700/30 pb-6 mb-4">
-                    <a href="{{ route('dashboard') }}" class="logo-area me-5 flex items-center space-x-3 rtl:space-x-reverse px-4 py-3 rounded-xl hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-300 group" wire:navigate>
+                <!-- Logo Area -->
+                <div class="flex-shrink-0 border-b border-stone-200/30 dark:border-stone-700/30 pb-4 mb-4 px-4">
+                    <a href="{{ route('dashboard') }}" class="logo-area flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-300 group" wire:navigate>
                         <div class="flex-shrink-0">
                             <x-app-logo />
                         </div>
-                        <div class="ml-2 flex-grow">
-                            <h3 class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-stone-700 dark:group-hover:text-stone-200 transition-colors">D'Agriventory</h3>
-                            <p class="text-xs text-stone-500 dark:text-stone-400 font-medium">Admin Portal</p>
-                        </div>
-                        <div class="flex-shrink-0">
-                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <div class="flex-grow">
                         </div>
                     </a>
                 </div>
 
+                <!-- Navigation Area -->
                 <div
-                    class="relative flex-1 overflow-y-auto sidebar-nav"
+                    class="flex-1 overflow-y-auto sidebar-nav px-3"
                     x-data="{
                         showIndicator: false,
                         checkScroll() {
@@ -37,7 +35,7 @@
                     @scroll.debounce.50ms="checkScroll()"
                     @resize.window.debounce.150ms="checkScroll()"
                 >
-                    <flux:navlist class="grid gap-2 px-3" variant="outline">
+                    <flux:navlist class="grid gap-2" variant="outline">
                         @if (auth()->check())
                             @if (auth()->user()->adminUser)
                                 @include('partials.navigation.admin')
@@ -63,55 +61,64 @@
                     </div>
                 </div>
 
-                <!-- Desktop User Menu -->
-                <flux:dropdown class="hidden lg:block" position="bottom" align="start">
-                    <flux:profile
-                        :name="auth()->user()->name"
-                        :initials="auth()->user()->initials()"
-                        icon:trailing="chevrons-up-down"
-                    />
+                <!-- User Profile Area - Bottom -->
+                <div class="flex-shrink-0 border-t border-stone-200/30 dark:border-stone-700/30 pt-4 pb-4 px-4">
+                    <flux:dropdown class="w-full" position="top" align="start">
+                        <div class="w-full">
+                            <flux:profile
+                                :name="auth()->user()->name"
+                                :initials="auth()->user()->initials()"
+                                icon:trailing="chevrons-up-down"
+                                class="w-full px-3 py-2 rounded-lg hover:bg-stone-100/50 dark:hover:bg-stone-800/30 transition-all duration-200"
+                            />
+                        </div>
 
-                    <flux:menu class="w-[220px]">
-                        <flux:menu.radio.group>
-                            <div class="p-0 text-sm font-normal">
-                                <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                    <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                        <span
-                                            class="flex h-full w-full items-center justify-center rounded-lg bg-stone-200 text-black dark:bg-stone-700 dark:text-white"
-                                        >
-                                            {{ auth()->user()->initials() }}
+                        <flux:menu class="w-[260px]">
+                            <flux:menu.radio.group>
+                                <div class="p-3 text-sm font-normal border-b border-stone-200 dark:border-stone-700">
+                                    <div class="flex items-center gap-3">
+                                        <span class="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+                                            <span
+                                                class="flex h-full w-full items-center justify-center rounded-lg bg-stone-200 text-black dark:bg-stone-700 dark:text-white text-sm font-semibold"
+                                            >
+                                                {{ auth()->user()->initials() }}
+                                            </span>
                                         </span>
-                                    </span>
 
-                                    <div class="grid flex-1 text-start text-sm leading-tight">
-                                        <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                        <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                        @if(auth()->user()->adminUser)
-                                            <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Administrator') }}</span>
-                                        @elseif(auth()->user()->divisionInventoryManager)
-                                            <span class="text-xs inline-block mt-1 text-green-600 dark:text-green-500 font-semibold">{{ __('Inventory Manager') }}</span>
-                                        @endif
+                                        <div class="grid flex-1 text-start leading-tight">
+                                            <span class="truncate font-semibold text-stone-900 dark:text-stone-100">{{ auth()->user()->name }}</span>
+                                            <span class="truncate text-xs text-stone-500 dark:text-stone-400">{{ auth()->user()->email }}</span>
+                                            @if(auth()->user()->adminUser)
+                                                <span class="text-xs inline-flex items-center gap-1 mt-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold rounded-full">
+                                                    <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                                    {{ __('Administrator') }}
+                                                </span>
+                                            @elseif(auth()->user()->divisionInventoryManager)
+                                                <span class="text-xs inline-flex items-center gap-1 mt-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold rounded-full">
+                                                    <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                                    {{ __('Inventory Manager') }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </flux:menu.radio.group>
+                            </flux:menu.radio.group>
 
-                        <flux:menu.separator />
+                            <flux:menu.radio.group>
+                                <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                            </flux:menu.radio.group>
 
-                        <flux:menu.radio.group>
-                            <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                        </flux:menu.radio.group>
+                            <flux:menu.separator />
 
-                        <flux:menu.separator />
-
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                                {{ __('Log Out') }}
-                            </flux:menu.item>
-                        </form>
-                    </flux:menu>
-                </flux:dropdown>
+                            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                @csrf
+                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                                    {{ __('Log Out') }}
+                                </flux:menu.item>
+                            </form>
+                        </flux:menu>
+                    </flux:dropdown>
+                </div>
             </div>
         </flux:sidebar>
 
