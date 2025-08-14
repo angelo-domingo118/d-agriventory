@@ -467,24 +467,7 @@ new #[Layout('components.layouts.app')] class extends Component
         return Cache::remember('admin.dashboard.division_inventory', now()->addMinutes(5), function () {
             $divisions = Division::all()->keyBy('id');
 
-            $icsCounts = IcsNumber::select('employees.division_id', DB::raw('sum(ics_number.quantity) as total'))
-                ->join('employees', 'ics_number.assigned_employee_id', '=', 'employees.id')
-                ->whereNotNull('employees.division_id')
-                ->groupBy('employees.division_id')
-                ->pluck('total', 'employees.division_id');
-
-            $parCounts = ParNumber::select('employees.division_id', DB::raw('sum(par_number.quantity) as total'))
-                ->join('employees', 'par_number.assigned_employee_id', '=', 'employees.id')
-                ->whereNotNull('employees.division_id')
-                ->groupBy('employees.division_id')
-                ->pluck('total', 'employees.division_id');
-            
-            $idrCounts = IdrNumber::select('employees.division_id', DB::raw('sum(idr_number.quantity) as total'))
-                ->join('employees', 'idr_number.assigned_employee_id', '=', 'employees.id')
-                ->whereNotNull('employees.division_id')
-                ->groupBy('employees.division_id')
-                ->pluck('total', 'employees.division_id');
-
+            // Only track consumables per division since ICS/PAR/IDR are assigned to employees (not divisions)
             $consumableCounts = ConsumableItem::select('consumable_records.division_id', DB::raw('sum(consumable_items.current_quantity) as total'))
                 ->join('consumable_records', 'consumable_items.consumable_record_id', '=', 'consumable_records.id')
                 ->groupBy('consumable_records.division_id')
@@ -496,22 +479,68 @@ new #[Layout('components.layouts.app')] class extends Component
                 ->groupBy('consumable_records.division_id')
                 ->pluck('total', 'consumable_records.division_id');
 
-            return $divisions->map(function ($division) use ($icsCounts, $parCounts, $idrCounts, $consumableCounts, $lowStockCounts) {
-                $ics = $icsCounts->get($division->id, 0);
-                $par = $parCounts->get($division->id, 0);
-                $idr = $idrCounts->get($division->id, 0);
+            // Get consumable value per division
+            $avgPrices = ContractItem::query()
+                ->select('item_specification_id', DB::raw('AVG(unit_price) as average_price'))
+                ->groupBy('item_specification_id');
+
+            $consumableValues = DB::table('consumable_items')
+                ->joinSub($avgPrices, 'avg_prices', function ($join) {
+                    $join->on('consumable_items.item_specification_id', '=', 'avg_prices.item_specification_id');
+                })
+                ->join('consumable_records', 'consumable_items.consumable_record_id', '=', 'consumable_records.id')
+                ->select('consumable_records.division_id', DB::raw('sum(consumable_items.current_quantity * avg_prices.average_price) as total_value'))
+                ->groupBy('consumable_records.division_id')
+                ->pluck('total_value', 'consumable_records.division_id');
+
+            return $divisions->map(function ($division) use ($consumableCounts, $lowStockCounts, $consumableValues) {
                 $consumables = $consumableCounts->get($division->id, 0);
+                $lowStock = $lowStockCounts->get($division->id, 0);
+                $value = $consumableValues->get($division->id, 0);
                 
                 return [
                     'name' => $division->name,
-                    'total_items' => $ics + $par + $idr + $consumables,
-                    'ics' => $ics,
-                    'par' => $par,
-                    'idr' => $idr,
                     'consumables' => $consumables,
-                    'low_stock' => $lowStockCounts->get($division->id, 0),
+                    'low_stock' => $lowStock,
+                    'total_value' => $value,
+                    'records_count' => $consumables > 0 ? 1 : 0, // Has consumable records
                 ];
             })->sortBy('name')->values()->all();
+        });
+    }
+
+    #[Computed]
+    public function employeeInventoryTopAssignees(): array
+    {
+        return Cache::remember('admin.dashboard.employee_inventory_top', now()->addMinutes(5), function () {
+            // Get top employees by total assigned items (ICS + PAR + IDR)
+            return DB::table('employees')
+                ->select(
+                    'employees.name',
+                    'divisions.name as division_name',
+                    DB::raw('COALESCE(ics_counts.total, 0) as ics_total'),
+                    DB::raw('COALESCE(par_counts.total, 0) as par_total'),
+                    DB::raw('COALESCE(idr_counts.total, 0) as idr_total'),
+                    DB::raw('COALESCE(ics_counts.total, 0) + COALESCE(par_counts.total, 0) + COALESCE(idr_counts.total, 0) as total_items')
+                )
+                ->leftJoin('divisions', 'employees.division_id', '=', 'divisions.id')
+                ->leftJoin(
+                    DB::raw('(SELECT assigned_employee_id, COUNT(*) as total FROM ics_number GROUP BY assigned_employee_id) as ics_counts'),
+                    'employees.id', '=', 'ics_counts.assigned_employee_id'
+                )
+                ->leftJoin(
+                    DB::raw('(SELECT assigned_employee_id, COUNT(*) as total FROM par_number GROUP BY assigned_employee_id) as par_counts'),
+                    'employees.id', '=', 'par_counts.assigned_employee_id'
+                )
+                ->leftJoin(
+                    DB::raw('(SELECT assigned_employee_id, COUNT(*) as total FROM idr_number GROUP BY assigned_employee_id) as idr_counts'),
+                    'employees.id', '=', 'idr_counts.assigned_employee_id'
+                )
+                ->havingRaw('total_items > 0')
+                ->orderByDesc('total_items')
+                ->limit(10)
+                ->get()
+                ->toArray();
         });
     }
 
@@ -1800,16 +1829,17 @@ new #[Layout('components.layouts.app')] class extends Component
     </div>
 
     @if ($tab === 'overview')
-    <!-- Division Inventory Overview -->
+    <!-- Division Consumables Overview -->
     <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm">
         <div class="p-4 sm:p-6 lg:p-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
                         <div class="w-2 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-3"></div>
-                Division Inventory Overview
-            </h3>
-                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Real-time inventory distribution across divisions</p>
+                        Division Consumables Overview
+                    </h3>
+                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Consumable inventory distribution across divisions</p>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-5 italic">Note: ICS/PAR/IDR are tracked per employee, not per division</p>
                 </div>
                 <div class="flex items-center px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full text-xs text-blue-700 dark:text-blue-300">
                     <x-flux::icon.building-2 class="h-4 w-4 mr-1" />
@@ -1831,7 +1861,137 @@ new #[Layout('components.layouts.app')] class extends Component
                                 <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
                                     <div class="flex items-center space-x-1">
                                         <x-flux::icon.package class="h-4 w-4" />
-                                        <span>Total</span>
+                                        <span>Consumables</span>
+                                    </div>
+                                </th>
+                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
+                                    <div class="flex items-center space-x-1">
+                                        <x-flux::icon.receipt-percent class="h-4 w-4" />
+                                        <span>Est. Value</span>
+                                    </div>
+                                </th>
+                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <x-flux::icon.shield-check class="h-4 w-4" />
+                                        <span>Status</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm divide-y divide-stone-200/30 dark:divide-stone-700/30">
+                        @forelse($this->divisionInventory as $division)
+                            <tr class="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/20 transition-all duration-200 hover:shadow-sm">
+                                <td class="px-4 sm:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                                <x-flux::icon.building-2 class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{{ $division['name'] }}</div>
+                                            <div class="text-xs text-stone-500 dark:text-stone-400">
+                                                @if($division['records_count'] > 0)
+                                                    Active consumable records
+                                                @else
+                                                    No consumable records
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 sm:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <span class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($division['consumables']) }}</span>
+                                        <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">items</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold text-stone-900 dark:text-stone-100">₱{{ number_format($division['total_value'] / 1000, 0) }}K</span>
+                                        <span class="text-xs text-stone-500 dark:text-stone-400">PHP {{ number_format($division['total_value'], 2) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 sm:px-6 py-4">
+                                    @if($division['low_stock'] > 0)
+                                        <div class="flex flex-col items-start">
+                                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900/40 dark:to-red-800/40 dark:text-red-200 shadow-sm border border-red-200/50 dark:border-red-800/50">
+                                                <x-flux::icon.exclamation-triangle class="h-3 w-3 mr-1.5" />
+                                                {{ $division['low_stock'] }} Low Stock
+                                            </span>
+                                            <span class="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">Needs attention</span>
+                                        </div>
+                                    @elseif($division['consumables'] > 0)
+                                        <div class="flex flex-col items-start">
+                                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900/40 dark:to-green-800/40 dark:text-green-200 shadow-sm border border-green-200/50 dark:border-green-800/50">
+                                                <x-flux::icon.check-circle class="h-3 w-3 mr-1.5" />
+                                                All Good
+                                            </span>
+                                            <span class="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">Optimal levels</span>
+                                        </div>
+                                    @else
+                                        <div class="flex flex-col items-start">
+                                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-stone-100 to-stone-200 text-stone-800 dark:from-stone-700 dark:to-stone-800 dark:text-stone-200 shadow-sm border border-stone-200/50 dark:border-stone-700/50">
+                                                <x-flux::icon.minus-circle class="h-3 w-3 mr-1.5" />
+                                                No Items
+                                            </span>
+                                            <span class="text-xs text-stone-500 dark:text-stone-400 mt-1 font-medium">No consumables</span>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mb-4">
+                                            <x-flux::icon.building-2 class="h-8 w-8 text-stone-400 dark:text-stone-500" />
+                                        </div>
+                                        <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">No divisions found</h3>
+                                        <p class="text-xs text-stone-500 dark:text-stone-400 max-w-sm">Create your first division to start organizing your inventory across different departments.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Inventory Overview -->
+    <div class="bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 backdrop-blur-sm mt-6">
+        <div class="p-4 sm:p-6 lg:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
+                        <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-3"></div>
+                        Top Employee Assignments
+                    </h3>
+                    <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 ml-5">Employees with the most ICS/PAR/IDR assignments</p>
+                </div>
+                <div class="flex items-center px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-xs text-emerald-700 dark:text-emerald-300">
+                    <x-flux::icon.user-group class="h-4 w-4 mr-1" />
+                    <span class="hidden sm:inline font-medium">Top 10 Assignees</span>
+                </div>
+            </div>
+            
+            <div class="overflow-hidden rounded-lg border border-stone-200/50 dark:border-stone-700/50 shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-stone-200/50 dark:divide-stone-700/50">
+                        <thead class="bg-gradient-to-r from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20">
+                            <tr>
+                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <x-flux::icon.user class="h-4 w-4" />
+                                        <span>Employee</span>
+                                    </div>
+                                </th>
+                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <x-flux::icon.package class="h-4 w-4" />
+                                        <span>Total Items</span>
                                     </div>
                                 </th>
                                 <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden sm:table-cell">
@@ -1843,118 +2003,52 @@ new #[Layout('components.layouts.app')] class extends Component
                                 <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden md:table-cell">
                                     <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-md text-purple-700 dark:text-purple-400 text-xs font-semibold">IDR</span>
                                 </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider hidden md:table-cell">
-                                    <span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 rounded-md text-red-700 dark:text-red-400 text-xs font-semibold">Consumables</span>
-                                </th>
-                                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
-                                    <div class="flex items-center space-x-1">
-                                        <x-flux::icon.shield-check class="h-4 w-4" />
-                                        <span>Status</span>
-                                    </div>
-                                </th>
-                        </tr>
-                    </thead>
+                            </tr>
+                        </thead>
                         <tbody class="bg-white/50 dark:bg-stone-800/50 backdrop-blur-sm divide-y divide-stone-200/30 dark:divide-stone-700/30">
-                        @forelse($this->divisionInventory as $division)
-                                <tr class="group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/20 transition-all duration-200 hover:shadow-sm">
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                                    <x-flux::icon.building-2 class="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                                </div>
+                        @forelse($this->employeeInventoryTopAssignees as $index => $employee)
+                            <tr class="group hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-green-50/50 dark:hover:from-emerald-950/20 dark:hover:to-green-950/20 transition-all duration-200 hover:shadow-sm">
+                                <td class="px-4 sm:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                                <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">#{{ $index + 1 }}</span>
                                             </div>
-                                            <div class="ml-3">
-                                                <div class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{{ $division['name'] }}</div>
-                                    <div class="text-xs text-stone-500 dark:text-stone-400 sm:hidden mt-1">
-                                                    <div class="flex flex-wrap gap-2">
-                                                        <span class="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 rounded text-green-700 dark:text-green-400">ICS: {{ number_format($division['ics']) }}</span>
-                                                        <span class="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 rounded text-yellow-700 dark:text-yellow-400">PAR: {{ number_format($division['par']) }}</span>
-                                                    </div>
-                                                </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-bold text-stone-900 dark:text-stone-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">{{ $employee->name ?: 'Unknown' }}</div>
+                                            <div class="text-xs text-stone-500 dark:text-stone-400">
+                                                {{ $employee->division_name ?: 'No division assigned' }}
                                             </div>
+                                        </div>
                                     </div>
                                 </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex items-center">
-                                            <span class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($division['total_items']) }}</span>
-                                            <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">items</span>
-                                        </div>
+                                <td class="px-4 sm:px-6 py-4">
+                                    <div class="flex items-center">
+                                        <span class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($employee->total_items) }}</span>
+                                        <span class="ml-2 text-xs text-stone-500 dark:text-stone-400">items</span>
+                                    </div>
                                 </td>
-                                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                                        <div class="flex items-center">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-semibold text-green-700 dark:text-green-400">{{ number_format($division['ics']) }}</div>
-                                                @php $icsPercentage = $division['total_items'] > 0 ? ($division['ics'] / $division['total_items']) * 100 : 0; @endphp
-                                                <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-1.5 mt-1">
-                                                    <div class="bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $icsPercentage }}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                    <div class="text-sm font-semibold text-green-700 dark:text-green-400">{{ number_format($employee->ics_total) }}</div>
                                 </td>
-                                    <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
-                                        <div class="flex items-center">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ number_format($division['par']) }}</div>
-                                                @php $parPercentage = $division['total_items'] > 0 ? ($division['par'] / $division['total_items']) * 100 : 0; @endphp
-                                                <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-1.5 mt-1">
-                                                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $parPercentage }}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <td class="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                                    <div class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">{{ number_format($employee->par_total) }}</div>
                                 </td>
-                                    <td class="px-4 sm:px-6 py-4 hidden md:table-cell">
-                                        <div class="flex items-center">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-semibold text-purple-700 dark:text-purple-400">{{ number_format($division['idr']) }}</div>
-                                                @php $idrPercentage = $division['total_items'] > 0 ? ($division['idr'] / $division['total_items']) * 100 : 0; @endphp
-                                                <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-1.5 mt-1">
-                                                    <div class="bg-gradient-to-r from-purple-400 to-purple-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $idrPercentage }}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                </td>
-                                    <td class="px-4 sm:px-6 py-4 hidden md:table-cell">
-                                        <div class="flex items-center">
-                                            <div class="flex-1">
-                                                <div class="text-sm font-semibold text-red-700 dark:text-red-400">{{ number_format($division['consumables']) }}</div>
-                                                @php $consumablePercentage = $division['total_items'] > 0 ? ($division['consumables'] / $division['total_items']) * 100 : 0; @endphp
-                                                <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-1.5 mt-1">
-                                                    <div class="bg-gradient-to-r from-red-400 to-red-600 h-1.5 rounded-full transition-all duration-300" style="width: {{ $consumablePercentage }}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                    @if($division['low_stock'] > 0)
-                                            <div class="flex flex-col items-start">
-                                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900/40 dark:to-red-800/40 dark:text-red-200 shadow-sm border border-red-200/50 dark:border-red-800/50">
-                                                    <x-flux::icon.exclamation-triangle class="h-3 w-3 mr-1.5" />
-                                                    {{ $division['low_stock'] }} Low Stock
-                                        </span>
-                                                <span class="text-xs text-red-600 dark:text-red-400 mt-1 font-medium">Needs attention</span>
-                                            </div>
-                                    @else
-                                            <div class="flex flex-col items-start">
-                                                <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900/40 dark:to-green-800/40 dark:text-green-200 shadow-sm border border-green-200/50 dark:border-green-800/50">
-                                                    <x-flux::icon.check-circle class="h-3 w-3 mr-1.5" />
-                                                    All Good
-                                        </span>
-                                                <span class="text-xs text-green-600 dark:text-green-400 mt-1 font-medium">Optimal levels</span>
-                                            </div>
-                                    @endif
+                                <td class="px-4 sm:px-6 py-4 hidden md:table-cell">
+                                    <div class="text-sm font-semibold text-purple-700 dark:text-purple-400">{{ number_format($employee->idr_total) }}</div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center">
-                                        <div class="flex flex-col items-center">
-                                            <div class="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mb-4">
-                                                <x-flux::icon.building-2 class="h-8 w-8 text-stone-400 dark:text-stone-500" />
-                                            </div>
-                                            <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">No divisions found</h3>
-                                            <p class="text-xs text-stone-500 dark:text-stone-400 max-w-sm">Create your first division to start organizing your inventory across different departments.</p>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 rounded-full flex items-center justify-center mb-4">
+                                            <x-flux::icon.user-group class="h-8 w-8 text-stone-400 dark:text-stone-500" />
                                         </div>
+                                        <h3 class="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">No employee assignments found</h3>
+                                        <p class="text-xs text-stone-500 dark:text-stone-400 max-w-sm">Employees with assigned inventory items will appear here.</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
