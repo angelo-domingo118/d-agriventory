@@ -463,6 +463,10 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     public function selectSupplier($supplierData): void
     {
+        // Safeguard against null or malformed input to prevent "Trying to access array offset on value of type null"
+        if (empty($supplierData) || !is_array($supplierData) || !isset($supplierData['type'])) {
+            return;
+        }
         if ($supplierData['type'] === 'existing') {
             $this->supplier_id = $supplierData['id'];
             $this->supplier_search = $supplierData['name'];
