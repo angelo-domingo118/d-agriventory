@@ -1149,8 +1149,8 @@ new #[Layout('components.layouts.app')] class extends Component
 
     <!-- Analytics & Reports -->
     <div class="bg-white dark:bg-stone-800/90 backdrop-blur-sm rounded-lg shadow-lg border border-stone-200 dark:border-stone-700/70 hover:shadow-xl transition-all duration-300">
-        <div class="p-4 sm:p-6 lg:p-8">
-            <div class="flex items-center justify-between mb-6 sm:mb-8">
+        <div class="p-4 sm:p-6">
+            <div class="flex items-center justify-between mb-4 sm:mb-6">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center">
                         <div class="w-2 h-7 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-3"></div>
@@ -1164,12 +1164,12 @@ new #[Layout('components.layouts.app')] class extends Component
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
                 <!-- Chart 1: Inventory Value Over Time -->
-                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-3 sm:p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                            <div class="w-2 h-5 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-2"></div>
+                            <div class="w-2 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full mr-2"></div>
                             Inventory Value Over Time
                         </h3>
                         <div class="flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
@@ -1178,29 +1178,29 @@ new #[Layout('components.layouts.app')] class extends Component
                     </div>
                     <div class="relative">
                         <!-- Line Chart Container with wire:ignore to prevent Livewire from morphing -->
-                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                        <div wire:ignore class="h-56 sm:h-72 lg:h-80 xl:h-96 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
                             <canvas id="line-chart-canvas" class="w-full h-full"></canvas>
                         </div>
-                        <!-- Enhanced Chart Legend -->
-                        <div class="flex flex-wrap justify-center mt-4 gap-3 sm:gap-4 p-3 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
+                        <!-- Compact Chart Legend -->
+                        <div class="flex flex-wrap justify-center mt-3 gap-2 p-2 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
                             <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">Total Value</span>
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-1.5"></div>
+                                <span class="text-xs font-medium text-stone-700 dark:text-stone-300">Total</span>
                             </div>
                             <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></div>
                                 <span class="text-xs font-medium text-stone-700 dark:text-stone-300">ICS</span>
                             </div>
                             <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></div>
                                 <span class="text-xs font-medium text-stone-700 dark:text-stone-300">PAR</span>
                             </div>
                             <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                                <div class="w-2 h-2 bg-purple-500 rounded-full mr-1.5"></div>
                                 <span class="text-xs font-medium text-stone-700 dark:text-stone-300">IDR</span>
                             </div>
                             <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                <div class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></div>
                                 <span class="text-xs font-medium text-stone-700 dark:text-stone-300">Consumables</span>
                             </div>
                         </div>
@@ -1208,46 +1208,53 @@ new #[Layout('components.layouts.app')] class extends Component
                 </div>
 
                 <!-- Chart 2: Item Distribution by Category -->
-                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-3 sm:p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                            <div class="w-2 h-5 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-2"></div>
-                            Item Distribution by Category
+                            <div class="w-2 h-4 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full mr-2"></div>
+                            Category Distribution
                         </h3>
                         <div class="flex items-center px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full">
                             <x-flux::icon.chart-bar class="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                         </div>
                     </div>
-                    <div class="flex flex-col lg:flex-row items-center justify-center lg:space-x-6">
-                        <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
-                        <div wire:ignore class="relative mb-4 lg:mb-0 bg-white/50 dark:bg-stone-900/30 rounded-lg p-4 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
-                            <canvas id="donut-chart-canvas" width="160" height="160" class="sm:w-[200px] sm:h-[200px]"></canvas>
-                        </div>
-                        <!-- Enhanced Legend -->
-                        <div class="w-full lg:w-auto lg:ml-6 space-y-2 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg p-4 backdrop-blur-sm">
-                            @foreach($this->categoryDistribution as $index => $category)
-                                <div class="flex items-center justify-between text-xs sm:text-sm bg-white dark:bg-stone-700 rounded-lg p-2 shadow-sm">
-                                    <div class="flex items-center">
-                                        <div class="w-3 h-3 rounded-full mr-3 flex-shrink-0 shadow-sm" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'][$index % 8] }}"></div>
-                                        <span class="text-stone-800 dark:text-stone-200 font-medium truncate">{{ $category['name'] }}</span>
+                    <div class="h-56 sm:h-72 lg:h-80 xl:h-96 flex items-center justify-center">
+                        <div class="flex w-full h-full">
+                            <!-- Donut Chart Container with wire:ignore to prevent Livewire from morphing -->
+                            <div wire:ignore class="flex-shrink-0 flex items-center justify-center bg-white/50 dark:bg-stone-900/30 rounded-lg p-3 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30 w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] lg:w-[240px] lg:h-[240px]">
+                                <canvas id="donut-chart-canvas" class="w-full h-full"></canvas>
+                            </div>
+                            <!-- Compact Legend -->
+                            <div class="flex-1 ml-3 flex flex-col justify-center space-y-1.5 max-h-full overflow-y-auto bg-stone-50/80 dark:bg-stone-800/50 rounded-lg p-2 backdrop-blur-sm">
+                                @foreach($this->categoryDistribution->take(6) as $index => $category)
+                                    <div class="flex items-center justify-between text-xs bg-white dark:bg-stone-700 rounded-md p-2 shadow-sm">
+                                        <div class="flex items-center min-w-0 flex-1">
+                                            <div class="w-2.5 h-2.5 rounded-full mr-2 flex-shrink-0" style="background-color: {{ ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][$index % 6] }}"></div>
+                                            <span class="text-stone-800 dark:text-stone-200 font-medium truncate">{{ Str::limit($category['name'], 12) }}</span>
+                                        </div>
+                                        <span class="ml-2 text-stone-600 dark:text-stone-400 font-semibold flex-shrink-0">{{ $category['percentage'] }}%</span>
                                     </div>
-                                    <span class="ml-3 text-stone-600 dark:text-stone-400 font-semibold flex-shrink-0">{{ $category['percentage'] }}%</span>
+                                @endforeach
+                                @if($this->categoryDistribution->count() > 6)
+                                    <div class="text-center text-xs text-stone-500 dark:text-stone-400 pt-1">
+                                        +{{ $this->categoryDistribution->count() - 6 }} more categories
+                                    </div>
+                                @endif
+                                <div class="mt-2 text-center border-t border-stone-200 dark:border-stone-600 pt-2 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-md p-1.5">
+                                    <div class="text-sm font-bold text-stone-900 dark:text-stone-100">{{ number_format($this->categoryDistribution->sum('count')) }}</div>
+                                    <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Total Items</div>
                                 </div>
-                            @endforeach
-                            <div class="mt-4 text-center border-t border-stone-200 dark:border-stone-600 pt-3 bg-gradient-to-r from-blue-50 to-emerald-50 dark:from-blue-900/20 dark:to-emerald-900/20 rounded-lg p-2">
-                                <div class="text-lg font-bold text-stone-900 dark:text-stone-100">{{ number_format($this->categoryDistribution->sum('count')) }}</div>
-                                <div class="text-xs font-medium text-stone-600 dark:text-stone-400">Total Items</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Chart 3: Inventory System Breakdown -->
-                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-3 sm:p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                            <div class="w-2 h-5 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full mr-2"></div>
-                            Inventory System Breakdown
+                            <div class="w-2 h-4 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full mr-2"></div>
+                            System Breakdown
                         </h3>
                         <div class="flex items-center px-2 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
                             <x-flux::icon.squares-2x2 class="h-3 w-3 text-purple-600 dark:text-purple-400" />
@@ -1255,14 +1262,14 @@ new #[Layout('components.layouts.app')] class extends Component
                     </div>
                     <div class="relative">
                         <!-- Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
-                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                        <div wire:ignore class="h-56 sm:h-72 lg:h-80 xl:h-96 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
                             <canvas id="inventory-system-chart-canvas" class="w-full h-full"></canvas>
                         </div>
-                        <!-- Enhanced Chart Legend -->
-                        <div class="flex flex-wrap justify-center mt-4 gap-3 p-3 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
+                        <!-- Compact Chart Legend -->
+                        <div class="flex flex-wrap justify-center mt-3 gap-2 p-2 bg-stone-50/80 dark:bg-stone-800/50 rounded-lg backdrop-blur-sm">
                             @foreach($this->inventorySystemBreakdown as $system)
-                                <div class="flex items-center px-3 py-1.5 bg-white dark:bg-stone-700 rounded-full shadow-sm">
-                                    <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ $system['color'] }}"></div>
+                                <div class="flex items-center px-2 py-1 bg-white dark:bg-stone-700 rounded-full shadow-sm">
+                                    <div class="w-2 h-2 rounded-full mr-1.5" style="background-color: {{ $system['color'] }}"></div>
                                     <span class="text-xs font-medium text-stone-700 dark:text-stone-300">{{ $system['system'] }}</span>
                                 </div>
                             @endforeach
@@ -1271,11 +1278,11 @@ new #[Layout('components.layouts.app')] class extends Component
                 </div>
 
                 <!-- Chart 4: Top Suppliers Spending -->
-                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-xl shadow-lg border border-stone-200/50 dark:border-stone-700/50 p-3 sm:p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 flex items-center">
-                            <div class="w-2 h-5 bg-gradient-to-b from-amber-500 to-amber-600 rounded-full mr-2"></div>
-                            Top Suppliers Spending
+                            <div class="w-2 h-4 bg-gradient-to-b from-amber-500 to-amber-600 rounded-full mr-2"></div>
+                            Top Suppliers
                         </h3>
                         <div class="flex items-center px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-full">
                             <x-flux::icon.truck class="h-3 w-3 text-amber-600 dark:text-amber-400" />
@@ -1283,13 +1290,13 @@ new #[Layout('components.layouts.app')] class extends Component
                     </div>
                     <div class="relative">
                         <!-- Horizontal Bar Chart Container with wire:ignore to prevent Livewire from morphing -->
-                        <div wire:ignore class="h-48 sm:h-64 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
+                        <div wire:ignore class="h-56 sm:h-72 lg:h-80 xl:h-96 relative bg-white/50 dark:bg-stone-900/30 rounded-lg p-2 backdrop-blur-sm border border-stone-200/30 dark:border-stone-700/30">
                             <canvas id="top-suppliers-chart-canvas" class="w-full h-full"></canvas>
                         </div>
-                        <div class="mt-4 text-center">
-                            <div class="inline-flex items-center px-3 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full">
+                        <div class="mt-3 text-center">
+                            <div class="inline-flex items-center px-2 py-1 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-full">
                                 <x-flux::icon.star class="h-3 w-3 text-amber-600 dark:text-amber-400 mr-1" />
-                                <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Top 10 suppliers by total spending</span>
+                                <span class="text-xs font-medium text-amber-700 dark:text-amber-300">Top 10 by spending</span>
                             </div>
                         </div>
                     </div>
@@ -1352,7 +1359,44 @@ new #[Layout('components.layouts.app')] class extends Component
                     datasets: datasets
                 };
                 
-                window.initializeChart(data[0].chartId, 'line', lineChartData);
+                const lineChartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                };
+                
+                window.initializeChart(data[0].chartId, 'line', lineChartData, lineChartOptions);
             });
             
             // Donut Chart Event Handlers  
@@ -1370,7 +1414,18 @@ new #[Layout('components.layouts.app')] class extends Component
                     }]
                 };
                 
-                window.initializeChart(data[0].chartId, 'doughnut', doughnutChartData);
+                const doughnutChartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    cutout: '60%'
+                };
+                
+                window.initializeChart(data[0].chartId, 'doughnut', doughnutChartData, doughnutChartOptions);
             });
             
             // Update Event Handlers
@@ -1462,12 +1517,32 @@ new #[Layout('components.layouts.app')] class extends Component
                 const options = {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
                             ticks: {
                                 callback: function(value, index, values) {
                                     return value.toLocaleString();
+                                },
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
                                 }
                             }
                         }
@@ -1519,12 +1594,32 @@ new #[Layout('components.layouts.app')] class extends Component
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
+                    interaction: {
+                        intersect: false,
+                        mode: 'y'
+                    },
                     scales: {
                         x: {
                             beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
                             ticks: {
                                 callback: function(value) {
                                     return '₱' + (value / 1000000).toFixed(1) + 'M';
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
                                 }
                             }
                         }
