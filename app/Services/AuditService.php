@@ -34,7 +34,7 @@ class AuditService
     public static function logUpdate(Model $model, array $originalValues, ?string $description = null): void
     {
         $changes = $model->getChanges();
-        
+
         // Only log if there are actual changes
         if (empty($changes)) {
             return;

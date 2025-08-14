@@ -2,16 +2,30 @@
 
 namespace App\Providers;
 
-use App\Models\{
-    User, AdminUser, Employee, Division, DivisionInventoryManager,
-    Supplier, Contract, ContractItem,
-    PrimaryCategory, SecondaryCategory, ItemsCatalog, ItemSpecification,
-    IcsNumber, ParNumber, IdrNumber,
-    IcsItemBatch, ParItemBatch, IdrItemBatch,
-    IcsTransfer, ParTransfer, AcknowledgementReceipt,
-    ConsumableRecord, ConsumableItem,
-    ItemComponent
-};
+use App\Models\AcknowledgementReceipt;
+use App\Models\AdminUser;
+use App\Models\ConsumableItem;
+use App\Models\ConsumableRecord;
+use App\Models\Contract;
+use App\Models\ContractItem;
+use App\Models\Division;
+use App\Models\DivisionInventoryManager;
+use App\Models\Employee;
+use App\Models\IcsItemBatch;
+use App\Models\IcsNumber;
+use App\Models\IcsTransfer;
+use App\Models\IdrItemBatch;
+use App\Models\IdrNumber;
+use App\Models\ItemComponent;
+use App\Models\ItemsCatalog;
+use App\Models\ItemSpecification;
+use App\Models\ParItemBatch;
+use App\Models\ParNumber;
+use App\Models\ParTransfer;
+use App\Models\PrimaryCategory;
+use App\Models\SecondaryCategory;
+use App\Models\Supplier;
+use App\Models\User;
 use App\Observers\AuditLogObserver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;

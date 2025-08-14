@@ -44,7 +44,7 @@ class Employee extends Model
      */
     public function hasPosition(): bool
     {
-        return !empty($this->position);
+        return ! empty($this->position);
     }
 
     /**
@@ -149,9 +149,9 @@ class Employee extends Model
             'total_transfers' => $totalTransfers,
             'has_associated_data' => $totalAssignments > 0 || $totalTransfers > 0,
             'risk_level' => $totalAssignments > 0 ? 'high' : ($totalTransfers > 0 ? 'medium' : 'safe'),
-            'risk_message' => $totalAssignments > 0 
+            'risk_message' => $totalAssignments > 0
                 ? 'This employee has active inventory assignments and should not be deleted.'
-                : ($totalTransfers > 0 
+                : ($totalTransfers > 0
                     ? 'This employee has transfer history. Deletion will affect historical records.'
                     : 'This employee has no associated data and is safe to delete.'),
         ];
@@ -163,7 +163,8 @@ class Employee extends Model
     public function canBeDeletedSafely(): bool
     {
         $impact = $this->getDeletionImpact();
-        return !$impact['has_associated_data'];
+
+        return ! $impact['has_associated_data'];
     }
 
     /**

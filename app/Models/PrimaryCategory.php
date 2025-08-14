@@ -72,6 +72,6 @@ class PrimaryCategory extends Model
      */
     public function canBeDeletedSafely(): bool
     {
-        return !$this->secondaryCategories()->exists();
+        return ! $this->secondaryCategories()->exists();
     }
 }

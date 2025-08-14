@@ -109,7 +109,8 @@ class IcsNumber extends Model
     public function canBeDeletedSafely(): bool
     {
         $impact = $this->getDeletionImpact();
-        return !$impact['has_associated_data'];
+
+        return ! $impact['has_associated_data'];
     }
 
     /**
@@ -174,7 +175,7 @@ class IcsNumber extends Model
         return DB::transaction(function () {
             // Delete all associated transfers first
             $this->transfers()->delete();
-            
+
             // Delete all associated item batches
             $this->itemBatches()->delete();
 

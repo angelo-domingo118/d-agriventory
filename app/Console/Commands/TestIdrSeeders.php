@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Contract;
 use App\Models\ContractItem;
 use App\Models\Employee;
-use App\Models\IdrItemBatch;
 use App\Models\IdrNumber;
 use App\Models\Supplier;
 use Illuminate\Console\Command;
@@ -54,69 +53,71 @@ class TestIdrSeeders extends Command
     protected function testJsonFileExists(): void
     {
         $this->info('1. Testing JSON file existence...');
-        
+
         $jsonPath = base_path('idr-seeder.json');
         if (File::exists($jsonPath)) {
             $size = File::size($jsonPath);
-            $this->line("   ✅ JSON file found: " . number_format($size) . " bytes");
+            $this->line('   ✅ JSON file found: '.number_format($size).' bytes');
         } else {
             $this->error("   ❌ JSON file not found at: {$jsonPath}");
-            $this->line("   💡 Make sure to place idr-seeder.json in the project root directory");
+            $this->line('   💡 Make sure to place idr-seeder.json in the project root directory');
         }
     }
 
     protected function testJsonStructure(): void
     {
         $this->info('2. Testing JSON structure...');
-        
+
         $jsonPath = base_path('idr-seeder.json');
-        if (!File::exists($jsonPath)) {
-            $this->line("   ⏭️  Skipping - JSON file not found");
+        if (! File::exists($jsonPath)) {
+            $this->line('   ⏭️  Skipping - JSON file not found');
+
             return;
         }
 
         $jsonData = json_decode(File::get($jsonPath), true);
-        if (!$jsonData) {
-            $this->error("   ❌ Invalid JSON data");
+        if (! $jsonData) {
+            $this->error('   ❌ Invalid JSON data');
+
             return;
         }
 
-        $this->line("   ✅ Valid JSON with " . count($jsonData) . " records");
+        $this->line('   ✅ Valid JSON with '.count($jsonData).' records');
 
         // Test first record structure
-        if (!empty($jsonData)) {
+        if (! empty($jsonData)) {
             $firstRecord = $jsonData[0];
             $requiredFields = [
-                'Date prepared', 'Quantity', 'Unit Measure', 'Unit Cost', 'Article', 
+                'Date prepared', 'Quantity', 'Unit Measure', 'Unit Cost', 'Article',
                 'Description', 'Inventory Code', 'Year Acquired', 'Series Number',
                 'Location Code', 'Date Accepted', 'Document Source', 'ORS Number',
-                'Issued To', 'Division Chief'
+                'Issued To', 'Division Chief',
             ];
 
             $missingFields = [];
             foreach ($requiredFields as $field) {
-                if (!array_key_exists($field, $firstRecord)) {
+                if (! array_key_exists($field, $firstRecord)) {
                     $missingFields[] = $field;
                 }
             }
 
             if (empty($missingFields)) {
-                $this->line("   ✅ All required fields present in first record");
+                $this->line('   ✅ All required fields present in first record');
             } else {
-                $this->error("   ❌ Missing fields: " . implode(', ', $missingFields));
+                $this->error('   ❌ Missing fields: '.implode(', ', $missingFields));
             }
 
             // Show sample data
-            $this->line("   📄 Sample record (IDR #" . $firstRecord['Series Number'] . "):");
-            $this->line("      Article: " . $firstRecord['Article']);
-            $this->line("      Issued To: " . $firstRecord['Issued To']);
-            $this->line("      Division Chief: " . $firstRecord['Division Chief']);
-            $this->line("      Unit Cost: " . $firstRecord['Unit Cost']);
-            $this->line("      Quantity: " . $firstRecord['Quantity']);
+            $this->line('   📄 Sample record (IDR #'.$firstRecord['Series Number'].'):');
+            $this->line('      Article: '.$firstRecord['Article']);
+            $this->line('      Issued To: '.$firstRecord['Issued To']);
+            $this->line('      Division Chief: '.$firstRecord['Division Chief']);
+            $this->line('      Unit Cost: '.$firstRecord['Unit Cost']);
+            $this->line('      Quantity: '.$firstRecord['Quantity']);
 
             // Count unique articles
             $articles = array_unique(array_column($jsonData, 'Article'));
-            $this->line("   📊 Unique articles: " . count($articles));
+            $this->line('   📊 Unique articles: '.count($articles));
         }
     }
 
@@ -145,21 +146,23 @@ class TestIdrSeeders extends Command
         $this->info('4. Testing seeding logic with sample data...');
 
         $jsonPath = base_path('idr-seeder.json');
-        if (!File::exists($jsonPath)) {
-            $this->line("   ⏭️  Skipping - JSON file not found");
+        if (! File::exists($jsonPath)) {
+            $this->line('   ⏭️  Skipping - JSON file not found');
+
             return;
         }
 
         $jsonData = json_decode(File::get($jsonPath), true);
         if (empty($jsonData)) {
-            $this->line("   ⏭️  Skipping - No JSON data");
+            $this->line('   ⏭️  Skipping - No JSON data');
+
             return;
         }
 
         // Test with first record
         $testRecord = $jsonData[0];
-        
-        $this->line("   🧪 Testing with IDR #" . $testRecord['Series Number']);
+
+        $this->line('   🧪 Testing with IDR #'.$testRecord['Series Number']);
 
         // Test employee name parsing
         $employeeName = $testRecord['Issued To'];
@@ -167,7 +170,7 @@ class TestIdrSeeders extends Command
         if (count($parts) >= 2) {
             $lastName = $parts[0];
             $firstNameAndSuffix = implode(', ', array_slice($parts, 1));
-            $formattedName = trim($firstNameAndSuffix) . ' ' . trim($lastName);
+            $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
             $this->line("   ✅ Employee name parsing: '{$employeeName}' → '{$formattedName}'");
         } else {
             $this->warn("   ⚠️  Unusual employee name format: '{$employeeName}'");
@@ -216,7 +219,7 @@ class TestIdrSeeders extends Command
         $existingIdr = IdrNumber::where('number', $testRecord['Series Number'])->first();
         if ($existingIdr) {
             $this->warn("   ⚠️  IDR #{$testRecord['Series Number']} already exists in database");
-            $this->line("      Consider clearing existing data before re-seeding");
+            $this->line('      Consider clearing existing data before re-seeding');
         } else {
             $this->line("   ✅ IDR #{$testRecord['Series Number']} not found - ready for seeding");
         }
@@ -224,10 +227,10 @@ class TestIdrSeeders extends Command
         // Show article categorization test
         $article = $testRecord['Article'];
         $this->line("   📝 Article to categorize: '{$article}'");
-        
+
         // Test a few sample articles for categorization
         $sampleArticles = array_slice(array_unique(array_column($jsonData, 'Article')), 0, 5);
-        $this->line("   📊 Sample articles for categorization:");
+        $this->line('   📊 Sample articles for categorization:');
         foreach ($sampleArticles as $sampleArticle) {
             $this->line("      • {$sampleArticle}");
         }

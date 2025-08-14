@@ -56,9 +56,9 @@ class ItemsCatalog extends Model
     {
         $specifications = $this->specifications()->with([
             'contractItems.icsNumbers',
-            'contractItems.parNumbers', 
+            'contractItems.parNumbers',
             'contractItems.idrNumbers',
-            'consumableItems'
+            'consumableItems',
         ])->get();
 
         $impact = [
@@ -76,7 +76,7 @@ class ItemsCatalog extends Model
         foreach ($specifications as $spec) {
             $impact['contract_items'] += $spec->contractItems->count();
             $impact['consumable_items'] += $spec->consumableItems->count();
-            
+
             foreach ($spec->contractItems as $contractItem) {
                 $impact['ics_numbers'] += $contractItem->icsNumbers->count();
                 $impact['par_numbers'] += $contractItem->parNumbers->count();
@@ -97,7 +97,7 @@ class ItemsCatalog extends Model
     protected function assessDeletionRisk(array $impact): array
     {
         $totalInventoryRecords = $impact['ics_numbers'] + $impact['par_numbers'] + $impact['idr_numbers'];
-        
+
         if ($totalInventoryRecords > 0) {
             // HIGH RISK: Has active inventory records
             $impact['risk_level'] = 'high';
@@ -133,7 +133,7 @@ class ItemsCatalog extends Model
                 'contractItems.parNumbers.parItemBatches',
                 'contractItems.parNumbers.parTransfers',
                 'contractItems.idrNumbers.idrItemBatches.acknowledgementReceipts',
-                'consumableItems'
+                'consumableItems',
             ])->get();
 
             foreach ($specifications as $specification) {
@@ -170,7 +170,7 @@ class ItemsCatalog extends Model
 
                 // Delete consumable items
                 $specification->consumableItems()->delete();
-                
+
                 // Delete contract items
                 $specification->contractItems()->delete();
             }
@@ -188,7 +188,7 @@ class ItemsCatalog extends Model
      */
     public function canBeDeletedSafely(): bool
     {
-        return !$this->specifications()->exists();
+        return ! $this->specifications()->exists();
     }
 
     /**
@@ -197,6 +197,7 @@ class ItemsCatalog extends Model
     public function isDeletionBlocked(): bool
     {
         $impact = $this->getDeletionImpact();
+
         return $impact['risk_level'] === 'high';
     }
 
@@ -206,33 +207,33 @@ class ItemsCatalog extends Model
     public function getDeletionSummary(): string
     {
         $impact = $this->getDeletionImpact();
-        
+
         $summary = [];
-        
+
         if ($impact['specifications'] > 0) {
-            $summary[] = $impact['specifications'] . ' specification' . ($impact['specifications'] !== 1 ? 's' : '');
+            $summary[] = $impact['specifications'].' specification'.($impact['specifications'] !== 1 ? 's' : '');
         }
-        
+
         if ($impact['contract_items'] > 0) {
-            $summary[] = $impact['contract_items'] . ' contract item' . ($impact['contract_items'] !== 1 ? 's' : '');
+            $summary[] = $impact['contract_items'].' contract item'.($impact['contract_items'] !== 1 ? 's' : '');
         }
-        
+
         if ($impact['consumable_items'] > 0) {
-            $summary[] = $impact['consumable_items'] . ' consumable item' . ($impact['consumable_items'] !== 1 ? 's' : '');
+            $summary[] = $impact['consumable_items'].' consumable item'.($impact['consumable_items'] !== 1 ? 's' : '');
         }
 
         $inventoryItems = [];
         if ($impact['ics_numbers'] > 0) {
-            $inventoryItems[] = $impact['ics_numbers'] . ' ICS record' . ($impact['ics_numbers'] !== 1 ? 's' : '');
+            $inventoryItems[] = $impact['ics_numbers'].' ICS record'.($impact['ics_numbers'] !== 1 ? 's' : '');
         }
         if ($impact['par_numbers'] > 0) {
-            $inventoryItems[] = $impact['par_numbers'] . ' PAR record' . ($impact['par_numbers'] !== 1 ? 's' : '');
+            $inventoryItems[] = $impact['par_numbers'].' PAR record'.($impact['par_numbers'] !== 1 ? 's' : '');
         }
         if ($impact['idr_numbers'] > 0) {
-            $inventoryItems[] = $impact['idr_numbers'] . ' IDR record' . ($impact['idr_numbers'] !== 1 ? 's' : '');
+            $inventoryItems[] = $impact['idr_numbers'].' IDR record'.($impact['idr_numbers'] !== 1 ? 's' : '');
         }
-        
-        if (!empty($inventoryItems)) {
+
+        if (! empty($inventoryItems)) {
             $summary[] = implode(', ', $inventoryItems);
         }
 

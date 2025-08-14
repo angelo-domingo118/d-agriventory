@@ -31,18 +31,20 @@ class IdrDataSeeder extends Seeder
 
         // Load and validate JSON data
         $jsonPath = base_path('idr-seeder.json');
-        if (!File::exists($jsonPath)) {
-            $this->command->error('❌ IDR seeder JSON file not found at: ' . $jsonPath);
+        if (! File::exists($jsonPath)) {
+            $this->command->error('❌ IDR seeder JSON file not found at: '.$jsonPath);
+
             return;
         }
 
         $jsonData = json_decode(File::get($jsonPath), true);
-        if (!$jsonData) {
+        if (! $jsonData) {
             $this->command->error('❌ Invalid JSON data in IDR seeder file.');
+
             return;
         }
 
-        $this->command->info('📊 Loaded ' . count($jsonData) . ' IDR records from JSON file.');
+        $this->command->info('📊 Loaded '.count($jsonData).' IDR records from JSON file.');
 
         // Process all records
         $this->processIdrData($jsonData);
@@ -84,88 +86,88 @@ class IdrDataSeeder extends Seeder
             'Seeds & Planting Materials' => [
                 'code' => 'SEEDS-PLANTS',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Seeds, seedlings, and planting materials'
+                'description' => 'Seeds, seedlings, and planting materials',
             ],
             'Fertilizers & Soil Amendments' => [
                 'code' => 'FERTILIZERS-SOIL',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Chemical and organic fertilizers, soil amendments'
+                'description' => 'Chemical and organic fertilizers, soil amendments',
             ],
             'Animal Feeds' => [
                 'code' => 'ANIMAL-FEEDS',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Animal feed and nutrition products'
+                'description' => 'Animal feed and nutrition products',
             ],
             'Farm Supplies' => [
                 'code' => 'FARM-SUPPLIES',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Pesticides, insecticides, and farm chemicals'
+                'description' => 'Pesticides, insecticides, and farm chemicals',
             ],
             'Hand Tools' => [
                 'code' => 'HAND-TOOLS',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Manual farming and gardening tools'
+                'description' => 'Manual farming and gardening tools',
             ],
             'Field Machinery' => [
                 'code' => 'MACHINERY',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Agricultural machinery and equipment'
+                'description' => 'Agricultural machinery and equipment',
             ],
             'Measurement Tools' => [
                 'code' => 'MEASUREMENT',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Weighing scales, meters, and measuring tools'
+                'description' => 'Weighing scales, meters, and measuring tools',
             ],
 
             // Storage and containers
             'Storage Containers' => [
                 'code' => 'CONTAINERS',
                 'primary_category_id' => $genSupplies->id,
-                'description' => 'Bags, crates, drums, and storage containers'
+                'description' => 'Bags, crates, drums, and storage containers',
             ],
             'Kitchen Supplies' => [
                 'code' => 'KITCHEN-SUPPLIES',
                 'primary_category_id' => $genSupplies->id,
-                'description' => 'Kitchen equipment and food service items'
+                'description' => 'Kitchen equipment and food service items',
             ],
             'Office Supplies' => [
                 'code' => 'OFFICE-SUP',
                 'primary_category_id' => $genSupplies->id,
-                'description' => 'Stationery, forms, and office consumables'
+                'description' => 'Stationery, forms, and office consumables',
             ],
 
             // Electronics and tools
             'Computer Peripherals' => [
                 'code' => 'PERIPHERALS',
                 'primary_category_id' => $officeEquipment->id,
-                'description' => 'USB drives, calculators, and computer accessories'
+                'description' => 'USB drives, calculators, and computer accessories',
             ],
             'Power and Electrical' => [
                 'code' => 'POWER',
                 'primary_category_id' => $officeEquipment->id,
-                'description' => 'Power banks, electrical equipment'
+                'description' => 'Power banks, electrical equipment',
             ],
 
             // Promotional materials
             'Apparel & Wearables' => [
                 'code' => 'APPAREL',
                 'primary_category_id' => $promoMat->id,
-                'description' => 'Shirts, uniforms, and wearable items'
+                'description' => 'Shirts, uniforms, and wearable items',
             ],
             'Publications' => [
                 'code' => 'PUBLICATIONS',
                 'primary_category_id' => $promoMat->id,
-                'description' => 'Manuals, newsletters, and educational materials'
+                'description' => 'Manuals, newsletters, and educational materials',
             ],
             'Giveaways & Merchandise' => [
                 'code' => 'GIVEAWAYS',
                 'primary_category_id' => $promoMat->id,
-                'description' => 'Promotional items and branded merchandise'
+                'description' => 'Promotional items and branded merchandise',
             ],
             'Signage' => [
                 'code' => 'SIGNAGE',
                 'primary_category_id' => $promoMat->id,
-                'description' => 'Signs, banners, and display materials'
+                'description' => 'Signs, banners, and display materials',
             ],
         ];
 
@@ -175,7 +177,7 @@ class IdrDataSeeder extends Seeder
                 [
                     'name' => $name,
                     'primary_category_id' => $data['primary_category_id'],
-                    'description' => $data['description']
+                    'description' => $data['description'],
                 ]
             );
         }
@@ -201,32 +203,32 @@ class IdrDataSeeder extends Seeder
         $chunks = array_chunk($jsonData, 25);
 
         foreach ($chunks as $chunkIndex => $chunk) {
-            $this->command->info("   Processing chunk " . ($chunkIndex + 1) . " of " . count($chunks) . "...");
+            $this->command->info('   Processing chunk '.($chunkIndex + 1).' of '.count($chunks).'...');
 
             DB::transaction(function () use ($chunk, $secondaryCategories, &$processedCount, &$skippedCount, &$errors) {
                 foreach ($chunk as $record) {
                     try {
                         $this->processIdrRecord($record, $secondaryCategories);
                         $processedCount++;
-                        
+
                         if ($processedCount % 10 == 0) {
                             $this->command->line("     ✓ Processed {$processedCount} records...");
                         }
                     } catch (\Exception $e) {
                         $skippedCount++;
-                        $errors[] = "IDR #{$record['Series Number']}: " . $e->getMessage();
-                        $this->command->warn("     ⚠️  Skipped IDR #{$record['Series Number']}: " . $e->getMessage());
+                        $errors[] = "IDR #{$record['Series Number']}: ".$e->getMessage();
+                        $this->command->warn("     ⚠️  Skipped IDR #{$record['Series Number']}: ".$e->getMessage());
                     }
                 }
             });
         }
 
         $this->command->newLine();
-        $this->command->info("📈 Processing Summary:");
+        $this->command->info('📈 Processing Summary:');
         $this->command->info("   ✅ Successfully processed: {$processedCount} records");
         $this->command->info("   ⚠️  Skipped: {$skippedCount} records");
 
-        if (!empty($errors) && count($errors) <= 10) {
+        if (! empty($errors) && count($errors) <= 10) {
             $this->command->warn("\n🔍 Error details:");
             foreach ($errors as $error) {
                 $this->command->line("   • {$error}");
@@ -245,7 +247,7 @@ class IdrDataSeeder extends Seeder
 
         // Check if IDR already exists
         if (IdrNumber::where('number', $idrNumber)->exists()) {
-            throw new \Exception("IDR number already exists");
+            throw new \Exception('IDR number already exists');
         }
 
         // 1. Find or create employees
@@ -275,11 +277,11 @@ class IdrDataSeeder extends Seeder
     {
         // Parse name format "LASTNAME, Firstname" -> "Firstname LASTNAME"
         $parts = array_map('trim', explode(',', $employeeName));
-        
+
         if (count($parts) >= 2) {
             $lastName = $parts[0];
             $firstNameAndSuffix = implode(', ', array_slice($parts, 1));
-            $formattedName = trim($firstNameAndSuffix) . ' ' . trim($lastName);
+            $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
         } else {
             $formattedName = trim($employeeName);
         }
@@ -287,16 +289,16 @@ class IdrDataSeeder extends Seeder
         // Try to find existing employee
         $employee = Employee::where('name', $formattedName)->first();
 
-        if (!$employee) {
+        if (! $employee) {
             // Try alternative search
             if (count($parts) >= 2) {
-                $employee = Employee::where('name', 'LIKE', '%' . trim($parts[0]) . '%')
-                                  ->where('name', 'LIKE', '%' . trim($parts[1]) . '%')
-                                  ->first();
+                $employee = Employee::where('name', 'LIKE', '%'.trim($parts[0]).'%')
+                    ->where('name', 'LIKE', '%'.trim($parts[1]).'%')
+                    ->first();
             }
         }
 
-        if (!$employee) {
+        if (! $employee) {
             $employee = Employee::create([
                 'name' => $formattedName,
                 'division_id' => null, // Can be assigned later
@@ -313,12 +315,12 @@ class IdrDataSeeder extends Seeder
     protected function findOrCreateContract(string $documentSource): Contract
     {
         // Parse "Supplier: Name ; Contract/PO/IB No: Number"
-        if (!preg_match('/Supplier:\s*([^;]+)/', $documentSource, $supplierMatches)) {
-            throw new \Exception("Could not parse supplier from document source");
+        if (! preg_match('/Supplier:\s*([^;]+)/', $documentSource, $supplierMatches)) {
+            throw new \Exception('Could not parse supplier from document source');
         }
 
-        if (!preg_match('/Contract\/PO\/IB No:\s*([^;]+)/', $documentSource, $contractMatches)) {
-            throw new \Exception("Could not parse contract number from document source");
+        if (! preg_match('/Contract\/PO\/IB No:\s*([^;]+)/', $documentSource, $contractMatches)) {
+            throw new \Exception('Could not parse contract number from document source');
         }
 
         $supplierName = trim($supplierMatches[1]);
@@ -350,7 +352,7 @@ class IdrDataSeeder extends Seeder
         // Find or create item catalog
         $itemCatalog = ItemsCatalog::where('name', $article)->first();
 
-        if (!$itemCatalog) {
+        if (! $itemCatalog) {
             $itemCatalog = ItemsCatalog::create([
                 'name' => $article,
                 'unit' => strtolower($record['Unit Measure']),
@@ -367,7 +369,7 @@ class IdrDataSeeder extends Seeder
             ->where('detailed_specifications', $specData['detailed_specifications'])
             ->first();
 
-        if (!$itemSpecification) {
+        if (! $itemSpecification) {
             $itemSpecification = ItemSpecification::create([
                 'item_catalog_id' => $itemCatalog->id,
                 'brand' => $specData['brand'],
@@ -384,55 +386,55 @@ class IdrDataSeeder extends Seeder
      */
     protected function determineSecondaryCategory(string $article, string $description, $secondaryCategories): SecondaryCategory
     {
-        $fullText = strtoupper($article . ' ' . $description);
+        $fullText = strtoupper($article.' '.$description);
 
         // Define category mapping with keywords
         $categoryMap = [
             // Seeds and plants
             'Seeds & Planting Materials' => ['BEAN', 'BELLPEPPER', 'BROCCOLI', 'CABBAGE', 'CARROT', 'CAULIFLOWER', 'EGGPLANT', 'FRENCH BEAN', 'GARLIC CLOVES', 'HOT PEPPER', 'HYBRID CORN SEEDS', 'HYBRID RICE SEED', 'LETTUCE', 'LIMA BEANS', 'OKRA', 'PACKCHOI', 'PEPPER', 'POLE SITAO', 'SILING LABUYO', 'SQUASH', 'STRAWBERRY', 'TOMATO', 'VALUE PACK', 'SEEDLING'],
-            
+
             // Fertilizers
             'Fertilizers & Soil Amendments' => ['AMMONIUM PHOSPHATE', 'COMPLETE FERTILIZER', 'CONTROLLED RELEASE FERTILIZER', 'CONTROLLER RELEASE FERTILIZER', 'FERTILIZER', 'FOLIAR BIO-FERTILIZER', 'FOLIAR FERTILIZER', 'FLOWER INDUCER', 'MURIATE OF POTASH', 'ORGANIC FERTILIZER', 'ORGANIC LIQUID FERTILIZER', 'UREA', 'EM-1 CONCENTRATE', 'PEAT MOSS'],
-            
+
             // Animal feeds
             'Animal Feeds' => ['CHICK BOOSTER CRUMBLE', 'CHICK BREEDER PELLET', 'CHICK FINISHER CRUMBLE', 'CHICK GROWER CRUMBLE', 'CHICK STARTER CRUMBLE', 'HOG GROWER PELLET', 'HOG STARTER PELLET', 'LAYER FEEDS', 'RICE BRAN', 'MOLASSES'],
-            
+
             // Farm supplies (chemicals, spraying)
             'Farm Supplies' => ['FUNGICIDE', 'INSECTICIDE', 'ORGANIC INSECTICIDE', 'KNAPSACK SPRAYER', 'POWER SPRAYER', 'INSECT NET', 'BLACK NET', 'GARDEN SHADE NET', 'NET'],
-            
+
             // Hand tools
             'Hand Tools' => ['FLORAL SCISSOR', 'FOLDING PRUNNING SAW', 'GRAB HOE', 'GRASS CUTTER', 'PRUNING SHEAR', 'PRUNNING SAW', 'PRUNNING SHEAR', 'RAKE', 'SHOVEL', 'SICKLE', 'TOOL SET'],
-            
+
             // Machinery
             'Field Machinery' => ['COFFEE PULPER', 'FORAGE CHOPPER', 'MULTIPURPOSE THRESHER', 'PEANUT GRINDER', 'PUMP & ENGINE SET', 'PUMP and ENGINE SET', 'SOLAR GENERATOR', 'HAULING VEHICLE', 'VEGETABLE CHILLER'],
-            
+
             // Measurement tools
             'Measurement Tools' => ['DIGITAL WEIGHING SCALE', 'ELECTONIC WEIGHING SCALE', 'WEIGHING SCALE', 'HAND HELD TALLY COUNTER', 'MEASURING CUP', 'MOISTURE METER'],
-            
+
             // Storage containers
             'Storage Containers' => ['BAG', 'HERMETIC BAG', 'HERMETIC COCOON', 'MULTI-PURPOSE CRATES', 'PLASTIC CRATES', 'PLASTIC FRUIT CRATE', 'PLASTIC JAR', 'STEEL DRUM', 'WATER DRUM', 'WATER TANK', 'VEGETABLE CRATES', 'REPEAR HARVESTER SACK', 'CHILLER DISPLAY TRAY', 'STAINLESS DISPLAY RACK'],
-            
+
             // Kitchen supplies
             'Kitchen Supplies' => ['CHEST COOLER', 'LPG TANK', 'STOVE', 'INSULATED TUMBLER', 'INSULATED VACUUM TUMBLER', 'PORTABLE VACUUM FLASK'],
-            
+
             // Office supplies
             'Office Supplies' => ['CALCULATOR', 'CASH BOOK', 'CASH DISBURSEMENT JOURNAL', 'CASH RECEIPT JOURNAL', 'GENERAL JOURNAL', 'GENERAL LEDGER', 'NOTEPAD', 'PURCHASE JOURNAL', 'SALES JOURNAL', 'VOUCHER', 'WALL CALENDAR', 'PLANNER'],
-            
+
             // Computer peripherals
             'Computer Peripherals' => ['DUAL DRIVE GO USB', 'FLASH DRIVE', 'OTG DUAL DRIVE GO', 'PHONE STAND', 'SOFTWARE', 'TECH ORGANIZER POUCH', 'USB', 'USB DUAL DRIVE'],
-            
+
             // Power and electrical
             'Power and Electrical' => ['ELECTRIC HEAT GUN', 'POWERBANK'],
-            
+
             // Apparel
             'Apparel & Wearables' => ['ADVOCACY LONG SLEEVE SHIRT', 'APRON', 'BACKPACK', 'COVER ALL', 'COVERALL', 'POLO SHIRT', 'RAINBOOTS', 'T-SHIRT', 'TOTE BAG', 'YOGA MAT'],
-            
+
             // Publications
             'Publications' => ['3RD QUARTER 2024 NEWS BULLETIN', 'EXPLANATORY MANUAL', 'EXPLANATORY MANUAL FOR PNS/BAFS 337:2022', 'SAAD NEWS LETTER', 'TRAINING KIT'],
-            
+
             // Giveaways
             'Giveaways & Merchandise' => ['CUSTOMIZED MUGS', 'CUSTOMIZED UMBRELLA', 'ID LACE LANYARD', 'RETIREMENT PLAQUE'],
-            
+
             // Signage
             'Signage' => ['PERMANENT KADIWA OUTLET SIGNAGE'],
         ];
@@ -450,6 +452,7 @@ class IdrDataSeeder extends Seeder
 
         // Default to Miscellaneous if no match found
         $misc = $secondaryCategories->get('Miscellaneous');
+
         return $misc ?: $secondaryCategories->first();
     }
 
@@ -465,7 +468,7 @@ class IdrDataSeeder extends Seeder
             ->where('unit_price', $unitPrice)
             ->first();
 
-        if (!$contractItem) {
+        if (! $contractItem) {
             $contractItem = ContractItem::create([
                 'contract_id' => $contract->id,
                 'item_specification_id' => $itemSpecification->id,
@@ -495,7 +498,7 @@ class IdrDataSeeder extends Seeder
             'date' => $this->parseDate($record['Date prepared']), // Use date_prepared as default
             'received_by_id' => $assignedEmployee->id, // Same as assigned employee
             'received_from_id' => $approvingEmployee->id, // Use approving employee as the issuer
-            'remarks' => !empty($record['Remarks']) ? $record['Remarks'] : null,
+            'remarks' => ! empty($record['Remarks']) ? $record['Remarks'] : null,
         ]);
     }
 
@@ -520,6 +523,7 @@ class IdrDataSeeder extends Seeder
         if (preg_match('/ORS Number:\s*([^\s]+)/', $orsString, $matches)) {
             return trim($matches[1]);
         }
+
         return $orsString;
     }
 
@@ -531,29 +535,29 @@ class IdrDataSeeder extends Seeder
         $identificationData = [];
 
         // Add series number and item number
-        $identificationData[] = 'Series Number: ' . $record['Series Number'];
-        
-        if (!empty($record['Item No']) && $record['Item No'] !== '0') {
-            $identificationData[] = 'Item Number: ' . $record['Item No'];
+        $identificationData[] = 'Series Number: '.$record['Series Number'];
+
+        if (! empty($record['Item No']) && $record['Item No'] !== '0') {
+            $identificationData[] = 'Item Number: '.$record['Item No'];
         }
 
         // Add location code
-        if (!empty($record['Location Code'])) {
-            $identificationData[] = 'Location Code: ' . $record['Location Code'];
+        if (! empty($record['Location Code'])) {
+            $identificationData[] = 'Location Code: '.$record['Location Code'];
         }
 
         // Add balance information
-        if (!empty($record['Balance per Card'])) {
-            $identificationData[] = 'Balance per Card: ' . $record['Balance per Card'];
+        if (! empty($record['Balance per Card'])) {
+            $identificationData[] = 'Balance per Card: '.$record['Balance per Card'];
         }
 
         // Add position information
-        if (!empty($record['Issued to Position'])) {
-            $identificationData[] = 'Issued to Position: ' . $record['Issued to Position'];
+        if (! empty($record['Issued to Position'])) {
+            $identificationData[] = 'Issued to Position: '.$record['Issued to Position'];
         }
 
-        if (!empty($record['Division Position'])) {
-            $identificationData[] = 'Division Position: ' . $record['Division Position'];
+        if (! empty($record['Division Position'])) {
+            $identificationData[] = 'Division Position: '.$record['Division Position'];
         }
 
         return empty($identificationData) ? null : implode("\n", $identificationData);
@@ -595,7 +599,7 @@ class IdrDataSeeder extends Seeder
     {
         try {
             $formats = ['m/d/y', 'm/d/Y', 'Y-m-d', 'd/m/Y'];
-            
+
             foreach ($formats as $format) {
                 try {
                     return Carbon::createFromFormat($format, trim($dateString));
@@ -616,6 +620,7 @@ class IdrDataSeeder extends Seeder
     protected function generateItemCode(string $itemName): string
     {
         $baseCode = substr(strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $itemName))), 0, 35);
-        return $baseCode . '-' . uniqid();
+
+        return $baseCode.'-'.uniqid();
     }
 }

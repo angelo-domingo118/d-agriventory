@@ -14,7 +14,7 @@ class AuditLogObserver
     /**
      * Registry to store original values for models being updated.
      * Uses WeakMap to automatically clean up when models are garbage collected.
-     * 
+     *
      * @var WeakMap<Model, array>
      */
     private static WeakMap $originalValuesRegistry;
@@ -24,8 +24,8 @@ class AuditLogObserver
      */
     private static function initializeRegistry(): void
     {
-        if (!isset(self::$originalValuesRegistry)) {
-            self::$originalValuesRegistry = new WeakMap();
+        if (! isset(self::$originalValuesRegistry)) {
+            self::$originalValuesRegistry = new WeakMap;
         }
     }
 
@@ -68,12 +68,12 @@ class AuditLogObserver
         }
 
         self::initializeRegistry();
-        
+
         // Retrieve original values from registry, fallback to getOriginal() if not found
         $originalValues = self::$originalValuesRegistry[$model] ?? $model->getOriginal();
-        
+
         AuditService::logUpdate($model, $originalValues);
-        
+
         // Clean up the registry entry to prevent memory leaks
         // (WeakMap handles this automatically, but explicit cleanup is good practice)
         if (isset(self::$originalValuesRegistry[$model])) {

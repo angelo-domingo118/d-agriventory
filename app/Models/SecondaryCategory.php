@@ -74,6 +74,6 @@ class SecondaryCategory extends Model
      */
     public function canBeDeletedSafely(): bool
     {
-        return !$this->items()->exists();
+        return ! $this->items()->exists();
     }
 }

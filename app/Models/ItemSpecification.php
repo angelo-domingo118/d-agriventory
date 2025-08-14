@@ -56,8 +56,8 @@ class ItemSpecification extends Model
     {
         $contractItems = $this->contractItems()->with([
             'icsNumbers',
-            'parNumbers', 
-            'idrNumbers'
+            'parNumbers',
+            'idrNumbers',
         ])->get();
 
         $impact = [
@@ -90,7 +90,7 @@ class ItemSpecification extends Model
     protected function assessDeletionRisk(array $impact): array
     {
         $totalInventoryRecords = $impact['ics_numbers'] + $impact['par_numbers'] + $impact['idr_numbers'];
-        
+
         if ($totalInventoryRecords > 0) {
             // HIGH RISK: Has active inventory records
             $impact['risk_level'] = 'high';
@@ -125,7 +125,7 @@ class ItemSpecification extends Model
                 'icsNumbers.icsTransfers',
                 'parNumbers.parItemBatches',
                 'parNumbers.parTransfers',
-                'idrNumbers.idrItemBatches.acknowledgementReceipts'
+                'idrNumbers.idrItemBatches.acknowledgementReceipts',
             ])->get();
 
             foreach ($contractItems as $contractItem) {
@@ -160,7 +160,7 @@ class ItemSpecification extends Model
 
             // Delete consumable items
             $this->consumableItems()->delete();
-            
+
             // Delete contract items
             $this->contractItems()->delete();
 
@@ -174,7 +174,7 @@ class ItemSpecification extends Model
      */
     public function canBeDeletedSafely(): bool
     {
-        return !$this->contractItems()->exists() && !$this->consumableItems()->exists();
+        return ! $this->contractItems()->exists() && ! $this->consumableItems()->exists();
     }
 
     /**
@@ -183,6 +183,7 @@ class ItemSpecification extends Model
     public function isDeletionBlocked(): bool
     {
         $impact = $this->getDeletionImpact();
+
         return $impact['risk_level'] === 'high';
     }
 
@@ -192,26 +193,26 @@ class ItemSpecification extends Model
     public function getDeletionSummary(): string
     {
         $impact = $this->getDeletionImpact();
-        
+
         $parts = [];
         if ($impact['contract_items'] > 0) {
-            $parts[] = $impact['contract_items'] . ' contract ' . 
+            $parts[] = $impact['contract_items'].' contract '.
                       ($impact['contract_items'] === 1 ? 'item' : 'items');
         }
         if ($impact['consumable_items'] > 0) {
-            $parts[] = $impact['consumable_items'] . ' consumable ' . 
+            $parts[] = $impact['consumable_items'].' consumable '.
                       ($impact['consumable_items'] === 1 ? 'item' : 'items');
         }
         if ($impact['ics_numbers'] > 0) {
-            $parts[] = $impact['ics_numbers'] . ' ICS ' . 
+            $parts[] = $impact['ics_numbers'].' ICS '.
                       ($impact['ics_numbers'] === 1 ? 'record' : 'records');
         }
         if ($impact['par_numbers'] > 0) {
-            $parts[] = $impact['par_numbers'] . ' PAR ' . 
+            $parts[] = $impact['par_numbers'].' PAR '.
                       ($impact['par_numbers'] === 1 ? 'record' : 'records');
         }
         if ($impact['idr_numbers'] > 0) {
-            $parts[] = $impact['idr_numbers'] . ' IDR ' . 
+            $parts[] = $impact['idr_numbers'].' IDR '.
                       ($impact['idr_numbers'] === 1 ? 'record' : 'records');
         }
 

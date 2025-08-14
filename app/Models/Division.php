@@ -60,9 +60,9 @@ class Division extends Model
             'consumable_records' => $consumableRecordsCount,
             'has_associated_data' => $employeesCount > 0 || $inventoryManagersCount > 0 || $consumableRecordsCount > 0,
             'risk_level' => $employeesCount > 0 ? 'high' : (($inventoryManagersCount > 0 || $consumableRecordsCount > 0) ? 'medium' : 'safe'),
-            'risk_message' => $employeesCount > 0 
+            'risk_message' => $employeesCount > 0
                 ? 'This division has employees assigned and should not be deleted.'
-                : (($inventoryManagersCount > 0 || $consumableRecordsCount > 0) 
+                : (($inventoryManagersCount > 0 || $consumableRecordsCount > 0)
                     ? 'This division has inventory managers or consumable records. Deletion will affect operational data.'
                     : 'This division has no associated data and is safe to delete.'),
         ];
@@ -74,7 +74,8 @@ class Division extends Model
     public function canBeDeletedSafely(): bool
     {
         $impact = $this->getDeletionImpact();
-        return !$impact['has_associated_data'];
+
+        return ! $impact['has_associated_data'];
     }
 
     /**

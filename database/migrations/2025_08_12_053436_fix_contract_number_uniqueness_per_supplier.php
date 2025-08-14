@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('contracts', function (Blueprint $table) {
             // Drop the current global unique constraint
             $table->dropUnique(['contract_po_ib_number']);
-            
+
             // Create composite unique index that includes supplier_id and deleted_at
             // This allows same contract number for different suppliers and handles soft deletes
             $table->unique(['supplier_id', 'contract_po_ib_number', 'deleted_at'], 'contracts_supplier_contract_deleted_at_unique');

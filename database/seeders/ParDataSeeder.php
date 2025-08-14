@@ -31,18 +31,20 @@ class ParDataSeeder extends Seeder
 
         // Load and validate JSON data
         $jsonPath = base_path('par-seeder.json');
-        if (!File::exists($jsonPath)) {
-            $this->command->error('❌ PAR seeder JSON file not found at: ' . $jsonPath);
+        if (! File::exists($jsonPath)) {
+            $this->command->error('❌ PAR seeder JSON file not found at: '.$jsonPath);
+
             return;
         }
 
         $jsonData = json_decode(File::get($jsonPath), true);
-        if (!$jsonData) {
+        if (! $jsonData) {
             $this->command->error('❌ Invalid JSON data in PAR seeder file.');
+
             return;
         }
 
-        $this->command->info('📊 Loaded ' . count($jsonData) . ' PAR records from JSON file.');
+        $this->command->info('📊 Loaded '.count($jsonData).' PAR records from JSON file.');
 
         // Process all records
         $this->processParData($jsonData);
@@ -74,29 +76,29 @@ class ParDataSeeder extends Seeder
             'Computers and Laptops' => [
                 'code' => 'COMPUTERS',
                 'primary_category_id' => $officeEquipment->id,
-                'description' => 'Desktop computers, laptops, and computer systems'
+                'description' => 'Desktop computers, laptops, and computer systems',
             ],
             'Office Machinery' => [
                 'code' => 'OFFICE-MACH',
                 'primary_category_id' => $officeEquipment->id,
-                'description' => 'Printers, photocopiers, scanners, and office machines'
+                'description' => 'Printers, photocopiers, scanners, and office machines',
             ],
             'Audio-Visual Equipment' => [
                 'code' => 'AV-EQUIP',
                 'primary_category_id' => $officeEquipment->id,
-                'description' => 'Display equipment, projectors, and AV systems'
+                'description' => 'Display equipment, projectors, and AV systems',
             ],
 
             // Agricultural Equipment categories
             'Livestock' => [
                 'code' => 'LIVESTOCK',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Farm animals and livestock'
+                'description' => 'Farm animals and livestock',
             ],
             'Dairy Equipment' => [
                 'code' => 'DAIRY-EQUIP',
                 'primary_category_id' => $agriEquipment->id,
-                'description' => 'Milk processing and dairy equipment'
+                'description' => 'Milk processing and dairy equipment',
             ],
         ];
 
@@ -106,7 +108,7 @@ class ParDataSeeder extends Seeder
                 [
                     'name' => $name,
                     'primary_category_id' => $data['primary_category_id'],
-                    'description' => $data['description']
+                    'description' => $data['description'],
                 ]
             );
         }
@@ -132,32 +134,32 @@ class ParDataSeeder extends Seeder
         $chunks = array_chunk($jsonData, 25);
 
         foreach ($chunks as $chunkIndex => $chunk) {
-            $this->command->info("   Processing chunk " . ($chunkIndex + 1) . " of " . count($chunks) . "...");
+            $this->command->info('   Processing chunk '.($chunkIndex + 1).' of '.count($chunks).'...');
 
             DB::transaction(function () use ($chunk, $secondaryCategories, &$processedCount, &$skippedCount, &$errors) {
                 foreach ($chunk as $record) {
                     try {
                         $this->processParRecord($record, $secondaryCategories);
                         $processedCount++;
-                        
+
                         if ($processedCount % 10 == 0) {
                             $this->command->line("     ✓ Processed {$processedCount} records...");
                         }
                     } catch (\Exception $e) {
                         $skippedCount++;
-                        $errors[] = "PAR #{$record['PAR Number']}: " . $e->getMessage();
-                        $this->command->warn("     ⚠️  Skipped PAR #{$record['PAR Number']}: " . $e->getMessage());
+                        $errors[] = "PAR #{$record['PAR Number']}: ".$e->getMessage();
+                        $this->command->warn("     ⚠️  Skipped PAR #{$record['PAR Number']}: ".$e->getMessage());
                     }
                 }
             });
         }
 
         $this->command->newLine();
-        $this->command->info("📈 Processing Summary:");
+        $this->command->info('📈 Processing Summary:');
         $this->command->info("   ✅ Successfully processed: {$processedCount} records");
         $this->command->info("   ⚠️  Skipped: {$skippedCount} records");
 
-        if (!empty($errors) && count($errors) <= 10) {
+        if (! empty($errors) && count($errors) <= 10) {
             $this->command->warn("\n🔍 Error details:");
             foreach ($errors as $error) {
                 $this->command->line("   • {$error}");
@@ -176,7 +178,7 @@ class ParDataSeeder extends Seeder
 
         // Check if PAR already exists
         if (ParNumber::where('par_number', $parNumber)->exists()) {
-            throw new \Exception("PAR number already exists");
+            throw new \Exception('PAR number already exists');
         }
 
         // 1. Find or create employee
@@ -205,11 +207,11 @@ class ParDataSeeder extends Seeder
     {
         // Parse name format "LASTNAME, Firstname" -> "Firstname LASTNAME"
         $parts = array_map('trim', explode(',', $issuedTo));
-        
+
         if (count($parts) >= 2) {
             $lastName = $parts[0];
             $firstNameAndSuffix = implode(', ', array_slice($parts, 1));
-            $formattedName = trim($firstNameAndSuffix) . ' ' . trim($lastName);
+            $formattedName = trim($firstNameAndSuffix).' '.trim($lastName);
         } else {
             $formattedName = trim($issuedTo);
         }
@@ -217,16 +219,16 @@ class ParDataSeeder extends Seeder
         // Try to find existing employee
         $employee = Employee::where('name', $formattedName)->first();
 
-        if (!$employee) {
+        if (! $employee) {
             // Try alternative search
             if (count($parts) >= 2) {
-                $employee = Employee::where('name', 'LIKE', '%' . trim($parts[0]) . '%')
-                                  ->where('name', 'LIKE', '%' . trim($parts[1]) . '%')
-                                  ->first();
+                $employee = Employee::where('name', 'LIKE', '%'.trim($parts[0]).'%')
+                    ->where('name', 'LIKE', '%'.trim($parts[1]).'%')
+                    ->first();
             }
         }
 
-        if (!$employee) {
+        if (! $employee) {
             $employee = Employee::create([
                 'name' => $formattedName,
                 'division_id' => null, // Can be assigned later
@@ -243,12 +245,12 @@ class ParDataSeeder extends Seeder
     protected function findOrCreateContract(string $documentSource): Contract
     {
         // Parse "Supplier: Name ; Contract/PO/IB No: Number"
-        if (!preg_match('/Supplier:\s*([^;]+)/', $documentSource, $supplierMatches)) {
-            throw new \Exception("Could not parse supplier from document source");
+        if (! preg_match('/Supplier:\s*([^;]+)/', $documentSource, $supplierMatches)) {
+            throw new \Exception('Could not parse supplier from document source');
         }
 
-        if (!preg_match('/Contract\/PO\/IB No:\s*([^;]+)/', $documentSource, $contractMatches)) {
-            throw new \Exception("Could not parse contract number from document source");
+        if (! preg_match('/Contract\/PO\/IB No:\s*([^;]+)/', $documentSource, $contractMatches)) {
+            throw new \Exception('Could not parse contract number from document source');
         }
 
         $supplierName = trim($supplierMatches[1]);
@@ -280,7 +282,7 @@ class ParDataSeeder extends Seeder
         // Find or create item catalog
         $itemCatalog = ItemsCatalog::where('name', $article)->first();
 
-        if (!$itemCatalog) {
+        if (! $itemCatalog) {
             $itemCatalog = ItemsCatalog::create([
                 'name' => $article,
                 'unit' => strtolower($record['Unit Measure']),
@@ -297,7 +299,7 @@ class ParDataSeeder extends Seeder
             ->where('detailed_specifications', $specData['detailed_specifications'])
             ->first();
 
-        if (!$itemSpecification) {
+        if (! $itemSpecification) {
             $itemSpecification = ItemSpecification::create([
                 'item_catalog_id' => $itemCatalog->id,
                 'brand' => $specData['brand'],
@@ -325,10 +327,10 @@ class ParDataSeeder extends Seeder
         ];
 
         $categoryName = $mapping[$article] ?? 'Miscellaneous';
-        
+
         $category = $secondaryCategories->get($categoryName);
-        
-        if (!$category) {
+
+        if (! $category) {
             // Fallback to first available category
             $category = $secondaryCategories->first();
         }
@@ -348,7 +350,7 @@ class ParDataSeeder extends Seeder
             ->where('unit_price', $unitPrice)
             ->first();
 
-        if (!$contractItem) {
+        if (! $contractItem) {
             $contractItem = ContractItem::create([
                 'contract_id' => $contract->id,
                 'item_specification_id' => $itemSpecification->id,
@@ -432,8 +434,8 @@ class ParDataSeeder extends Seeder
         if (preg_match_all('/Serial Number:\s*([^\n\r]+)/i', $description, $matches)) {
             foreach ($matches[1] as $serialNumber) {
                 $serialNumber = trim($serialNumber);
-                if (!empty($serialNumber)) {
-                    $identificationData[] = 'Serial Number: ' . $serialNumber;
+                if (! empty($serialNumber)) {
+                    $identificationData[] = 'Serial Number: '.$serialNumber;
                 }
             }
         }
@@ -441,7 +443,7 @@ class ParDataSeeder extends Seeder
         // Extract ear tags for livestock
         if (preg_match_all('/ear tag:\s*([^\n\r]+)/i', $description, $matches)) {
             foreach ($matches[1] as $earTag) {
-                $identificationData[] = 'Ear Tag: ' . trim($earTag);
+                $identificationData[] = 'Ear Tag: '.trim($earTag);
             }
         }
 
@@ -463,7 +465,7 @@ class ParDataSeeder extends Seeder
     {
         try {
             $formats = ['m/d/y', 'm/d/Y', 'Y-m-d', 'd/m/Y'];
-            
+
             foreach ($formats as $format) {
                 try {
                     return Carbon::createFromFormat($format, trim($dateString));
@@ -486,8 +488,8 @@ class ParDataSeeder extends Seeder
         $accountCode = $record['Account Code'];
         $article = strtoupper($record['Article']);
         $articleAbbrev = substr(preg_replace('/[^A-Z]/', '', $article), 0, 3);
-        
-        return "PAR-{$accountCode}-{$articleAbbrev}-" . uniqid();
+
+        return "PAR-{$accountCode}-{$articleAbbrev}-".uniqid();
     }
 
     /**
@@ -496,6 +498,7 @@ class ParDataSeeder extends Seeder
     protected function generateItemCode(string $itemName): string
     {
         $baseCode = substr(strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', str_replace(' ', '-', $itemName))), 0, 35);
-        return $baseCode . '-' . uniqid();
+
+        return $baseCode.'-'.uniqid();
     }
 }
