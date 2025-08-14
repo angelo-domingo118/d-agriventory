@@ -8,6 +8,9 @@
     'filterContract' => '',
     'filterRemarks' => '',
     'filterInventoryNumber' => '',
+    'filterAreaCode' => '',
+    'filterBuildingCode' => '',
+    'filterAccountCode' => '',
     'showIssuedTo' => true,
     'highlightedParId' => null,
 ])
@@ -55,7 +58,7 @@
 
             @if($columns['serials'])
                 <div class="{{ $densityClasses['text_meta'] }}">
-                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Serial Number(s) / ID Data:</p>
+                    <p class="font-semibold uppercase text-stone-500 dark:text-stone-400">Identification Number(s) / Components:</p>
                     @if($par->itemBatches->isNotEmpty() && $par->itemBatches->pluck('identification_data')->filter()->isNotEmpty())
                         <ul class="mt-1 space-y-2">
                             @foreach($par->itemBatches as $batch)
@@ -109,9 +112,9 @@
            @endif
            @if($columns['unit_cost'])<div><span class="font-medium">Unit Cost:</span> ₱{{ number_format($par->contractItem?->unit_price ?? 0, 2) }}</div>@endif
            @if($columns['codes'] && $densityClasses['show_tertiary'])
-                <div><span class="font-medium">Area Code:</span> {{ $par->area_code ?? 'N/A' }}</div>
-                <div><span class="font-medium">Building Code:</span> {{ $par->building_code ?? 'N/A' }}</div>
-                <div><span class="font-medium">Account Code:</span> {{ $par->account_code ?? 'N/A' }}</div>
+                <div><span class="font-medium">Area Code:</span> {!! $par->area_code ? \App\Helpers\TextHelper::highlight($par->area_code, [$search, $filterAreaCode]) : '<span class="italic text-stone-500">Not recorded</span>' !!}</div>
+                <div><span class="font-medium">Building Code:</span> {!! $par->building_code ? \App\Helpers\TextHelper::highlight($par->building_code, [$search, $filterBuildingCode]) : '<span class="italic text-stone-500">Not recorded</span>' !!}</div>
+                <div><span class="font-medium">Account Code:</span> {!! $par->account_code ? \App\Helpers\TextHelper::highlight($par->account_code, [$search, $filterAccountCode]) : '<span class="italic text-stone-500">Not recorded</span>' !!}</div>
            @endif
         </div>
         @endif

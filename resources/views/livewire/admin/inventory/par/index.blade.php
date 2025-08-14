@@ -692,6 +692,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                     :filterContract="$this->filterContract"
                                                     :filterRemarks="$this->filterRemarks"
                                                     :filterInventoryNumber="$this->filterInventoryNumber"
+                                                    :filterAreaCode="$this->filterAreaCode"
+                                                    :filterBuildingCode="$this->filterBuildingCode"
+                                                    :filterAccountCode="$this->filterAccountCode"
                                                     :show-issued-to="true"
                                                     :highlightedParId="$this->highlightedParId"
                                                 />
@@ -810,6 +813,9 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         :filterContract="$this->filterContract"
                                         :filterRemarks="$this->filterRemarks"
                                         :filterInventoryNumber="$this->filterInventoryNumber"
+                                        :filterAreaCode="$this->filterAreaCode"
+                                        :filterBuildingCode="$this->filterBuildingCode"
+                                        :filterAccountCode="$this->filterAccountCode"
                                         :show-issued-to="true"
                                         :highlightedParId="$this->highlightedParId"
                                     />
@@ -878,7 +884,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <flux:input wire:model.live.debounce.300ms="filterArticle" label="Article / Description" placeholder="Search item name, brand, model..." clearable />
                         </div>
                         <div class="sm:col-span-2">
-                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Serial Number / ID" placeholder="Search serial numbers..." clearable />
+                            <flux:input wire:model.live.debounce.300ms="filterSerialNumber" label="Identification Number / Components" placeholder="Search identification numbers..." clearable />
                         </div>
                         <div class="sm:col-span-1">
                             <flux:input wire:model.live.debounce.300ms="filterInventoryNumber" label="Inventory Number" placeholder="e.g. PPE-123-07-2024" clearable />
