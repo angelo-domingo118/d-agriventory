@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Laravel Development Practices
+
+## PHP Coding Standards
+
+- Use PHP 8.2+ features when appropriate:
+  - Readonly properties: `public readonly string $name;`
+  - New `Randomizer` class: `$random = new \Random\Randomizer();`
+  - First-class callables: `$callback = User::find(...);`
+  - Disjunctive normal form types: `function test(A|(B&C) $param)`
+- Follow PSR-12 coding standards.
+- Use strict typing: `declare(strict_types=1);`
+- Use descriptive variable and method names.
+
+## Laravel Framework Usage
+
+- Utilize Laravel 12's built-in features and helpers.
+- Use `php artisan make:{option}` to create models, migrations, controllers, etc.
+- Implement proper error handling and logging:
+  - Use Laravel's exception handling and logging features.
+  - Create custom exceptions when necessary.
+  - Use try-catch blocks for expected exceptions.
+- Use Laravel's validation features for form and request validation.
+- Implement middleware for request filtering and modification.
+- Avoid using env variables directly in code: `config('app.name')` instead of `env('APP_NAME')`.
+- Add environment variables to config files for better caching.
+- Prefer soft deletes for models using the `SoftDeletes` trait.
+
+## Application Structure
+
+- Follow a consistent directory structure.
+- Use service classes for complex business logic.
+- Implement the repository pattern for data access when complexity warrants it.
+- Use Laravel's event and listener system for decoupled code.
+- Implement Laravel's built-in scheduling features for recurring tasks.
+- Create dedicated form request classes for complex validation.
+- Group related routes with route prefixes and middleware.
+
+## Performance and Security
+
+- Use Laravel's built-in authentication and authorization features.
+- Utilize Laravel's caching mechanisms for improved performance.
+- Implement job queues for long-running tasks.
+- Implement proper CSRF protection and security measures.
+- Use Laravel's throttling middleware to prevent brute force attacks.
+- Optimize database queries using indexing and eager loading.
+- Avoid N+1 queries by using eager loading or batch loading:
+  ```php
+  $users = User::with('posts')->get();
+  $posts = Post::whereIn('user_id', $users->pluck('id'))->get();
+  ```
+- Implement proper error logging and monitoring.
+
+## Testing and Development
+
+- Use Laravel's built-in testing tools (Pest, PHPUnit, Dusk).
+- Implement API versioning for public APIs if needed.
+- Use Laravel's localization features for multi-language support.
+- Use Vite for asset compilation.
+- Create factories and seeders for test data.
+- Use feature and unit tests to ensure code quality.
+

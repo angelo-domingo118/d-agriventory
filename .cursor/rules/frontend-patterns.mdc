@@ -1,0 +1,371 @@
+---
+alwaysApply: false
+---
+# Frontend Development Patterns
+
+## Architecture (TALL Stack)
+- **Livewire/Volt**: Single-file components in `resources/views/livewire` for dynamic UI and business logic.
+- **Tailwind CSS 4**: Utility-first styling with a custom theme defined in `resources/css/app.css`.
+- **Alpine.js**: Integrated automatically by Livewire for client-side interactions.
+- **Flux UI**: The primary component library for building a consistent user interface.
+
+## Directory Structure
+The `resources/views` directory is organized by feature and component type.
+
+```
+resources/views/
+├── components/          # Reusable Blade components
+│   ├── admin/           # Admin-specific components
+│   ├── dashboard/       # Dashboard cards (stat-card, action-card)
+│   ├── layouts/         # Main layout wrappers (app, auth)
+│   └── settings/        # Settings page components
+├── flux/                # Flux UI component overrides/customizations
+│   └── icon/            # SVG icon components
+├── livewire/            # Livewire Volt component files
+│   ├── admin/           # Admin functionality (data, inventory, system)
+│   ├── auth/            # Authentication views
+│   ├── inventory-manager/# Inventory manager views
+│   └── settings/        # User settings views
+└── partials/            # Partial Blade views (e.g., navigation menus)
+```
+
+## Component Patterns
+
+### Volt Single-File Components
+Volt components combine PHP logic and Blade templates into a single file. They use attributes for layouts and computed properties for efficient data handling.
+
+```php
+// resources/views/livewire/admin/main/dashboard.blade.php
+<?php
+use Livewire\Attributes\{Layout, Computed};
+use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Cache;
+use App\Models\User;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    #[Computed]
+    public function userCount(): int {
+        return Cache::remember('admin.dashboard.user_count', now()->addMinutes(5),
+            fn() => User::count());
+    }
+}; ?>
+
+<div>
+    <x-dashboard.stat-card title="Total Users" :value="$this->userCount" />
+</div>
+```
+
+### Layouts
+- **App Layout**: The main application wrapper, which includes a responsive sidebar for navigation.
+  ```blade
+  // resources/views/components/layouts/app.blade.php
+  <x-layouts.app.sidebar :title="$title ?? null">
+      <flux:main>
+          {{ $slot }}
+      </flux:main>
+  </x-layouts.app.sidebar>
+  ```
+- **Role-Specific Navigation**: The sidebar dynamically includes navigation partials based on the authenticated user's role.
+  ```blade
+  // resources/views/components/layouts/app/sidebar.blade.php
+  @if (auth()->user()->adminUser)
+      @include('partials.navigation.admin')
+  @elseif (auth()->user()->divisionInventoryManager)
+      @include('partials.navigation.inventory-manager')
+  @endif
+  ```
+
+### UI Components
+
+#### Dashboard Components
+Custom Blade components are used for dashboard elements like statistics cards.
+
+```blade
+<!-- resources/views/components/dashboard/stat-card.blade.php -->
+@props(['title', 'value', 'subtitle' => null])
+<div {{ $attributes->merge(['class' => 'p-4 rounded-lg shadow-sm bg-stone-50/50 dark:bg-stone-900/50']) }}>
+    <h4 class="font-medium text-stone-500 dark:text-stone-400">{{ $title }}</h4>
+    <p class="text-3xl font-bold mt-1 text-stone-900 dark:text-stone-100">{{ $value }}</p>
+    @if($subtitle)
+        <p class="text-sm text-stone-500 dark:text-stone-400">{{ $subtitle }}</p>
+    @endif
+</div>
+```
+
+#### Flux UI Components
+Flux UI is used for most UI elements, including buttons, inputs, and more.
+
+- **Buttons**: Variants include `primary`, `ghost`, `filled`, and `danger`.
+  ```blade
+  <flux:button variant="primary" type="submit">{{ __('Save') }}</flux:button>
+  <flux:button :href="route('dashboard')" wire:navigate variant="ghost">{{ __('Cancel') }}</flux:button>
+  <flux:button variant="danger" wire:click="delete">{{ __('Delete') }}</flux:button>
+  ```
+
+- **Form Inputs**:
+  ```blade
+  <flux:input wire:model="name" :label="__('Name')" type="text" required />
+  <flux:password wire:model="password" :label="__('Password')" required viewable />
+  <flux:checkbox wire:model="remember" :label="__('Remember me')" />
+  ```
+
+- **Icons**: Icons are referenced by name from the Flux library.
+  ```blade
+  <x-flux::icon.users />
+  <x-flux::icon.chart-bar variant="mini" />
+  ```
+
+## Styling
+
+### Tailwind Theming
+The visual theme is defined using CSS variables inside an `@theme` block in `resources/css/app.css`.
+
+```css
+/* resources/css/app.css */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --color-accent: var(--color-green-700);
+    /* ... other variables */
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-green-600);
+    }
+}
+```
+
+### Responsive Design
+The UI is built mobile-first using Tailwind's responsive breakpoints. The main layout features a responsive sidebar that collapses on smaller screens.
+
+## Form & Data Handling
+
+### Validation
+Form validation is handled within the Volt component's PHP block using `$this->validate()`.
+
+```php
+// resources/views/livewire/settings/profile.blade.php
+public function updateProfileInformation(): void
+{
+    $user = Auth::user();
+
+    $validated = $this->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+    ]);
+
+    $user->fill($validated)->save();
+    $this->dispatch('profile-updated', name: $user->name);
+}
+```
+
+### Navigation
+SPA-like navigation is achieved by adding the `wire:navigate` attribute to links.
+
+```blade
+<flux:link :href="route('settings.profile')" wire:navigate>
+    {{ __('Settings') }}
+</flux:link>
+```
+
+## Best Practices
+
+1.  **Volt Components**: Encapsulate all component logic within single-file Volt components.
+2.  **Component Architecture**: Decompose the UI into small, reusable Blade and Livewire components.
+3.  **Flux UI**: Utilize Flux components to maintain a consistent look and feel. Adhere to the defined button variants.
+4.  **Validation**: Place validation logic directly within the corresponding action method in the component.
+5.  **Localization**: Use Laravel's `__()` helper for all user-facing text to support localization.
+6.  **Responsiveness**: Ensure all UI elements are fully responsive and support dark mode.
+7.  **Navigation**: Use `wire:navigate` for seamless page transitions.
+8.  **Loading States**: Use `wire:loading` to provide visual feedback during server actions.
+
+
+
+9. **Loading States**: Use `wire:loading` for better UX during actions
+10. **Form Handling**: Prefer `wire:model` binding over manual form handling
+
+
+# Frontend Development Patterns
+
+## Architecture (TALL Stack)
+- **Livewire/Volt**: Single-file components in `resources/views/livewire` for dynamic UI and business logic.
+- **Tailwind CSS 4**: Utility-first styling with a custom theme defined in `resources/css/app.css`.
+- **Alpine.js**: Integrated automatically by Livewire for client-side interactions.
+- **Flux UI**: The primary component library for building a consistent user interface.
+
+## Directory Structure
+The `resources/views` directory is organized by feature and component type.
+
+```
+resources/views/
+├── components/          # Reusable Blade components
+│   ├── admin/           # Admin-specific components
+│   ├── dashboard/       # Dashboard cards (stat-card, action-card)
+│   ├── layouts/         # Main layout wrappers (app, auth)
+│   └── settings/        # Settings page components
+├── flux/                # Flux UI component overrides/customizations
+│   └── icon/            # SVG icon components
+├── livewire/            # Livewire Volt component files
+│   ├── admin/           # Admin functionality (data, inventory, system)
+│   ├── auth/            # Authentication views
+│   ├── inventory-manager/# Inventory manager views
+│   └── settings/        # User settings views
+└── partials/            # Partial Blade views (e.g., navigation menus)
+```
+
+## Component Patterns
+
+### Volt Single-File Components
+Volt components combine PHP logic and Blade templates into a single file. They use attributes for layouts and computed properties for efficient data handling.
+
+```php
+// resources/views/livewire/admin/main/dashboard.blade.php
+<?php
+use Livewire\Attributes\{Layout, Computed};
+use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Cache;
+use App\Models\User;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    #[Computed]
+    public function userCount(): int {
+        return Cache::remember('admin.dashboard.user_count', now()->addMinutes(5),
+            fn() => User::count());
+    }
+}; ?>
+
+<div>
+    <x-dashboard.stat-card title="Total Users" :value="$this->userCount" />
+</div>
+```
+
+### Layouts
+- **App Layout**: The main application wrapper, which includes a responsive sidebar for navigation.
+  ```blade
+  // resources/views/components/layouts/app.blade.php
+  <x-layouts.app.sidebar :title="$title ?? null">
+      <flux:main>
+          {{ $slot }}
+      </flux:main>
+  </x-layouts.app.sidebar>
+  ```
+- **Role-Specific Navigation**: The sidebar dynamically includes navigation partials based on the authenticated user's role.
+  ```blade
+  // resources/views/components/layouts/app/sidebar.blade.php
+  @if (auth()->user()->adminUser)
+      @include('partials.navigation.admin')
+  @elseif (auth()->user()->divisionInventoryManager)
+      @include('partials.navigation.inventory-manager')
+  @endif
+  ```
+
+### UI Components
+
+#### Dashboard Components
+Custom Blade components are used for dashboard elements like statistics cards.
+
+```blade
+<!-- resources/views/components/dashboard/stat-card.blade.php -->
+@props(['title', 'value', 'subtitle' => null])
+<div {{ $attributes->merge(['class' => 'p-4 rounded-lg shadow-sm bg-stone-50/50 dark:bg-stone-900/50']) }}>
+    <h4 class="font-medium text-stone-500 dark:text-stone-400">{{ $title }}</h4>
+    <p class="text-3xl font-bold mt-1 text-stone-900 dark:text-stone-100">{{ $value }}</p>
+    @if($subtitle)
+        <p class="text-sm text-stone-500 dark:text-stone-400">{{ $subtitle }}</p>
+    @endif
+</div>
+```
+
+#### Flux UI Components
+Flux UI is used for most UI elements, including buttons, inputs, and more.
+
+- **Buttons**: Variants include `primary`, `ghost`, `filled`, and `danger`.
+  ```blade
+  <flux:button variant="primary" type="submit">{{ __('Save') }}</flux:button>
+  <flux:button :href="route('dashboard')" wire:navigate variant="ghost">{{ __('Cancel') }}</flux:button>
+  <flux:button variant="danger" wire:click="delete">{{ __('Delete') }}</flux:button>
+  ```
+
+- **Form Inputs**:
+  ```blade
+  <flux:input wire:model="name" :label="__('Name')" type="text" required />
+  <flux:password wire:model="password" :label="__('Password')" required viewable />
+  <flux:checkbox wire:model="remember" :label="__('Remember me')" />
+  ```
+
+- **Icons**: Icons are referenced by name from the Flux library.
+  ```blade
+  <x-flux::icon.users />
+  <x-flux::icon.chart-bar variant="mini" />
+  ```
+
+## Styling
+
+### Tailwind Theming
+The visual theme is defined using CSS variables inside an `@theme` block in `resources/css/app.css`.
+
+```css
+/* resources/css/app.css */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --color-accent: var(--color-green-700);
+    /* ... other variables */
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-green-600);
+    }
+}
+```
+
+### Responsive Design
+The UI is built mobile-first using Tailwind's responsive breakpoints. The main layout features a responsive sidebar that collapses on smaller screens.
+
+## Form & Data Handling
+
+### Validation
+Form validation is handled within the Volt component's PHP block using `$this->validate()`.
+
+```php
+// resources/views/livewire/settings/profile.blade.php
+public function updateProfileInformation(): void
+{
+    $user = Auth::user();
+
+    $validated = $this->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+    ]);
+
+    $user->fill($validated)->save();
+    $this->dispatch('profile-updated', name: $user->name);
+}
+```
+
+### Navigation
+SPA-like navigation is achieved by adding the `wire:navigate` attribute to links.
+
+```blade
+<flux:link :href="route('settings.profile')" wire:navigate>
+    {{ __('Settings') }}
+</flux:link>
+```
+
+## Best Practices
+
+1.  **Volt Components**: Encapsulate all component logic within single-file Volt components.
+2.  **Component Architecture**: Decompose the UI into small, reusable Blade and Livewire components.
+3.  **Flux UI**: Utilize Flux components to maintain a consistent look and feel. Adhere to the defined button variants.
+4.  **Validation**: Place validation logic directly within the corresponding action method in the component.
+5.  **Localization**: Use Laravel's `__()` helper for all user-facing text to support localization.
+6.  **Responsiveness**: Ensure all UI elements are fully responsive and support dark mode.
+7.  **Navigation**: Use `wire:navigate` for seamless page transitions.
+8.  **Loading States**: Use `wire:loading` to provide visual feedback during server actions.
+
+
+
+9. **Loading States**: Use `wire:loading` for better UX during actions
+10. **Form Handling**: Prefer `wire:model` binding over manual form handling
+
+

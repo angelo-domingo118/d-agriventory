@@ -1,0 +1,51 @@
+---
+description: migration, database
+alwaysApply: false
+---
+# Database and Seeding Patterns
+
+This document outlines the patterns and conventions used for managing the database schema, seeding, and test data generation in this project.
+
+## Migrations
+
+Database schema is managed exclusively through [Laravel Migrations](mdc:https:/laravel.com/docs/12.x/migrations). All migrations are located in the [`database/migrations`](mdc:database/migrations) directory.
+
+- **Schema Definition**: Each migration file, such as [`2025_06_24_081620_create_divisions_table.php`](mdc:database/migrations/2025_06_24_081620_create_divisions_table.php), defines the schema for a single table.
+- **Data Integrity**: Foreign key constraints are used to maintain data integrity. For example, `constrained()->onDelete('cascade')` is used to ensure related records are handled properly. See [`2025_06_24_081755_create_secondary_categories_table.php`](mdc:database/migrations/2025_06_24_081755_create_secondary_categories_table.php).
+- **Performance**: Indexes are added to frequently queried columns to improve performance, as seen in [`2025_06_24_082113_create_ics_number_table.php`](mdc:database/migrations/2025_06_24_082113_create_ics_number_table.php).
+- **Documentation**: Columns include comments to describe their purpose (e.g., `->comment('Name of the division or office.')`).
+
+## Seeding
+
+Database seeding is used to populate the database with initial data for development and testing. Seeders are located in [`database/seeders`](mdc:database/seeders).
+
+### Seeding Strategy
+
+- **Main Entry Point**: The [`DatabaseSeeder.php`](mdc:database/seeders/DatabaseSeeder.php) file is the main entry point that calls all other seeders in a specific order.
+- **Environment-Specific Seeding**: The `DatabaseSeeder` checks the application environment and only runs most seeders in non-production environments to avoid populating the production database with test data.
+- **Idempotent Seeders**: Seeders use `firstOrCreate()` or `updateOrCreate()` to prevent creating duplicate records if the seeders are run multiple times. This makes the seeding process idempotent and safe to re-run. See [`DivisionSeeder.php`](mdc:database/seeders/DivisionSeeder.php) for an example.
+- **Data from Config**: For large, static datasets, data is stored in configuration files within `config/seeders/` and loaded in the seeder. The [`ItemsCatalogSeeder.php`](mdc:database/seeders/ItemsCatalogSeeder.php) loads its data from `config/seeders/items_catalog.php`.
+- **Performance**: To improve memory efficiency when dealing with large datasets, seeders use `chunk()` to process records in batches, as demonstrated in [`UserSeeder.php`](mdc:database/seeders/UserSeeder.php). To avoid N+1 query problems, related models are pre-fetched into a map before loops, as seen in [`ItemsCatalogSeeder.php`](mdc:database/seeders/ItemsCatalogSeeder.php).
+- **Error Reporting**: Seeders provide console feedback using `$this->command->info()`, `warn()`, and `error()` to report progress and highlight issues, such as malformed data or missing relationships. This prevents silent failures, as seen in [`EmployeeSeeder.php`](mdc:database/seeders/EmployeeSeeder.php) and [`ItemsCatalogSeeder.php`](mdc:database/seeders/ItemsCatalogSeeder.php).
+- **Data Generation Constraints**: When programmatically generating data (e.g., unique codes), it is crucial to ensure the output respects the database schema's constraints (like column length). For instance, the `generateItemCode` function in `ItemsCatalogSeeder.php` was corrected to truncate its output and append a `uniqid()` to guarantee it fits within the `varchar(50)` limit of the `code` column in `items_catalog`.
+
+### Seeder Order
+
+The seeders are called in the following order to respect foreign key constraints:
+1. `AdminUserSeeder`
+2. `DivisionSeeder`
+3. `UserSeeder`
+4. `EmployeeSeeder`
+5. `PrimaryCategorySeeder`
+6. `SecondaryCategorySeeder`
+7. `ItemsCatalogSeeder`
+
+## Factories
+
+[Model Factories](mdc:https:/laravel.com/docs/12.x/eloquent-factories) are used to generate fake data for models, primarily for testing but also sometimes in seeders. They are located in [`database/factories`](mdc:database/factories).
+
+- **Default State**: Each factory defines a `definition()` method with a default set of attributes for a model. See [`UserFactory.php`](mdc:database/factories/UserFactory.php).
+- **State Manipulation**: Factories can have methods to define specific states for a model, such as the `unverified()` state in `UserFactory`.
+
+
+

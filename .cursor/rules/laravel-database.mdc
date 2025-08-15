@@ -1,0 +1,35 @@
+---
+alwaysApply: false
+---
+# Laravel Database Best Practices
+
+- **Use Migrations for Schema**: Define your database schema using [Laravel Migrations](mdc:https:/laravel.com/docs/12.x/migrations). This provides version control for your database.
+    - Use appropriate column types (e.g., `string`, `integer`, `boolean`). For foreign keys, `foreignId()` is preferred.
+    - Add comments to columns to describe their purpose.
+    - Use `constrained()` with `onDelete()` for foreign keys to ensure data integrity. Example: `$table->foreignId('user_id')->constrained()->onDelete('cascade');`
+    - Create indexes for columns that are frequently used in `WHERE`, `JOIN`, and `ORDER BY` clauses directly within your migration files to improve query performance.
+    - Example:
+    ```php
+    $table->string('name')->unique()->comment('Name of the division or office.');
+    $table->index('email');
+    ```
+
+- **Leverage Eloquent and Query Builder**: Utilize the [Eloquent ORM](mdc:https:/laravel.com/docs/12.x/eloquent) and the [Query Builder](mdc:https:/laravel.com/docs/12.x/queries) for all database interactions. They automatically use prepared statements, which protects your application from SQL injection vulnerabilities.
+
+- **Select Specific Columns**: Avoid using `SELECT *` in your queries. Specifying only the columns you need reduces memory usage and improves performance.
+    - With Eloquent: `User::get(['id', 'name', 'email']);`
+    - With the Query Builder: `DB::table('users')->select('id', 'name', 'email')->get();`
+
+- **Prevent N+1 Query Problems**: Use eager loading to fetch related models efficiently and prevent the "N+1" query problem.
+    - Example: `User::with('posts')->get();`
+
+- **Use Database Transactions**: For operations that must be atomic (i.e., they either all succeed or all fail together), wrap your database calls in a transaction.
+    - Example: `DB::transaction(function () { ... });`
+
+- **Database Configuration**: Set your database connection details, character set, and collation in the `config/database.php` file. The default `utf8mb4_unicode_ci` is generally a good choice.
+
+- **Analyze Query Performance**: Use tools like [Laravel Telescope](mdc:https:/laravel.com/docs/12.x/telescope) or the [Laravel Debugbar package](mdc:https:/github.com/barryvdh/laravel-debugbar) to inspect your application's queries and identify performance bottlenecks.
+
+- **Handle Large Datasets**: To process a large number of records without exceeding memory limits, use methods like `chunk()`, `lazy()`, or `cursor()`.
+    - Example with `chunk()`: `User::orderBy('id')->chunk(100, function ($users) { ... });`
+    - Example with `cursor()`: `foreach (User::cursor() as $user) { ... }`

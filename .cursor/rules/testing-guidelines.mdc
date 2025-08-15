@@ -1,0 +1,93 @@
+---
+alwaysApply: false
+---
+# Testing Guidelines
+
+This document outlines the testing conventions and practices for the D'Agriventory project.
+
+## Test Environment
+
+-   The testing environment is configured in `phpunit.xml`.
+-   **Database**: Tests MUST use a `mysql` connection as defined in `phpunit.xml`. The `DB_DATABASE` is set to `d_agriventory`, ensure you have a dedicated testing database with this name or configure it locally in your `.env.testing`.
+-   **Test Runner**: The project uses Pest and PHPUnit. Tests can be run via `composer test` (which likely runs `php artisan test`) for feature/unit tests, and `php artisan dusk` for browser tests.
+
+## Test Suites
+
+The project has three main types of tests:
+
+1.  **Unit Tests**: Located in `tests/Unit`. These test individual classes or methods in isolation.
+2.  **Feature Tests**: Located in `tests/Feature`. These test a complete feature, including how different objects interact.
+3.  **Browser Tests (Dusk)**: Located in `tests/Browser`. These test the application from a user's perspective by interacting with it through a real browser.
+
+## Feature & Unit Testing
+
+-   Use the `Illuminate\Foundation\Testing\RefreshDatabase` trait in your feature test classes to reset the database after each test. This is efficient as it wraps tests in a transaction.
+-   Use model factories to create test data (e.g., `User::factory()->create()`).
+-   Use Laravel's built-in database assertions like `assertDatabaseHas`, `assertDatabaseMissing`, and `assertDatabaseCount`.
+
+**Example Feature Test Snippet:**
+
+```php
+<?php
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
+use Tests\TestCase;
+
+class ExampleTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_be_created(): void
+    {
+        $user = User::factory()->create();
+        $this->assertDatabaseHas('users', ['email' => $user->email]);
+    }
+}
+```
+
+## Browser (Dusk) Testing
+
+-   **Creating Tests**: Generate new Dusk tests using `php artisan dusk:make <TestName>`.
+-   **Running Tests**: Run all Dusk tests with `php artisan dusk`.
+-   **Database Handling**:
+    -   **NEVER** use `RefreshDatabase` for Dusk tests.
+    -   Use `Illuminate\Foundation\Testing\DatabaseMigrations` to re-run migrations for each test.
+    -   For better performance, prefer `Illuminate\Foundation\Testing\DatabaseTruncation`. It runs migrations once and truncates tables for subsequent tests.
+    -   Seed necessary data within your tests or in the `setUp()` method (e.g., `$this->seed(AdminUserSeeder::class);`). An example is in `tests/Browser/AdminLoginTest.php`.
+-   **Livewire Interactions**: When interacting with Livewire components, target elements using their `wire:model` or other `wire:*` attributes. Be sure to escape the colon `\` in CSS selectors.
+    -   Example: `->type('input[wire\\:model="username"]', 'admin')`
+-   **Authentication**: For tests requiring an authenticated user, you can use `browse(function (Browser $browser) use ($user) { $browser->loginAs($user)->visit('/dashboard'); });`.
+
+**Example Dusk Test:**
+```php
+<?php
+
+namespace Tests\Browser;
+
+use App\Models\AdminUser;
+use Database\Seeders\AdminUserSeeder;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Laravel\Dusk\Browser;
+use Tests\DuskTestCase;
+
+class AdminDashboardTest extends DuskTestCase
+{
+    use DatabaseMigrations;
+
+    public function test_admin_can_access_dashboard(): void
+    {
+        $this->seed(AdminUserSeeder::class);
+        $admin = AdminUser::first()->user; // Assuming AdminUser has a user relationship
+
+        $this->browse(function (Browser $browser) use ($admin) {
+            $browser->loginAs($admin)
+                    ->visit('/admin/main/dashboard')
+                    ->assertSee('Dashboard');
+        });
+    }
+}
+
+        });
+    }
+}

@@ -1,0 +1,43 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+name: global-context
+description: Provides a high-level overview of the D'Agriventory project, including its purpose, technology stack, and core domain concepts.
+
+# D'Agriventory Project Context
+
+This document provides a global context for the D'Agriventory project, an inventory management system designed for agricultural purposes.
+
+## Technology Stack
+
+The project is built on the TALL stack with some modern additions:
+
+-   **Backend**: [PHP 8.2](mdc:https:/www.php.net) & [Laravel 12](mdc:https:/laravel.com)
+-   **Frontend**: [Livewire](mdc:https:/livewire.laravel.com) with [Volt](mdc:https:/livewire.laravel.com/docs/volt) for single-file components.
+-   **UI**: [Tailwind CSS 4](mdc:https:/tailwindcss.com) & [Blade](mdc:https:/laravel.com/docs/12.x/blade) templates.
+-   **Asset Bundling**: [Vite](mdc:https:/vitejs.dev)
+-   **Testing**: [Pest](mdc:https:/pestphp.com)
+
+## Core Domain Models
+
+The application's domain revolves around inventory management. Key models (and their corresponding tables) include:
+
+-   **Users & Roles**: `users`, `admin_users`, `employees`, `positions`
+-   **Organization**: `divisions`, `suppliers`
+-   **Procurement**: `contracts`, `contract_items`
+-   **Inventory Catalog**: `primary_categories`, `secondary_categories`, `items_catalog`, `item_specifications`
+-   **Inventory Items**: `consumable_items`
+-   **Tracking & Transfers**: `ics_number`, `par_number`, `idr_number`, `ics_transfers`, `par_transfers`
+-   **Auditing**: `audit_logs`
+
+## Development Workflow
+
+-   **Code Generation**: Use `php artisan make:*` commands to create new classes.
+-   **Development Server**: Run `composer run dev` to start the local server, queue listener, and Vite dev server concurrently.
+-   **Testing**: Run tests using `composer test`.
+
+
+
+

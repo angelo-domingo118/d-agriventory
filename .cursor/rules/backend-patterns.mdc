@@ -1,0 +1,385 @@
+---
+alwaysApply: false
+---
+# Backend Development Patterns
+
+## Architecture
+- **Models**: `app/Models` - Eloquent models with typed properties and relationships.
+- **Controllers**: `app/Http/Controllers` - Minimal usage, primarily for auth routes or simple API endpoints.
+- **Livewire**: Business logic is primarily handled by Livewire.
+    - **Volt Components**: Most components are single-file Volt components located in `resources/views/livewire`. These contain both the PHP logic and the Blade template.
+    - **Class-based Components**: Some components or actions may reside in `app/Livewire`.
+- **Routes**: Modular files (`web.php`, `auth.php`, `admin.php`) located in the `routes` directory.
+- **Migrations**: Database schema is managed through migration files in `database/migrations`, with descriptive comments and indexes.
+- **Enums**: `app/Enums` - Type-safe enums for predefined sets of values (e.g., Roles, Permissions).
+- **Services**: `app/Services` - Reusable, business-specific logic is encapsulated in service classes.
+
+## Data Access
+
+### Models & Relationships
+Eloquent relationships are strictly type-hinted for clarity and type safety.
+
+```php
+// app/Models/Employee.php
+
+// Type-hinted eloquent relationships
+public function division(): BelongsTo {
+    return $this->belongsTo(Division::class);
+}
+
+public function icsNumbers(): HasMany {
+    return $this->hasMany(IcsNumber::class, 'assigned_employee_id');
+}
+```
+
+### User Roles
+The `User` model has dedicated relationships and methods for role checking.
+
+```php
+// app/Models/User.php
+public function adminUser(): HasOne
+{
+    return $this->hasOne(AdminUser::class);
+}
+
+public function isAdmin(): bool {
+    return $this->adminUser !== null;
+}
+
+public function hasAdminPermission(string $permission): bool {
+    if (!$this->isAdmin()) {
+        return false;
+    }
+    // ... permission logic
+    return true;
+}
+```
+
+### Database Schema
+Migrations are used to define the database schema, including comments for columns.
+
+```php
+// database/migrations/2025_06_24_081620_create_divisions_table.php
+Schema::create('divisions', function (Blueprint $table) {
+    $table->id();
+    $table->string('name')->unique()->comment('Name of the division or office.');
+    $table->string('code')->unique()->comment('Unique code for the division.');
+    $table->timestamps();
+});
+```
+
+## Business Logic
+
+### Livewire Volt Components
+Volt components encapsulate UI logic, state management, and data fetching. Computed properties with caching are often used for performance.
+
+```php
+// resources/views/livewire/admin/main/dashboard.blade.php
+<?php
+use Livewire\Volt\Component;
+use Livewire\Attributes\{Layout, Computed};
+use Illuminate\Support\Facades\Cache;
+use App\Models\User;
+use App\Models\IcsNumber;
+use App\Models\ParNumber;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    #[Computed]
+    public function stats(): array
+    {
+        return Cache::remember('admin.dashboard.stats', now()->addMinutes(5), function () {
+            return [
+                'total_items' => IcsNumber::sum('quantity') + ParNumber::sum('quantity'),
+                'active_users' => User::count(),
+                // ... other stats
+            ];
+        });
+    }
+}; ?>
+
+<div>
+    <!-- Blade template uses the computed property -->
+    <p>Active Users: {{ $this->stats['active_users'] }}</p>
+</div>
+```
+
+### Service Pattern
+Services handle complex business logic that can be reused across the application.
+
+```php
+// app/Services/PermissionService.php
+use App\Enums\User\Role;
+use App\Exceptions\InvalidRoleException;
+
+class PermissionService {
+    public function getDefaultsByRole(string $role): array
+    {
+        if (! in_array($role, Role::values())) {
+            throw new InvalidRoleException("Invalid role specified: {$role}");
+        }
+
+        $allPermissions = array_fill_keys($this->getAllPermissions(), false);
+
+        if ($role === Role::ADMIN->value) {
+            return array_fill_keys($this->getAllPermissions(), true);
+        }
+        // ... other role logic
+        return $allPermissions;
+    }
+}
+```
+
+## Routing
+
+### Route Organization
+Routes are organized into groups with prefixes, names, and middleware. Volt components are registered directly in the route files.
+
+```php
+// routes/admin.php
+use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\HasAdminPermission;
+use Livewire\Volt\Volt;
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->group(function () {
+    // Admin dashboard
+    Volt::route('main/dashboard', 'admin.main.dashboard')
+        ->name('dashboard');
+
+    // User management routes with specific permissions
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::middleware([HasAdminPermission::class.':view_users'])->group(function () {
+            Volt::route('/', 'admin.system.users.index')->name('index');
+        });
+        Route::middleware([HasAdminPermission::class.':create_users'])->group(function () {
+            Volt::route('create', 'admin.system.users.create')->name('create');
+        });
+    });
+});
+```
+
+## Authentication
+Custom middleware is used to protect routes based on user roles and permissions.
+- **`IsAdmin`**: Allows access only to users with an admin role.
+- **`IsInventoryManager`**: Allows access only to division inventory managers.
+- **`HasAdminPermission`**: Checks for specific permissions (e.g., `create_users`).
+
+## Domain Model
+The core domain is modeled around inventory, procurement, and organization structure.
+
+- **Users & Roles**: `User`, `AdminUser`, `DivisionInventoryManager`
+- **Organization**: `Division`, `Position`, `Employee`
+- **Inventory Catalog**: `PrimaryCategory`, `SecondaryCategory`, `ItemsCatalog`, `ItemSpecification`, `ItemComponent`
+- **Inventory Items**: `ConsumableItem`, `ConsumableRecord`
+- **Procurement**: `Contract`, `ContractItem`, `Supplier`
+- **Tracking & Transfers**: `IcsNumber`, `IcsItemBatch`, `IcsTransfer`, `ParNumber`, `ParItemBatch`, `ParTransfer`, `IdrNumber`, `IdrItemBatch`, `AcknowledgementReceipt`
+- **Auditing**: `AuditLog`
+
+## Best Practices
+1.  **Typed Properties & Methods**: Use strict typing for PHP classes for better IDE support and code quality.
+2.  **PSR-12 Coding Standards**: Follow the PSR-12 standard for consistent code style.
+3.  **Grouped Routes**: Group related routes with prefixes, names, and middleware for better organization.
+4.  **Dependency Injection**: Prefer dependency injection over static calls or facades where appropriate.
+5.  **Input Validation**: Validate all incoming data using Form Requests or Livewire's `#[Validate]` attribute.
+6.  **Thin Controllers**: Keep controllers minimal; move business logic to Livewire components or Services.
+7.  **Eager Loading**: Eager load Eloquent relationships using `with()` to prevent N+1 query issues.
+8.  **Security**: Utilize Laravel's built-in security features (CSRF, authorization, validation).
+9.  **Caching**: Use Laravel's cache for expensive operations or frequently accessed data.
+
+
+
+
+8. Use Laravel security features (CSRF, validation)
+
+
+
+# Backend Development Patterns
+
+## Architecture
+- **Models**: `app/Models` - Eloquent models with typed properties and relationships.
+- **Controllers**: `app/Http/Controllers` - Minimal usage, primarily for auth routes or simple API endpoints.
+- **Livewire**: Business logic is primarily handled by Livewire.
+    - **Volt Components**: Most components are single-file Volt components located in `resources/views/livewire`. These contain both the PHP logic and the Blade template.
+    - **Class-based Components**: Some components or actions may reside in `app/Livewire`.
+- **Routes**: Modular files (`web.php`, `auth.php`, `admin.php`) located in the `routes` directory.
+- **Migrations**: Database schema is managed through migration files in `database/migrations`, with descriptive comments and indexes.
+- **Enums**: `app/Enums` - Type-safe enums for predefined sets of values (e.g., Roles, Permissions).
+- **Services**: `app/Services` - Reusable, business-specific logic is encapsulated in service classes.
+
+## Data Access
+
+### Models & Relationships
+Eloquent relationships are strictly type-hinted for clarity and type safety.
+
+```php
+// app/Models/Employee.php
+
+// Type-hinted eloquent relationships
+public function division(): BelongsTo {
+    return $this->belongsTo(Division::class);
+}
+
+public function icsNumbers(): HasMany {
+    return $this->hasMany(IcsNumber::class, 'assigned_employee_id');
+}
+```
+
+### User Roles
+The `User` model has dedicated relationships and methods for role checking.
+
+```php
+// app/Models/User.php
+public function adminUser(): HasOne
+{
+    return $this->hasOne(AdminUser::class);
+}
+
+public function isAdmin(): bool {
+    return $this->adminUser !== null;
+}
+
+public function hasAdminPermission(string $permission): bool {
+    if (!$this->isAdmin()) {
+        return false;
+    }
+    // ... permission logic
+    return true;
+}
+```
+
+### Database Schema
+Migrations are used to define the database schema, including comments for columns.
+
+```php
+// database/migrations/2025_06_24_081620_create_divisions_table.php
+Schema::create('divisions', function (Blueprint $table) {
+    $table->id();
+    $table->string('name')->unique()->comment('Name of the division or office.');
+    $table->string('code')->unique()->comment('Unique code for the division.');
+    $table->timestamps();
+});
+```
+
+## Business Logic
+
+### Livewire Volt Components
+Volt components encapsulate UI logic, state management, and data fetching. Computed properties with caching are often used for performance.
+
+```php
+// resources/views/livewire/admin/main/dashboard.blade.php
+<?php
+use Livewire\Volt\Component;
+use Livewire\Attributes\{Layout, Computed};
+use Illuminate\Support\Facades\Cache;
+use App\Models\User;
+use App\Models\IcsNumber;
+use App\Models\ParNumber;
+
+new #[Layout('components.layouts.app')] class extends Component {
+    #[Computed]
+    public function stats(): array
+    {
+        return Cache::remember('admin.dashboard.stats', now()->addMinutes(5), function () {
+            return [
+                'total_items' => IcsNumber::sum('quantity') + ParNumber::sum('quantity'),
+                'active_users' => User::count(),
+                // ... other stats
+            ];
+        });
+    }
+}; ?>
+
+<div>
+    <!-- Blade template uses the computed property -->
+    <p>Active Users: {{ $this->stats['active_users'] }}</p>
+</div>
+```
+
+### Service Pattern
+Services handle complex business logic that can be reused across the application.
+
+```php
+// app/Services/PermissionService.php
+use App\Enums\User\Role;
+use App\Exceptions\InvalidRoleException;
+
+class PermissionService {
+    public function getDefaultsByRole(string $role): array
+    {
+        if (! in_array($role, Role::values())) {
+            throw new InvalidRoleException("Invalid role specified: {$role}");
+        }
+
+        $allPermissions = array_fill_keys($this->getAllPermissions(), false);
+
+        if ($role === Role::ADMIN->value) {
+            return array_fill_keys($this->getAllPermissions(), true);
+        }
+        // ... other role logic
+        return $allPermissions;
+    }
+}
+```
+
+## Routing
+
+### Route Organization
+Routes are organized into groups with prefixes, names, and middleware. Volt components are registered directly in the route files.
+
+```php
+// routes/admin.php
+use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\HasAdminPermission;
+use Livewire\Volt\Volt;
+
+Route::prefix('admin')->name('admin.')->middleware(['auth', IsAdmin::class])->group(function () {
+    // Admin dashboard
+    Volt::route('main/dashboard', 'admin.main.dashboard')
+        ->name('dashboard');
+
+    // User management routes with specific permissions
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::middleware([HasAdminPermission::class.':view_users'])->group(function () {
+            Volt::route('/', 'admin.system.users.index')->name('index');
+        });
+        Route::middleware([HasAdminPermission::class.':create_users'])->group(function () {
+            Volt::route('create', 'admin.system.users.create')->name('create');
+        });
+    });
+});
+```
+
+## Authentication
+Custom middleware is used to protect routes based on user roles and permissions.
+- **`IsAdmin`**: Allows access only to users with an admin role.
+- **`IsInventoryManager`**: Allows access only to division inventory managers.
+- **`HasAdminPermission`**: Checks for specific permissions (e.g., `create_users`).
+
+## Domain Model
+The core domain is modeled around inventory, procurement, and organization structure.
+
+- **Users & Roles**: `User`, `AdminUser`, `DivisionInventoryManager`
+- **Organization**: `Division`, `Position`, `Employee`
+- **Inventory Catalog**: `PrimaryCategory`, `SecondaryCategory`, `ItemsCatalog`, `ItemSpecification`, `ItemComponent`
+- **Inventory Items**: `ConsumableItem`, `ConsumableRecord`
+- **Procurement**: `Contract`, `ContractItem`, `Supplier`
+- **Tracking & Transfers**: `IcsNumber`, `IcsItemBatch`, `IcsTransfer`, `ParNumber`, `ParItemBatch`, `ParTransfer`, `IdrNumber`, `IdrItemBatch`, `AcknowledgementReceipt`
+- **Auditing**: `AuditLog`
+
+## Best Practices
+1.  **Typed Properties & Methods**: Use strict typing for PHP classes for better IDE support and code quality.
+2.  **PSR-12 Coding Standards**: Follow the PSR-12 standard for consistent code style.
+3.  **Grouped Routes**: Group related routes with prefixes, names, and middleware for better organization.
+4.  **Dependency Injection**: Prefer dependency injection over static calls or facades where appropriate.
+5.  **Input Validation**: Validate all incoming data using Form Requests or Livewire's `#[Validate]` attribute.
+6.  **Thin Controllers**: Keep controllers minimal; move business logic to Livewire components or Services.
+7.  **Eager Loading**: Eager load Eloquent relationships using `with()` to prevent N+1 query issues.
+8.  **Security**: Utilize Laravel's built-in security features (CSRF, authorization, validation).
+9.  **Caching**: Use Laravel's cache for expensive operations or frequently accessed data.
+
+
+
+
+8. Use Laravel security features (CSRF, validation)
+
+
+

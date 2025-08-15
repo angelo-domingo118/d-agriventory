@@ -1,0 +1,43 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Livewire 3 Guidelines
+
+## Component Structure
+
+- Livewire components namespace is now `App\Livewire` (not `App\Http\Livewire`).
+- Use Livewire for dynamic components and real-time user interactions.
+- Leverage `Volt` for single-file components and `Flux` for pre-built actions.
+- Favor the use of Livewire's lifecycle hooks and properties.
+- Use the latest Livewire (3.5+) features for optimization and reactivity.
+
+## Component Implementation
+
+- Implement Blade components with Livewire directives:
+  - `wire:model` is deferred by default; use `wire:model.live` for immediate updates.
+  - Same applies for `@entangle` - use `@entangle('property').live` for immediate sync.
+- Use `$this->dispatch()` for events, not `$this->emit` or `$this->dispatchBrowserEvent`.
+- Use `#[On('event-name')]` attribute for event listeners instead of `protected $listeners`.
+- Use `#[Layout('components.layouts.app')]` attribute to specify component layouts.
+- Use `#[Validate('required|string')]` attribute for inline property validation.
+- Use `wire:dirty` to style elements when the component is in a dirty/unsaved state.
+- Use `wire:loading` and `wire:target` to provide feedback during actions.
+- Use `wire:confirm` for confirmation dialogs.
+
+## Blade and Structure
+
+- When updating a Livewire blade component, everything must be within a single `<div>` tag.
+- Any time you have a loop in Blade templates, add `wire:key` to the opening tag of the first element within the loop. 
+- For Livewire components within a loop: `<livewire:user-card :user="$user" :key="$user->id" />`.
+- The layout path is now `components.layouts.app` instead of `layouts.app`.
+- Livewire includes its own bundle of Alpine - no need to manually include it.
+- When you need to add custom CSS, put that in `resources/css/app.css`.
+
+## Alpine.js Integration
+
+- Livewire includes Alpine.js automatically.
+- Use Alpine.js for small client-side interactions.
+- Prefer using Livewire for server-side operations.
+- Use `$wire` to access Livewire methods and properties from Alpine.

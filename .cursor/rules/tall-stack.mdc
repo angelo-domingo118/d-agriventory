@@ -1,0 +1,34 @@
+---
+alwaysApply: false
+---
+name: tall-stack
+description: Provides coding principles and architecture patterns for TALL stack development.
+
+# TALL Stack Development Principles
+
+## Coding Guidelines
+
+- Write concise, technical responses with accurate PHP and Livewire examples.
+- Focus on component-based architecture using Livewire, Volt, and Flux.
+- Follow Laravel and Livewire best practices and conventions.
+- Use object-oriented programming with a focus on SOLID principles.
+- Prefer iteration and modularization over duplication.
+- Use descriptive variable, method, and component names.
+- Use lowercase with dashes for directories (e.g., app/Livewire). Note that with Volt, single-file components are often preferred.
+- Favor dependency injection and service containers.
+
+## Common Architecture Patterns
+
+- **Model-View-Controller (MVC)**: Separate application logic into models, views, and controllers.
+- **Repository Pattern**: Abstract database operations from controllers/services.
+- **Service Layer**: Encapsulate business logic separate from controllers.
+- **Form Request Validation**: Use dedicated Form Request classes for complex validation.
+- **Event-Listener Pattern**: Use Laravel's event system for decoupled code.
+- **Component-Based UI**: Break down complex UIs into reusable Livewire components.
+
+## Testing Approach
+
+- Unit Tests: Test individual classes and methods.
+- Feature Tests: Test complete features and user interactions.
+- Component Tests: Test Livewire components in isolation.
+- Browser Tests: Test full UI interactions with Laravel Dusk.
