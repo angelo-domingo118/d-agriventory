@@ -80,43 +80,113 @@ new class extends Component {
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
-
-            <flux:input wire:model="username" :label="__('Username')" type="text" required autocomplete="username" />
-
-            <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
-
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
-                    <div>
-                        <flux:text class="mt-4">
-                            {{ __('Your email address is unverified.') }}
-
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
-                                {{ __('Click here to re-send the verification email.') }}
-                            </flux:link>
-                        </flux:text>
-
-                        @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
-                                {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
-                        @endif
-                    </div>
-                @endif
+        <!-- Profile Information Card -->
+        <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-lg shadow border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-5 hover:shadow-lg transition-all duration-300 backdrop-blur-sm">
+            <div class="flex items-center mb-4">
+                <div class="flex-shrink-0 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                    <x-flux::icon.user class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-stone-900 dark:text-stone-100">Personal Information</h3>
+                    <p class="text-sm text-stone-600 dark:text-stone-400">Update your basic profile details</p>
+                </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
+            <form wire:submit="updateProfileInformation" class="space-y-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="space-y-2">
+                        <flux:input 
+                            wire:model="name" 
+                            :label="__('Full Name')" 
+                            type="text" 
+                            required 
+                            autofocus 
+                            autocomplete="name"
+                            class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <flux:input 
+                            wire:model="username" 
+                            :label="__('Username')" 
+                            type="text" 
+                            required 
+                            autocomplete="username"
+                            class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
                 </div>
 
-                <x-action-message class="me-3" on="profile-updated">
-                    {{ __('Saved.') }}
-                </x-action-message>
-            </div>
-        </form>
+                <div class="space-y-2">
+                    <flux:input 
+                        wire:model="email" 
+                        :label="__('Email Address')" 
+                        type="email" 
+                        required 
+                        autocomplete="email"
+                        class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
+                    />
+
+                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
+                        <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <div class="ml-3">
+                                    <flux:text class="text-amber-800 dark:text-amber-200">
+                                        {{ __('Your email address is unverified.') }}
+                                    </flux:text>
+                                    <flux:link 
+                                        class="text-sm text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 underline cursor-pointer transition-colors duration-200" 
+                                        wire:click.prevent="resendVerificationNotification"
+                                    >
+                                        {{ __('Click here to re-send the verification email.') }}
+                                    </flux:link>
+                                </div>
+                            </div>
+
+                            @if (session('status') === 'verification-link-sent')
+                                <div class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <x-flux::icon.check-circle class="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
+                                        <flux:text class="text-green-800 dark:text-green-200 font-medium">
+                                            {{ __('A new verification link has been sent to your email address.') }}
+                                        </flux:text>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-700">
+                    <x-action-message class="text-green-600 dark:text-green-400 font-medium" on="profile-updated">
+                        <div class="flex items-center">
+                            <x-flux::icon.check-circle class="h-4 w-4 mr-2" />
+                            {{ __('Profile updated successfully!') }}
+                        </div>
+                    </x-action-message>
+
+                    <flux:button 
+                        variant="primary" 
+                        type="submit" 
+                        class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-500 dark:to-blue-600 dark:hover:from-blue-600 dark:hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                        wire:loading.attr="disabled"
+                    >
+                        <span wire:loading.remove>
+                            <x-flux::icon.check class="h-4 w-4 mr-2 inline" />
+                            {{ __('Save Changes') }}
+                        </span>
+                        <span wire:loading class="flex items-center">
+                            <x-flux::icon.arrow-path class="h-4 w-4 mr-2 animate-spin" />
+                            {{ __('Saving...') }}
+                        </span>
+                    </flux:button>
+                </div>
+            </form>
+        </div>
 
         <livewire:settings.delete-user-form />
     </x-settings.layout>
