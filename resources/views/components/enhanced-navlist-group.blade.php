@@ -2,6 +2,9 @@
     'heading' => null,
     'icon' => null,
     'color' => 'stone',
+    'collapsible' => true,
+    'defaultExpanded' => true,
+    'storageKey' => null,
 ])
 
 @php
@@ -14,24 +17,52 @@
     ];
     
     $bgColorClass = $colorClasses[$color] ?? $colorClasses['stone'];
+    $sectionKey = $storageKey ?? 'sidebar-section-' . str($heading)->slug();
 @endphp
 
-<div {{ $attributes->class('block space-y-3 mb-8') }}>
+<div 
+    {{ $attributes->class('block mb-8') }}
+    x-data="sidebarSection('{{ $sectionKey }}', {{ $defaultExpanded ? 'true' : 'false' }})"
+>
     @if($heading)
-        <div class="relative">
-            <div class="flex items-center px-3 py-2 rounded-lg border {{ $bgColorClass }} backdrop-blur-sm">
-                @if($icon)
-                    <x-flux::icon :name="$icon" class="w-4 h-4 mr-2 opacity-80" />
-                @endif
-                <div class="flex-1">
-                    <h4 class="text-xs font-bold uppercase tracking-widest leading-none opacity-90">{{ $heading }}</h4>
+        <div class="relative mb-3">
+            @if($collapsible)
+                <button 
+                    @click="toggle()"
+                    class="w-full flex items-center px-3 py-2 rounded-lg border {{ $bgColorClass }} backdrop-blur-sm hover:bg-opacity-80 cursor-pointer group"
+                >
+                    @if($icon)
+                        <x-flux::icon :name="$icon" class="w-4 h-4 mr-2 opacity-80" />
+                    @endif
+                    <div class="flex-1 text-left">
+                        <h4 class="text-xs font-bold uppercase tracking-widest leading-none opacity-90">{{ $heading }}</h4>
+                    </div>
+                    <x-flux::icon 
+                        name="chevron-down" 
+                        class="w-3 h-3 opacity-70"
+                        x-bind:class="{ 'rotate-180': expanded, 'rotate-0': !expanded }"
+                    />
+                </button>
+            @else
+                <div class="flex items-center px-3 py-2 rounded-lg border {{ $bgColorClass }} backdrop-blur-sm">
+                    @if($icon)
+                        <x-flux::icon :name="$icon" class="w-4 h-4 mr-2 opacity-80" />
+                    @endif
+                    <div class="flex-1">
+                        <h4 class="text-xs font-bold uppercase tracking-widest leading-none opacity-90">{{ $heading }}</h4>
+                    </div>
                 </div>
-                <div class="w-2 h-2 rounded-full bg-current opacity-60 animate-pulse"></div>
-            </div>
+            @endif
         </div>
     @endif
 
-    <div class="space-y-1">
-        {{ $slot }}
+    <div 
+        class="overflow-hidden"
+        x-show="expanded"
+        x-cloak
+    >
+        <div class="space-y-1">
+            {{ $slot }}
+        </div>
     </div>
 </div>

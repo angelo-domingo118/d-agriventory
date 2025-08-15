@@ -187,6 +187,27 @@
                         if (!window.Alpine) return;
                         if (Alpine?.data?.tableResizer) return; // already registered
 
+                        // Sidebar section state management
+                        Alpine.data('sidebarSection', (storageKey, defaultExpanded = true) => ({
+                            expanded: defaultExpanded,
+                            storageKey: storageKey,
+                            init() {
+                                // Only check localStorage if we have a storage key
+                                if (this.storageKey && localStorage.getItem(this.storageKey) !== null) {
+                                    this.expanded = localStorage.getItem(this.storageKey) === 'true';
+                                }
+                                
+                                // Make sure this doesn't re-initialize unnecessarily
+                                this.$el._sidebarSectionInitialized = true;
+                            },
+                            toggle() {
+                                this.expanded = !this.expanded;
+                                if (this.storageKey) {
+                                    localStorage.setItem(this.storageKey, this.expanded.toString());
+                                }
+                            }
+                        }));
+
                         Alpine.data('tableSettings', (storageKey, defaults = {}) => ({
                             init() {
                                 // Load settings from localStorage and apply them on next tick

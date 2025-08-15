@@ -23,25 +23,9 @@
     background-color: rgba(120, 113, 108, 0.5);
 }
 
-/* Enhanced navigation item animations */
+/* Static navigation items - no animations */
 .nav-item-enhanced {
     position: relative;
-    overflow: hidden;
-}
-
-.nav-item-enhanced::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.nav-item-enhanced:hover::before {
-    left: 100%;
 }
 
 /* Active section gradient borders */
@@ -61,23 +45,10 @@
     border-left: 3px solid #ef4444;
 }
 
-/* Pulsing animation for active indicators */
-@keyframes gentle-pulse {
-
-    0%,
-    100% {
-        opacity: 0.6;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 1;
-        transform: scale(1.1);
-    }
-}
-
+/* Static active indicators - no animation */
 .active-indicator {
-    animation: gentle-pulse 2s infinite;
+    opacity: 0.8;
+    transform: scale(1);
 }
 
 /* Subtle glow effects for section headers */
@@ -109,4 +80,79 @@
 
 .dark .nav-item:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Minimal Collapsible Section Styles */
+
+.collapsible-header {
+    position: relative;
+}
+
+.collapsible-header:hover {
+    /* Minimal hover effect */
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark .collapsible-header:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Static chevron */
+
+.chevron-expanded {
+    transform: rotate(180deg);
+}
+
+/* Static section content */
+.section-content {
+    overflow: hidden;
+}
+
+.section-content-collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+.section-content-expanded {
+    max-height: none;
+    opacity: 1;
+}
+
+/* Static section borders - no animations */
+.section-border-animated {
+    position: relative;
+}
+
+/* Static section items - no animations */
+.section-item {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Static section indicator - no animation */
+.section-pulse {
+    opacity: 0.6;
+    transform: scale(1);
+}
+
+/* Enhanced focus states for accessibility */
+.collapsible-header:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
+}
+
+.collapsible-header:focus-visible {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Smooth max-height transitions */
+.smooth-collapse {
+    transition: max-height 0.3s ease-in-out,
+        opacity 0.2s ease-in-out,
+        margin 0.2s ease-in-out;
+}
+
+/* Static loading state for sections */
+.section-loading {
+    position: relative;
 }
