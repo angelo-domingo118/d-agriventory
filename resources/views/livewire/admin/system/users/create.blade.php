@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 
 new #[Layout('components.layouts.app')] class extends Component {
     public string $name = '';
-    public string $email = '';
     public string $username = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -28,7 +27,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'username' => ['required', 'string', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'userType' => ['required', Rule::in(Role::values())],
@@ -79,10 +77,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <flux:input wire:model="username" id="username" label="Username" required />
             </div>
 
-            {{-- Email --}}
-            <div class="mt-6">
-                <flux:input wire:model="email" id="email" type="email" label="Email" required />
-            </div>
+
 
             {{-- Password --}}
             <div class="mt-6">

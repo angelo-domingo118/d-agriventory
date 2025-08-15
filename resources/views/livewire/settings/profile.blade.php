@@ -9,7 +9,6 @@ use Livewire\Volt\Component;
 new class extends Component {
     public string $name = '';
     public string $username = '';
-    public string $email = '';
 
     /**
      * Mount the component.
@@ -18,7 +17,6 @@ new class extends Component {
     {
         $this->name = Auth::user()->name;
         $this->username = Auth::user()->username;
-        $this->email = Auth::user()->email;
     }
 
     /**
@@ -36,50 +34,21 @@ new class extends Component {
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id)
             ],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore($user->id)
-            ],
         ]);
 
         $user->fill($validated);
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
-    public function resendVerificationNotification(): void
-    {
-        $user = Auth::user();
 
-        if ($user->hasVerifiedEmail()) {
-            $this->redirectIntended(default: route('dashboard', absolute: false));
-
-            return;
-        }
-
-        $user->sendEmailVerificationNotification();
-
-        Session::flash('status', 'verification-link-sent');
-    }
 }; ?>
 
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+    <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and username')">
         <!-- Profile Information Card -->
         <div class="group bg-gradient-to-br from-white to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-lg shadow border border-stone-200/50 dark:border-stone-700/50 p-4 sm:p-5 hover:shadow-lg transition-all duration-300 backdrop-blur-sm">
             <div class="flex items-center mb-4">
@@ -116,49 +85,6 @@ new class extends Component {
                             class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
                         />
                     </div>
-                </div>
-
-                <div class="space-y-2">
-                    <flux:input 
-                        wire:model="email" 
-                        :label="__('Email Address')" 
-                        type="email" 
-                        required 
-                        autocomplete="email"
-                        class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
-                    />
-
-                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail &&! auth()->user()->hasVerifiedEmail())
-                        <div class="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <x-flux::icon.exclamation-triangle class="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                </div>
-                                <div class="ml-3">
-                                    <flux:text class="text-amber-800 dark:text-amber-200">
-                                        {{ __('Your email address is unverified.') }}
-                                    </flux:text>
-                                    <flux:link 
-                                        class="text-sm text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 underline cursor-pointer transition-colors duration-200" 
-                                        wire:click.prevent="resendVerificationNotification"
-                                    >
-                                        {{ __('Click here to re-send the verification email.') }}
-                                    </flux:link>
-                                </div>
-                            </div>
-
-                            @if (session('status') === 'verification-link-sent')
-                                <div class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-lg">
-                                    <div class="flex items-center">
-                                        <x-flux::icon.check-circle class="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-                                        <flux:text class="text-green-800 dark:text-green-200 font-medium">
-                                            {{ __('A new verification link has been sent to your email address.') }}
-                                        </flux:text>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-stone-200 dark:border-stone-700">

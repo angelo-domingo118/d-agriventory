@@ -77,12 +77,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     <div class="ml-4">
                         <h3 class="text-lg leading-6 font-medium text-stone-900 dark:text-stone-100">{{ $user->name }}</h3>
                         <p class="text-sm text-stone-500 dark:text-stone-400">
-                            {{ $user->email }}
-                            @if ($user->email_verified_at)
-                                <span class="ml-2 text-green-600 dark:text-green-400">{{ __('Verified') }}</span>
-                            @else
-                                <span class="ml-2 text-red-600 dark:text-red-400">{{ __('Not Verified') }}</span>
-                            @endif
+                            {{ $user->username }}
                         </p>
                     </div>
                 </div>

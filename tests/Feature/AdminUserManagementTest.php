@@ -44,7 +44,7 @@ test('admin users can view user details', function () {
         ->get(route('admin.system.users.show', $user))
         ->assertStatus(200)
         ->assertSee($user->name)
-        ->assertSee($user->email);
+        ->assertSee($user->username);
 });
 
 test('admin users can access the create new user page', function () {
@@ -60,7 +60,7 @@ test('admin users can edit users', function () {
         ->get(route('admin.system.users.edit', $user))
         ->assertStatus(200)
         ->assertSee($user->name)
-        ->assertSee($user->email);
+        ->assertSee($user->username);
 });
 
 test('admin users can create a new admin user', function () {
@@ -69,7 +69,6 @@ test('admin users can create a new admin user', function () {
     Livewire::test('admin.system.users.create')
         ->set('name', 'New Admin User')
         ->set('username', 'newadmin')
-        ->set('email', 'newadmin@example.com')
         ->set('password', 'Password123!')
         ->set('password_confirmation', 'Password123!')
         ->set('userType', 'admin')
@@ -77,11 +76,11 @@ test('admin users can create a new admin user', function () {
         ->assertRedirect(route('admin.system.users.index'));
 
     $this->assertDatabaseHas('users', [
-        'email' => 'newadmin@example.com',
+        'name' => 'New Admin User',
         'username' => 'newadmin',
     ]);
 
-    $newUser = User::where('email', 'newadmin@example.com')->first();
+    $newUser = User::where('username', 'newadmin')->first();
     $this->assertDatabaseHas('admin_users', [
         'user_id' => $newUser->id,
     ]);
@@ -94,7 +93,6 @@ test('admin users can create a new inventory manager user', function () {
     Livewire::test('admin.system.users.create')
         ->set('name', 'New Manager')
         ->set('username', 'newmanager')
-        ->set('email', 'manager@example.com')
         ->set('password', 'Password123!')
         ->set('password_confirmation', 'Password123!')
         ->set('userType', 'inventory_manager')
@@ -103,11 +101,11 @@ test('admin users can create a new inventory manager user', function () {
         ->assertRedirect(route('admin.system.users.index'));
 
     $this->assertDatabaseHas('users', [
-        'email' => 'manager@example.com',
+        'name' => 'New Manager',
         'username' => 'newmanager',
     ]);
 
-    $newUser = User::where('email', 'manager@example.com')->first();
+    $newUser = User::where('username', 'newmanager')->first();
     $this->assertDatabaseHas('division_inventory_managers', [
         'user_id' => $newUser->id,
         'division_id' => $division->id,
@@ -120,11 +118,10 @@ test('admin users cannot create a user with invalid data', function () {
     Livewire::test('admin.system.users.create')
         ->set('name', '')
         ->set('username', '')
-        ->set('email', 'not-an-email')
         ->set('password', 'short')
         ->set('password_confirmation', 'not-matching')
         ->call('store')
-        ->assertHasErrors(['name', 'username', 'email', 'password']);
+        ->assertHasErrors(['name', 'username', 'password']);
 });
 
 test('regular users cannot access admin user management', function () {

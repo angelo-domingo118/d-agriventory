@@ -14,7 +14,6 @@ use Livewire\Attributes\Layout;
 new #[Layout('components.layouts.app')] class extends Component {
     public User $user;
     public string $name = '';
-    public string $email = '';
     public string $username = '';
     public ?string $password = null;
     public ?string $password_confirmation = null;
@@ -26,7 +25,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $this->user = $user->load(['adminUser', 'divisionInventoryManager']);
         $this->name = $user->name;
-        $this->email = $user->email;
         $this->username = $user->username;
         $this->divisions = Division::all(['id', 'name']);
 
@@ -44,7 +42,6 @@ new #[Layout('components.layouts.app')] class extends Component {
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user->id)],
             'username' => ['required', 'string', 'max:255', Rule::unique(User::class)->ignore($this->user->id)],
             'userType' => ['required', 'string', Rule::in(Role::values())],
             'divisionId' => ['required_if:userType,' . Role::INVENTORY_MANAGER->value, 'nullable', 'exists:divisions,id'],
@@ -58,7 +55,6 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         $this->user->update([
             'name' => $validated['name'],
-            'email' => $validated['email'],
             'username' => $validated['username'],
         ]);
 
@@ -118,10 +114,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <flux:input wire:model="username" id="username" label="Username" required />
             </div>
 
-            {{-- Email --}}
-            <div class="mt-6">
-                <flux:input wire:model="email" id="email" type="email" label="Email" required />
-            </div>
+
 
             {{-- Password --}}
             <div class="mt-6">

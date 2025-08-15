@@ -68,7 +68,6 @@ new #[Layout('components.layouts.app')] class extends Component {
             ->when($this->search, function ($query) {
                 $query->where(function ($query) {
                     $query->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%')
                         ->orWhere('username', 'like', '%' . $this->search . '%');
                 });
             })
@@ -90,7 +89,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     showFilters: @entangle('showFilters'),
     ...tableSettings('users_settings')
 }">
-    <div x-data="tableResizer('users_column_widths', { name: 400, email: 350, role: 150, status: 150, actions: 120 })">
+    <div x-data="tableResizer('users_column_widths', { name: 400, role: 150, status: 150, actions: 120 })">
         <div class="flex items-center justify-between mb-4">
             <!-- Breadcrumbs as Title -->
             <div>
@@ -343,17 +342,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
-                                    <th scope="col" :style="`width: ${columnWidths.email}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                                        <div wire:click="sortBy('email')" class="flex items-center cursor-pointer">
-                                            Email
-                                            @if($sortField === 'email')
-                                                @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
-                                            @else
-                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-                                            @endif
-                                        </div>
-                                        <div @mousedown="startResize($event, 'email')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
-                                    </th>
+
                                     <th scope="col" :style="`width: ${columnWidths.role}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         Role
                                         <div @mousedown="startResize($event, 'role')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
@@ -383,10 +372,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="{{ $user->email }}">
-                                            <div class="text-stone-900 dark:text-stone-100">{{ $user->email }}</div>
-                                            <div class="text-stone-500 dark:text-stone-400">{{ $user->email_verified_at ? __('Verified') : __('Not Verified') }}</div>
-                                        </td>
+
                                         <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="@if ($user->adminUser){{ ucfirst($user->adminUser->role) }}@elseif ($user->divisionInventoryManager){{ __('Inventory Manager') }}@else{{ __('Regular User') }}@endif">
                                             @if ($user->adminUser)
                                                 <span class="inline-flex rounded-full bg-blue-100 px-2 text-xs font-semibold leading-5 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
@@ -439,7 +425,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                        <td colspan="4" class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             {{ __('No users found.') }}
                                         </td>
                                     </tr>
