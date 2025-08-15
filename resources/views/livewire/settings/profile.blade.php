@@ -78,10 +78,11 @@ new class extends Component {
                     <div class="space-y-2">
                         <flux:input 
                             wire:model="username" 
-                            :label="__('Username')" 
+                            :label="__('Username (Login ID)')" 
                             type="text" 
                             required 
                             autocomplete="username"
+                            hint="This is used to log into the system"
                             class="transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
                         />
                     </div>

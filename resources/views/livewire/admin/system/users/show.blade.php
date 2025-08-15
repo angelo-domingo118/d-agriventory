@@ -76,7 +76,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </div>
                     <div class="ml-4">
                         <h3 class="text-lg leading-6 font-medium text-stone-900 dark:text-stone-100">{{ $user->name }}</h3>
-                        <p class="text-sm text-stone-500 dark:text-stone-400">
+                        <p class="text-sm font-mono font-medium text-blue-600 dark:text-blue-400">
                             {{ $user->username }}
                         </p>
                     </div>
@@ -84,9 +84,14 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
             <div class="border-t border-stone-200 dark:border-stone-700">
                 <dl>
-                    <div class="bg-white dark:bg-stone-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                        <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">{{ __('Username') }}</dt>
-                        <dd class="mt-1 text-sm text-stone-900 dark:text-stone-100 sm:mt-0 sm:col-span-2">{{ $user->username }}</dd>
+                    <div class="bg-white dark:bg-stone-900 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 border-l-4 border-blue-500">
+                        <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">{{ __('Username (Login ID)') }}</dt>
+                        <dd class="mt-1 text-sm font-mono font-medium text-blue-600 dark:text-blue-400 sm:mt-0 sm:col-span-2">
+                            {{ $user->username }}
+                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                                Primary Login
+                            </span>
+                        </dd>
                     </div>
                     <div class="bg-stone-50 dark:bg-stone-800/50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-stone-500 dark:text-stone-400">{{ __('User Type') }}</dt>

@@ -89,7 +89,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     showFilters: @entangle('showFilters'),
     ...tableSettings('users_settings')
 }">
-    <div x-data="tableResizer('users_column_widths', { name: 400, role: 150, status: 150, actions: 120 })">
+    <div x-data="tableResizer('users_column_widths', { name: 300, username: 200, role: 150, status: 150, actions: 120 })">
         <div class="flex items-center justify-between mb-4">
             <!-- Breadcrumbs as Title -->
             <div>
@@ -342,6 +342,17 @@ new #[Layout('components.layouts.app')] class extends Component {
                                         </div>
                                         <div @mousedown="startResize($event, 'name')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
                                     </th>
+                                    <th scope="col" :style="`width: ${columnWidths.username}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                                        <div wire:click="sortBy('username')" class="flex items-center cursor-pointer">
+                                            Username
+                                            @if($sortField === 'username')
+                                                @if($sortDirection === 'asc') <x-flux::icon.chevron-up class="ml-2 h-4 w-4" /> @else <x-flux::icon.chevron-down class="ml-2 h-4 w-4" /> @endif
+                                            @else
+                                                <x-flux::icon.chevrons-up-down class="ml-2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                                            @endif
+                                        </div>
+                                        <div @mousedown="startResize($event, 'username')" class="absolute top-0 right-0 z-10 w-1.5 h-full cursor-col-resize select-none"></div>
+                                    </th>
 
                                     <th scope="col" :style="`width: ${columnWidths.role}px`" class="relative {{ $densityClasses['table_header'] }} text-left {{ $densityClasses['text_header'] }} font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                                         Role
@@ -359,7 +370,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <tbody class="divide-y divide-stone-200 bg-white dark:divide-stone-800 dark:bg-stone-900">
                                 @forelse ($users as $user)
                                     <tr wire:key="{{ $user->id }}" class="divide-x divide-stone-200 dark:divide-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }}" title="{{ $user->name }} ({{ $user->username }})">
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }}" title="{{ $user->name }}">
                                             <div class="flex items-center">
                                                 <div class="h-10 w-10 flex-shrink-0">
                                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-700">
@@ -368,9 +379,11 @@ new #[Layout('components.layouts.app')] class extends Component {
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="font-medium text-stone-900 dark:text-stone-100">{{ $user->name }}</div>
-                                                    <div class="text-stone-500 dark:text-stone-400">{{ $user->username }}</div>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-900 dark:text-stone-100" title="{{ $user->username }}">
+                                            <div class="font-mono font-medium">{{ $user->username }}</div>
                                         </td>
 
                                         <td class="{{ $densityClasses['text_overflow'] }} {{ $densityClasses['table_cell'] }} {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400" title="@if ($user->adminUser){{ ucfirst($user->adminUser->role) }}@elseif ($user->divisionInventoryManager){{ __('Inventory Manager') }}@else{{ __('Regular User') }}@endif">
@@ -425,7 +438,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
+                                        <td colspan="5" class="whitespace-nowrap {{ $densityClasses['table_cell'] }} text-center {{ $densityClasses['text_base'] }} text-stone-500 dark:text-stone-400">
                                             {{ __('No users found.') }}
                                         </td>
                                     </tr>

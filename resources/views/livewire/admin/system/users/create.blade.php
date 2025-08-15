@@ -74,7 +74,7 @@ new #[Layout('components.layouts.app')] class extends Component {
 
             {{-- Username --}}
             <div class="mt-6">
-                <flux:input wire:model="username" id="username" label="Username" required />
+                <flux:input wire:model="username" id="username" label="Username (Login ID)" hint="This will be used to log into the system" required />
             </div>
 
 
