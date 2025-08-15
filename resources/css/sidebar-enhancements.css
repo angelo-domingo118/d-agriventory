@@ -159,33 +159,41 @@
 
 /* Active navigation item text colors - overrides Flux defaults */
 .nav-active-main {
-    color: #16a34a !important; /* green-600 */
+    color: #16a34a !important;
+    /* green-600 */
 }
 
 .dark .nav-active-main {
-    color: #4ade80 !important; /* green-400 */
+    color: #4ade80 !important;
+    /* green-400 */
 }
 
 .nav-active-inventory {
-    color: #2563eb !important; /* blue-600 */
+    color: #2563eb !important;
+    /* blue-600 */
 }
 
 .dark .nav-active-inventory {
-    color: #60a5fa !important; /* blue-400 */
+    color: #60a5fa !important;
+    /* blue-400 */
 }
 
 .nav-active-data {
-    color: #9333ea !important; /* purple-600 */
+    color: #9333ea !important;
+    /* purple-600 */
 }
 
 .dark .nav-active-data {
-    color: #a855f7 !important; /* purple-400 */
+    color: #a855f7 !important;
+    /* purple-400 */
 }
 
 .nav-active-system {
-    color: #dc2626 !important; /* red-600 */
+    color: #dc2626 !important;
+    /* red-600 */
 }
 
 .dark .nav-active-system {
-    color: #f87171 !important; /* red-400 */
+    color: #f87171 !important;
+    /* red-400 */
 }
