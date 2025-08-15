@@ -5,7 +5,7 @@
         :href="route('admin.dashboard')" 
         :current="request()->routeIs('admin.dashboard')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-stone-100/80 hover:scale-[1.02] dark:hover:bg-stone-800/60 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-stone-100/80 hover:scale-[1.02] dark:hover:bg-stone-800/60 group {{ request()->routeIs('admin.dashboard') ? 'nav-active-main' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Dashboard') }}
@@ -20,7 +20,7 @@
         :href="route('admin.main.reports.index')" 
         :current="request()->routeIs('admin.main.reports.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-stone-100/80 hover:scale-[1.02] dark:hover:bg-stone-800/60 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-stone-100/80 hover:scale-[1.02] dark:hover:bg-stone-800/60 group {{ request()->routeIs('admin.main.reports.*') ? 'nav-active-main' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Report Generation') }}
@@ -38,7 +38,7 @@
         :href="route('admin.inventory.ics.index')" 
         :current="request()->routeIs('admin.inventory.ics.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group {{ request()->routeIs('admin.inventory.ics.*') ? 'nav-active-inventory' : '' }}"
     >
         <span class="flex items-center">
             {{ __('ICS Management') }}
@@ -53,7 +53,7 @@
         :href="route('admin.inventory.par.index')" 
         :current="request()->routeIs('admin.inventory.par.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group {{ request()->routeIs('admin.inventory.par.*') ? 'nav-active-inventory' : '' }}"
     >
         <span class="flex items-center">
             {{ __('PAR Management') }}
@@ -68,7 +68,7 @@
         :href="route('admin.inventory.idr.index')" 
         :current="request()->routeIs('admin.inventory.idr.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group {{ request()->routeIs('admin.inventory.idr.*') ? 'nav-active-inventory' : '' }}"
     >
         <span class="flex items-center">
             {{ __('IDR Management') }}
@@ -83,7 +83,7 @@
         :href="route('admin.inventory.consumables.index')" 
         :current="request()->routeIs('admin.inventory.consumables.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-blue-50/80 hover:scale-[1.02] dark:hover:bg-blue-900/20 group {{ request()->routeIs('admin.inventory.consumables.*') ? 'nav-active-inventory' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Consumables') }}
@@ -101,7 +101,7 @@
         :href="route('admin.data.items-and-categories')" 
         :current="request()->routeIs('admin.data.items-and-categories*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group {{ request()->routeIs('admin.data.items-and-categories*') ? 'nav-active-data' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Items & Categories') }}
@@ -116,7 +116,7 @@
         :href="route('admin.data.employees-and-divisions')" 
         :current="request()->routeIs('admin.data.employees-and-divisions*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group {{ request()->routeIs('admin.data.employees-and-divisions*') ? 'nav-active-data' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Employees & Divisions') }}
@@ -131,7 +131,7 @@
         :href="route('admin.data.suppliers-and-contracts')" 
         :current="request()->routeIs('admin.data.suppliers-and-contracts*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-purple-50/80 hover:scale-[1.02] dark:hover:bg-purple-900/20 group {{ request()->routeIs('admin.data.suppliers-and-contracts*') ? 'nav-active-data' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Suppliers & Contracts') }}
@@ -149,7 +149,7 @@
         :href="route('admin.system.audit-logs.index')" 
         :current="request()->routeIs('admin.system.audit-logs.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-red-50/80 hover:scale-[1.02] dark:hover:bg-red-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-red-50/80 hover:scale-[1.02] dark:hover:bg-red-900/20 group {{ request()->routeIs('admin.system.audit-logs.*') ? 'nav-active-system' : '' }}"
     >
         <span class="flex items-center">
             {{ __('Audit Logs') }}
@@ -164,7 +164,7 @@
         :href="route('admin.system.users.index')" 
         :current="request()->routeIs('admin.system.users.*')" 
         wire:navigate 
-        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform] duration-200 ease-in-out hover:bg-red-50/80 hover:scale-[1.02] dark:hover:bg-red-900/20 group"
+        class="relative mb-2 rounded-lg px-3 py-3 text-sm font-medium transition-[background-color,transform,color] duration-200 ease-in-out hover:bg-red-50/80 hover:scale-[1.02] dark:hover:bg-red-900/20 group {{ request()->routeIs('admin.system.users.*') ? 'nav-active-system' : '' }}"
     >
         <span class="flex items-center">
             {{ __('User Management') }}
