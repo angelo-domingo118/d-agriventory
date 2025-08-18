@@ -90,7 +90,6 @@ class AuditLogSeeder extends Seeder
         $baseData = match ($table) {
             'users' => [
                 'name' => $type === 'old' ? 'John Doe' : 'John Updated',
-                'email' => $type === 'old' ? 'john@example.com' : 'john.updated@example.com',
                 'username' => $type === 'old' ? 'jdoe' : 'john_doe',
             ],
             'employees' => [

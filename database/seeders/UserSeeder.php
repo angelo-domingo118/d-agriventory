@@ -24,7 +24,6 @@ class UserSeeder extends Seeder
                 $this->createInventoryManager(
                     "{$division->code} Inventory Manager",
                     $username,
-                    "{$username}@example.com",
                     $division->id
                 );
                 $this->command->info("  Created manager '{$username}' for division: {$division->name}");
@@ -37,15 +36,13 @@ class UserSeeder extends Seeder
     /**
      * Helper function to create an inventory manager.
      */
-    private function createInventoryManager(string $name, string $username, string $email, int $divisionId): void
+    private function createInventoryManager(string $name, string $username, int $divisionId): void
     {
         $user = User::firstOrCreate(
             ['username' => $username],
             [
                 'name' => $name,
-                'email' => $email,
                 'password' => Hash::make('password'),
-                'email_verified_at' => now(),
             ]
         );
 

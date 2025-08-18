@@ -29,9 +29,7 @@ class DivisionInventoryManagerSeeder extends Seeder
             $user = User::create([
                 'name' => $division->name.' Inventory Manager',
                 'username' => 'manager_'.strtolower($division->code),
-                'email' => 'manager.'.strtolower($division->code).'@example.com',
                 'password' => Hash::make('password'),
-                'email_verified_at' => now(),
             ]);
 
             // Create division inventory manager record
